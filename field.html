@@ -853,7 +853,8 @@ async function createSession(location, sessionType) {
       body: JSON.stringify({ fields: {
         'LOCATION':       location,
         'SESSION TYPE':   sessionType,
-        'SESSION STATUS': 'ACTIVE'
+        'SESSION STATUS': 'ACTIVE',
+        'DATE':           new Date().toLocaleDateString('en-CA')
       }})
     });
     if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }

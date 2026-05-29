@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Last Laugh Vintage — General Reselling Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+
+/* ─── DESIGN TOKENS ────────────────────────────────────────────────────────── */
+:root {
+  --bg:           #1a1818;
+  --bg-raised:    #211f1f;
+  --bg-deep:      #111010;
+  --bg-hover:     #262323;
+  --border:       #2e2c2c;
+  --border-light: #3a3636;
+
+  --grape:        #654597;
+  --grape-dim:    #4a3370;
+  --grape-bg:     #2a1f35;
+  --lavender:     #AB81CD;
+  --mauve:        #E2ADF2;
+  --silver:       #BDBBB0;
+  --olive:        #8A897C;
+  --dim:          #4a4846;
+  --ghost:        #2e2c2c;
+
+  --green:        #4a8a4a;
+  --green-bg:     #1a2a1a;
+  --amber:        #8a6a1a;
+  --amber-bg:     #2a2010;
+  --red:          #8a3a3a;
+  --red-bg:       #2a1010;
+
+  --font-display: 'Oswald', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --font-body:    'Barlow', sans-serif;
+
+  --radius:       8px;
+  --radius-lg:    12px;
+  --radius-xl:    16px;
+}
+
+/* ─── RESET ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+
+/* ─── LAYOUT ────────────────────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── TOP BAR ───────────────────────────────────────────────────────────────── */
+#topbar {
+  flex-shrink: 0;
+  height: 48px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.topbar-wordmark {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lavender);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── MODE SWITCHER ─────────────────────────────────────────────────────────── */
+#mode-switcher {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.mode-btn i { font-size: 14px; }
+.mode-btn:hover { color: var(--silver); }
+.mode-btn.active {
+  background: var(--grape-bg);
+  color: var(--lavender);
+  border: 1px solid var(--grape-dim);
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--dim);
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.topbar-icon-btn:hover {
+  background: var(--bg-raised);
+  border-color: var(--border);
+  color: var(--silver);
+}
+.topbar-icon-btn.active {
+  background: var(--grape-bg);
+  border-color: var(--grape-dim);
+  color: var(--lavender);
+}
+
+/* ─── MAIN CONTENT ──────────────────────────────────────────────────────────── */
+#main {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: none;
+}
+.view.active { display: flex; }
+
+/* ─── FIELD MODE ────────────────────────────────────────────────────────────── */
+#view-field {
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 16px 0 80px;
+}
+
+.field-inner {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Snap zone */
+.snap-zone {
+  background: var(--bg-deep);
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.snap-zone:hover {
+  border-color: var(--grape);
+  background: var(--grape-bg);
+}
+.snap-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--grape);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: var(--mauve);
+  transition: background 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+.snap-zone:hover .snap-btn { background: var(--grape-dim); transform: scale(1.05); }
+.snap-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--silver);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.snap-sub {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
+.snap-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.snap-alt-btn {
+  flex: 1;
+  padding: 7px 0;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--olive);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.snap-alt-btn:hover { border-color: var(--border-light); color: var(--silver); }
+
+/* Queue */
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.queue-label {
+  font-size: 10px;
+  color: var(--olive);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.queue-count {
+  font-size: 10px;
+  background: var(--grape);
+  color: var(--mauve);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.queue-empty {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* Queue card */
+.queue-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.queue-card.processing {
+  border-color: var(--grape-dim);
+  opacity: 0.7;
+}
+.card-top {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  align-items: flex-start;
+}
+.card-thumb {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius);
+  background: var(--grape-bg);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--grape);
+  overflow: hidden;
+}
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-info { flex: 1; min-width: 0; }
+.card-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--silver);
+  line-height: 1.3;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-cat {
+  font-size: 10px;
+  color: var(--grape);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comp-range {
+  font-size: 12px;
+  color: var(--lavender);
+}
+.comp-sold {
+  font-size: 10px;
+  color: var(--dim);
+}
+.comp-link {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--grape);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--grape-dim);
+  transition: all 0.15s;
+}
+.comp-link:hover { background: var(--grape-bg); color: var(--lavender); }
+.comp-link i { font-size: 11px; }
+
+.card-divider { height: 1px; background: var(--border); }
+
+.card-actions { display: flex; }
+.card-btn {
+  flex: 1;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.card-btn-pass { color: var(--dim); border-right: 1px solid var(--border); }
+.card-btn-pass:hover { color: var(--olive); background: var(--bg-hover); }
+.card-btn-buy { color: var(--lavender); }
+.card-btn-buy:hover { background: var(--grape-bg); }
+
+.processing-bar {
+  padding: 8px 12px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--grape);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dots { display: flex; gap: 3px; }
+.dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--grape);
+  animation: blink 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ─── STUDIO MODE ───────────────────────────────────────────────────────────── */
+#view-studio {
+  display: grid;
+  grid-template-columns: 220px 1fr 210px;
+}
+
+.studio-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+.studio-col:last-child { border-right: none; }
+
+.col-header {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-deep);
+}
+.col-label {
+  font-size: 9px;
+  color: var(--olive);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+/* Studio left — item list */
+.studio-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.1s;
+  margin-bottom: 2px;
+}
+.studio-item:hover { background: var(--bg-hover); }
+.studio-item.active { background: var(--grape-bg); }
+.studio-item-thumb {
+  width: 34px; height: 34px;
+  border-radius: 6px;
+  background: var(--grape-bg);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--grape);
+}
+.studio-item-info { flex: 1; min-width: 0; }
+.studio-item-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--silver);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.studio-item-meta {
+  font-size: 9px;
+  color: var(--dim);
+  margin-top: 1px;
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.sourced   { background: var(--dim); }
+.status-dot.progress  { background: var(--amber); }
+.status-dot.listed    { background: var(--grape); }
+.status-dot.sold      { background: var(--green); }
+
+/* Studio center — active panel */
+.studio-center { background: var(--bg); }
+
+.center-item-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-deep);
+}
+.center-item-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--silver);
+  line-height: 1.2;
+}
+.center-item-sub {
+  font-size: 10px;
+  color: var(--grape);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.func-block {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.func-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-deep);
+}
+.func-header i { font-size: 14px; color: var(--grape); }
+.func-label {
+  font-size: 10px;
+  color: var(--olive);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.func-body { padding: 12px; }
+
+/* Photo grid */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.photo-slot {
+  aspect-ratio: 1;
+  background: var(--bg-deep);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--ghost);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.photo-slot:hover { border-color: var(--grape); color: var(--grape); }
+.photo-slot.filled { background: var(--grape-bg); border: 1px solid var(--grape-dim); color: var(--grape); }
+
+/* Platform tabs */
+.platform-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.platform-tab {
+  flex: 1;
+  padding: 5px 0;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  text-align: center;
+}
+.platform-tab:hover { color: var(--silver); }
+.platform-tab.active {
+  background: var(--grape-bg);
+  border-color: var(--grape-dim);
+  color: var(--lavender);
+}
+
+.listing-textarea {
+  width: 100%;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 10px;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.listing-textarea:focus { border-color: var(--grape); }
+
+/* Pricing */
+.price-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.price-field-label {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.price-input {
+  width: 100%;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--lavender);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.price-input:focus { border-color: var(--grape); }
+.price-note {
+  font-size: 9px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+/* Studio right — live record */
+.record-photo {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--ghost);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.record-fields { margin-bottom: 14px; }
+.record-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ghost);
+  gap: 8px;
+}
+.record-row:last-child { border-bottom: none; }
+.record-key {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.record-val {
+  font-size: 10px;
+  color: var(--olive);
+  text-align: right;
+  line-height: 1.3;
+}
+.record-val.accent { color: var(--lavender); }
+
+.checklist-section { margin-bottom: 14px; }
+.checklist-title {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.check-row:hover { border-color: var(--border-light); }
+.check-row.checked { background: var(--green-bg); border-color: var(--green); }
+.check-icon { font-size: 14px; color: var(--ghost); }
+.check-row.checked .check-icon { color: var(--green); }
+.check-platform { flex: 1; font-size: 10px; color: var(--dim); }
+.check-row.checked .check-platform { color: var(--green); }
+.check-url { font-size: 9px; color: var(--ghost); max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sop-section {}
+.sop-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  color: var(--dim);
+  padding: 3px 0;
+}
+.sop-item i { font-size: 12px; color: var(--ghost); }
+.sop-item.done { color: var(--green); }
+.sop-item.done i { color: var(--green); }
+
+/* ─── INVENTORY VIEW ────────────────────────────────────────────────────────── */
+#view-inventory {
+  flex-direction: column;
+  overflow: hidden;
+}
+.inventory-toolbar {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-deep);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--grape); }
+.search-input::placeholder { color: var(--dim); }
+.filter-pill {
+  padding: 6px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-pill:hover { border-color: var(--border-light); color: var(--silver); }
+.filter-pill.active { background: var(--grape-bg); border-color: var(--grape-dim); color: var(--lavender); }
+.inventory-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+.inv-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.inv-card:hover { border-color: var(--grape-dim); transform: translateY(-1px); }
+.inv-card-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--bg-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--ghost);
+}
+.inv-card-body { padding: 10px; }
+.inv-card-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inv-card-meta { font-size: 10px; color: var(--dim); }
+.inv-card-footer {
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.inv-status-badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.badge-sourced   { background: var(--bg-deep); color: var(--dim); border: 1px solid var(--border); }
+.badge-progress  { background: var(--amber-bg); color: #c8a84a; border: 1px solid var(--amber); }
+.badge-listed    { background: var(--grape-bg); color: var(--lavender); border: 1px solid var(--grape-dim); }
+.badge-sold      { background: var(--green-bg); color: #7acc7a; border: 1px solid var(--green); }
+.inv-price { font-size: 11px; color: var(--lavender); }
+
+/* ─── DASHBOARD VIEW ────────────────────────────────────────────────────────── */
+#view-dashboard {
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px;
+  gap: 20px;
+  align-content: start;
+}
+.dash-section-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--olive);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.stat-label {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--lavender);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-sub { font-size: 10px; color: var(--dim); }
+
+.sessions-list { display: flex; flex-direction: column; gap: 8px; }
+.session-row {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.session-row:hover { border-color: var(--border-light); }
+.session-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--silver);
+  flex: 1;
+}
+.session-meta { font-size: 10px; color: var(--dim); }
+.session-stat { text-align: right; }
+.session-stat-val { font-size: 13px; color: var(--lavender); }
+.session-stat-label { font-size: 9px; color: var(--dim); letter-spacing: 0.04em; }
+
+/* ─── SETTINGS PANEL ────────────────────────────────────────────────────────── */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 9, 9, 0.7);
+  z-index: 200;
+  display: none;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 56px 12px 12px;
+}
+#settings-overlay.open { display: flex; }
+.settings-panel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  width: 340px;
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.settings-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 4px;
+}
+.settings-group { display: flex; flex-direction: column; gap: 10px; }
+.settings-group-label {
+  font-size: 9px;
+  color: var(--olive);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-field { display: flex; flex-direction: column; gap: 4px; }
+.settings-label { font-size: 10px; color: var(--dim); letter-spacing: 0.04em; }
+.settings-input {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.settings-input:focus { border-color: var(--grape); }
+.settings-save-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: var(--grape);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--mauve);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+.settings-save-btn:hover { background: var(--grape-dim); }
+.settings-status {
+  font-size: 10px;
+  text-align: center;
+  color: var(--green);
+  min-height: 16px;
+}
+
+/* ─── BUY SHEET ─────────────────────────────────────────────────────────────── */
+#buy-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 9, 9, 0.8);
+  z-index: 300;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+#buy-sheet-overlay.open { display: flex; }
+.buy-sheet {
+  background: var(--bg-raised);
+  border-top: 1px solid var(--border-light);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 16px 20px 32px;
+}
+.sheet-handle {
+  width: 36px; height: 3px;
+  background: var(--border-light);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.sheet-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 2px;
+}
+.sheet-sub {
+  font-size: 10px;
+  color: var(--grape);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 18px;
+}
+.sheet-field { margin-bottom: 14px; }
+.sheet-field-label {
+  font-size: 10px;
+  color: var(--olive);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.sheet-input {
+  width: 100%;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.sheet-input:focus { border-color: var(--grape); }
+.cond-row { display: flex; gap: 6px; }
+.cond-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  text-align: center;
+}
+.cond-btn:hover { border-color: var(--border-light); color: var(--olive); }
+.cond-btn.active { background: var(--grape-bg); border-color: var(--grape); color: var(--lavender); }
+.sheet-confirm-btn {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--grape);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--mauve);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  transition: background 0.15s;
+}
+.sheet-confirm-btn:hover { background: var(--grape-dim); }
+.sheet-cancel-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  transition: color 0.15s;
+}
+.sheet-cancel-btn:hover { color: var(--olive); }
+
+/* ─── TOAST ─────────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--silver);
+  z-index: 500;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--green); color: #7acc7a; }
+#toast.error { border-color: var(--red); color: #ca7a7a; }
+
+/* ─── UTILITIES ─────────────────────────────────────────────────────────────── */
+.placeholder-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--dim);
+}
+.placeholder-view i { font-size: 48px; color: var(--ghost); }
+.placeholder-view h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--olive);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.placeholder-view p { font-size: 11px; color: var(--dim); text-align: center; max-width: 280px; line-height: 1.6; }
+
+.no-item-selected {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--dim);
+}
+.no-item-selected i { font-size: 36px; color: var(--ghost); }
+.no-item-selected p { font-size: 11px; text-align: center; color: var(--dim); }
+
+.btn-primary {
+  padding: 8px 16px;
+  background: var(--grape);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--mauve);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--grape-dim); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-wordmark">Last Laugh Vintage</span>
+    </div>
+    <div class="topbar-divider"></div>
+
+    <div id="mode-switcher">
+      <button class="mode-btn active" data-view="field" onclick="switchView('field')">
+        <i class="ti ti-camera"></i> Field
+      </button>
+      <button class="mode-btn" data-view="studio" onclick="switchView('studio')">
+        <i class="ti ti-layout-columns"></i> Studio
+      </button>
+      <button class="mode-btn" data-view="inventory" onclick="switchView('inventory')">
+        <i class="ti ti-package"></i> Inventory
+      </button>
+      <button class="mode-btn" data-view="dashboard" onclick="switchView('dashboard')">
+        <i class="ti ti-chart-bar"></i> Dashboard
+      </button>
+    </div>
+
+    <div class="topbar-right">
+      <button class="topbar-icon-btn" onclick="toggleSettings()" id="settings-btn" title="Settings">
+        <i class="ti ti-settings"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- FIELD MODE -->
+    <div class="view active" id="view-field">
+      <div class="field-inner">
+
+        <!-- Snap zone -->
+        <div class="snap-zone" onclick="handleSnap()">
+          <button class="snap-btn"><i class="ti ti-camera"></i></button>
+          <span class="snap-label">Snap or Scan</span>
+          <span class="snap-sub">Photo · Barcode · Description</span>
+          <div class="snap-actions" onclick="event.stopPropagation()">
+            <button class="snap-alt-btn" onclick="handleBarcode()">
+              <i class="ti ti-barcode" style="font-size:13px;"></i> Barcode
+            </button>
+            <button class="snap-alt-btn" onclick="handleManual()">
+              <i class="ti ti-keyboard" style="font-size:13px;"></i> Manual
+            </button>
+          </div>
+        </div>
+
+        <!-- Queue -->
+        <div class="queue-header">
+          <span class="queue-label">Queue</span>
+          <span class="queue-count" id="queue-count">3 pending</span>
+        </div>
+
+        <div id="queue-list">
+
+          <!-- Card 1 — ready -->
+          <div class="queue-card" id="qcard-1">
+            <div class="card-top">
+              <div class="card-thumb"><i class="ti ti-device-gamepad-2"></i></div>
+              <div class="card-info">
+                <div class="card-name">Nintendo Game Boy, Original</div>
+                <div class="card-cat">Vintage Electronics</div>
+                <div class="comp-row">
+                  <span class="comp-range">$45 – $120</span>
+                  <span class="comp-sold">34 sold</span>
+                  <a class="comp-link" href="https://www.ebay.com/sch/i.html?_nkw=nintendo+game+boy+original&LH_Sold=1&LH_Complete=1" target="_blank">
+                    eBay <i class="ti ti-external-link"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="card-btn card-btn-pass" onclick="passCard('qcard-1')">Pass</button>
+              <button class="card-btn card-btn-buy" onclick="openBuySheet('qcard-1', 'Nintendo Game Boy, Original', 'Vintage Electronics')">Buy →</button>
+            </div>
+          </div>
+
+          <!-- Card 2 — ready -->
+          <div class="queue-card" id="qcard-2" style="margin-top:10px;">
+            <div class="card-top">
+              <div class="card-thumb" style="background:#1f2a1f;color:#3a6a3a;"><i class="ti ti-photo"></i></div>
+              <div class="card-info">
+                <div class="card-name">Star Wars: A New Hope Poster</div>
+                <div class="card-cat">Movie Memorabilia</div>
+                <div class="comp-row">
+                  <span class="comp-range">$18 – $65</span>
+                  <span class="comp-sold">12 sold</span>
+                  <a class="comp-link" href="https://www.ebay.com/sch/i.html?_nkw=star+wars+new+hope+poster&LH_Sold=1&LH_Complete=1" target="_blank">
+                    eBay <i class="ti ti-external-link"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="card-btn card-btn-pass" onclick="passCard('qcard-2')">Pass</button>
+              <button class="card-btn card-btn-buy" onclick="openBuySheet('qcard-2', 'Star Wars: A New Hope Poster', 'Movie Memorabilia')">Buy →</button>
+            </div>
+          </div>
+
+          <!-- Card 3 — processing -->
+          <div class="queue-card processing" id="qcard-3" style="margin-top:10px;">
+            <div class="card-top">
+              <div class="card-thumb" style="color:var(--dim);"><i class="ti ti-loader"></i></div>
+              <div class="card-info">
+                <div class="card-name" style="color:var(--dim);">Identifying item...</div>
+                <div class="card-cat" style="color:var(--ghost);">Checking comps</div>
+                <div class="comp-row">
+                  <span style="font-size:10px;color:var(--ghost);">Pulling eBay sold data</span>
+                </div>
+              </div>
+            </div>
+            <div class="processing-bar">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+              Processing
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDIO MODE -->
+    <div class="view" id="view-studio">
+
+      <!-- Left: item list -->
+      <div class="studio-col" style="min-width:220px;max-width:220px;">
+        <div class="col-header">
+          <span class="col-label">Haul · 4 items</span>
+          <span style="font-size:9px;color:var(--dim);">May 27</span>
+        </div>
+        <div class="col-body" style="padding:8px;">
+          <div class="studio-item active" onclick="selectStudioItem(this, 'item-gameboy')">
+            <div class="studio-item-thumb"><i class="ti ti-device-gamepad-2"></i></div>
+            <div class="studio-item-info">
+              <div class="studio-item-name">Game Boy Original</div>
+              <div class="studio-item-meta">$8 COG · Very Good</div>
+            </div>
+            <div class="status-dot progress"></div>
+          </div>
+          <div class="studio-item" onclick="selectStudioItem(this, 'item-poster')">
+            <div class="studio-item-thumb" style="background:#1f2a1f;color:#3a6a3a;"><i class="ti ti-photo"></i></div>
+            <div class="studio-item-info">
+              <div class="studio-item-name">Star Wars Poster</div>
+              <div class="studio-item-meta">$3 COG · Good</div>
+            </div>
+            <div class="status-dot sourced"></div>
+          </div>
+          <div class="studio-item" onclick="selectStudioItem(this, 'item-lp')">
+            <div class="studio-item-thumb" style="background:#2a2015;color:#6a5a1a;"><i class="ti ti-music"></i></div>
+            <div class="studio-item-info">
+              <div class="studio-item-name">Fleetwood Mac LP</div>
+              <div class="studio-item-meta">$5 COG · Mint</div>
+            </div>
+            <div class="status-dot listed"></div>
+          </div>
+          <div class="studio-item" onclick="selectStudioItem(this, 'item-optimus')">
+            <div class="studio-item-thumb" style="background:#1f1f2a;color:#3a3a6a;"><i class="ti ti-robot"></i></div>
+            <div class="studio-item-info">
+              <div class="studio-item-name">Optimus Prime Figure</div>
+              <div class="studio-item-meta">$12 COG · Good</div>
+            </div>
+            <div class="status-dot sourced"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: active functions -->
+      <div class="studio-col studio-center" id="studio-center" style="flex:1;">
+        <div id="center-item-header" class="center-item-header">
+          <div class="center-item-title">Nintendo Game Boy, Original</div>
+          <div class="center-item-sub">Vintage Electronics · Very Good</div>
+        </div>
+        <div class="col-body" id="center-body">
+
+          <!-- Photos -->
+          <div class="func-block">
+            <div class="func-header">
+              <i class="ti ti-camera"></i>
+              <span class="func-label">Photos</span>
+            </div>
+            <div class="func-body">
+              <div class="photo-grid">
+                <div class="photo-slot filled"><i class="ti ti-check"></i></div>
+                <div class="photo-slot filled"><i class="ti ti-check"></i></div>
+                <div class="photo-slot"><i class="ti ti-plus"></i></div>
+                <div class="photo-slot"><i class="ti ti-plus"></i></div>
+              </div>
+              <button class="snap-alt-btn" style="width:100%;">
+                <i class="ti ti-upload" style="font-size:13px;"></i> Upload from desktop
+              </button>
+            </div>
+          </div>
+
+          <!-- Listing copy -->
+          <div class="func-block">
+            <div class="func-header">
+              <i class="ti ti-file-text"></i>
+              <span class="func-label">Listing copy</span>
+              <button class="btn-primary" style="margin-left:auto;font-size:9px;padding:4px 10px;" onclick="showToast('Regenerating listing...', '')">
+                <i class="ti ti-refresh" style="font-size:11px;"></i> Regenerate
+              </button>
+            </div>
+            <div class="func-body">
+              <div class="platform-tabs">
+                <button class="platform-tab active" onclick="switchTab(this)">FB</button>
+                <button class="platform-tab" onclick="switchTab(this)">eBay</button>
+                <button class="platform-tab" onclick="switchTab(this)">Etsy</button>
+                <button class="platform-tab" onclick="switchTab(this)">Mercari</button>
+              </div>
+              <textarea class="listing-textarea" rows="4">Original Nintendo Game Boy in very good condition — screen is bright and clear, buttons are responsive, no cracks or breaks. Comes as shown. Local pickup in Long Beach preferred, will ship carefully packed. Feel free to make an offer.</textarea>
+            </div>
+          </div>
+
+          <!-- Pricing -->
+          <div class="func-block">
+            <div class="func-header">
+              <i class="ti ti-currency-dollar"></i>
+              <span class="func-label">Pricing</span>
+            </div>
+            <div class="func-body">
+              <div class="price-grid">
+                <div>
+                  <div class="price-field-label">Ask price (FB)</div>
+                  <input class="price-input" type="text" value="$65" />
+                  <div class="price-note">Floor $48 · margin 83%</div>
+                </div>
+                <div>
+                  <div class="price-field-label">eBay / Mercari</div>
+                  <input class="price-input" type="text" value="$72" />
+                  <div class="price-note">After fees ~$58</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right: live record -->
+      <div class="studio-col" style="min-width:210px;max-width:210px;">
+        <div class="col-header">
+          <span class="col-label">Live record</span>
+        </div>
+        <div class="col-body">
+
+          <div class="record-photo"><i class="ti ti-photo"></i></div>
+
+          <div class="record-fields">
+            <div class="record-row">
+              <span class="record-key">Item</span>
+              <span class="record-val">Game Boy Original</span>
+            </div>
+            <div class="record-row">
+              <span class="record-key">Cat</span>
+              <span class="record-val">Vintage Electronics</span>
+            </div>
+            <div class="record-row">
+              <span class="record-key">Cond</span>
+              <span class="record-val">Very Good</span>
+            </div>
+            <div class="record-row">
+              <span class="record-key">COG</span>
+              <span class="record-val accent">$8.00</span>
+            </div>
+            <div class="record-row">
+              <span class="record-key">Source</span>
+              <span class="record-val">Belmont Shore</span>
+            </div>
+            <div class="record-row">
+              <span class="record-key">Date</span>
+              <span class="record-val">May 27, 2026</span>
+            </div>
+          </div>
+
+          <div class="checklist-section">
+            <div class="checklist-title">Publish checklist</div>
+            <div class="check-row checked" onclick="this.classList.toggle('checked')">
+              <i class="ti ti-circle-check check-icon"></i>
+              <span class="check-platform">Facebook</span>
+              <span class="check-url">fb.me/…</span>
+            </div>
+            <div class="check-row" onclick="this.classList.toggle('checked')">
+              <i class="ti ti-circle check-icon"></i>
+              <span class="check-platform">eBay</span>
+              <span class="check-url">—</span>
+            </div>
+            <div class="check-row" onclick="this.classList.toggle('checked')">
+              <i class="ti ti-circle check-icon"></i>
+              <span class="check-platform">Etsy</span>
+              <span class="check-url">—</span>
+            </div>
+            <div class="check-row" onclick="this.classList.toggle('checked')">
+              <i class="ti ti-circle check-icon"></i>
+              <span class="check-platform">Mercari</span>
+              <span class="check-url">—</span>
+            </div>
+          </div>
+
+          <div class="sop-section">
+            <div class="checklist-title">Item SOP</div>
+            <div class="sop-item done"><i class="ti ti-check"></i> Photos uploaded</div>
+            <div class="sop-item done"><i class="ti ti-check"></i> Listing copy reviewed</div>
+            <div class="sop-item"><i class="ti ti-circle"></i> Price set all platforms</div>
+            <div class="sop-item"><i class="ti ti-circle"></i> All platforms published</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- INVENTORY VIEW -->
+    <div class="view" id="view-inventory">
+      <div class="inventory-toolbar">
+        <input class="search-input" type="text" placeholder="Search items..." />
+        <button class="filter-pill active">All</button>
+        <button class="filter-pill">Sourced</button>
+        <button class="filter-pill">Listed</button>
+        <button class="filter-pill">Sold</button>
+      </div>
+      <div class="inventory-grid">
+
+        <div class="inv-card">
+          <div class="inv-card-img"><i class="ti ti-device-gamepad-2"></i></div>
+          <div class="inv-card-body">
+            <div class="inv-card-name">Game Boy Original</div>
+            <div class="inv-card-meta">Vintage Electronics · Very Good</div>
+          </div>
+          <div class="inv-card-footer">
+            <span class="inv-status-badge badge-progress">In Progress</span>
+            <span class="inv-price">$65</span>
+          </div>
+        </div>
+
+        <div class="inv-card">
+          <div class="inv-card-img" style="color:#3a6a3a;"><i class="ti ti-photo"></i></div>
+          <div class="inv-card-body">
+            <div class="inv-card-name">Star Wars Poster</div>
+            <div class="inv-card-meta">Movie Memorabilia · Good</div>
+          </div>
+          <div class="inv-card-footer">
+            <span class="inv-status-badge badge-sourced">Sourced</span>
+            <span class="inv-price">—</span>
+          </div>
+        </div>
+
+        <div class="inv-card">
+          <div class="inv-card-img" style="color:#6a5a1a;"><i class="ti ti-music"></i></div>
+          <div class="inv-card-body">
+            <div class="inv-card-name">Fleetwood Mac LP</div>
+            <div class="inv-card-meta">Music · Mint</div>
+          </div>
+          <div class="inv-card-footer">
+            <span class="inv-status-badge badge-listed">Listed</span>
+            <span class="inv-price">$45</span>
+          </div>
+        </div>
+
+        <div class="inv-card">
+          <div class="inv-card-img" style="color:#3a3a6a;"><i class="ti ti-robot"></i></div>
+          <div class="inv-card-body">
+            <div class="inv-card-name">Optimus Prime Figure</div>
+            <div class="inv-card-meta">Toys · Good</div>
+          </div>
+          <div class="inv-card-footer">
+            <span class="inv-status-badge badge-sourced">Sourced</span>
+            <span class="inv-price">—</span>
+          </div>
+        </div>
+
+        <div class="inv-card">
+          <div class="inv-card-img" style="color:#4a8a4a;"><i class="ti ti-music"></i></div>
+          <div class="inv-card-body">
+            <div class="inv-card-name">Madonna — Like a Virgin</div>
+            <div class="inv-card-meta">Music · Very Good</div>
+          </div>
+          <div class="inv-card-footer">
+            <span class="inv-status-badge badge-sold">Sold</span>
+            <span class="inv-price">$38</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view" id="view-dashboard">
+
+      <div class="dash-section-title">At a glance</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Active listings</div>
+          <div class="stat-value">12</div>
+          <div class="stat-sub">across 4 platforms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total COG</div>
+          <div class="stat-value" style="color:var(--mauve);">$94</div>
+          <div class="stat-sub">invested in inventory</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Est. value</div>
+          <div class="stat-value">$620</div>
+          <div class="stat-sub">at ask price</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Items sold</div>
+          <div class="stat-value" style="color:#7acc7a;">3</div>
+          <div class="stat-sub">$142 revenue</div>
+        </div>
+      </div>
+
+      <div class="dash-section-title">Recent sessions</div>
+      <div class="sessions-list">
+        <div class="session-row">
+          <div>
+            <div class="session-name">Belmont Shore Estate</div>
+            <div class="session-meta">May 27, 2026 · Estate Sale · 4 items</div>
+          </div>
+          <div class="session-stat">
+            <div class="session-stat-val">$28</div>
+            <div class="session-stat-label">COG</div>
+          </div>
+          <div class="session-stat">
+            <div class="session-stat-val">$0</div>
+            <div class="session-stat-label">Revenue</div>
+          </div>
+        </div>
+        <div class="session-row">
+          <div>
+            <div class="session-name">Goodwill Long Beach</div>
+            <div class="session-meta">May 24, 2026 · Thrift Store · 6 items</div>
+          </div>
+          <div class="session-stat">
+            <div class="session-stat-val">$41</div>
+            <div class="session-stat-label">COG</div>
+          </div>
+          <div class="session-stat">
+            <div class="session-stat-val" style="color:#7acc7a;">$142</div>
+            <div class="session-stat-label">Revenue</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- SETTINGS OVERLAY -->
+<div id="settings-overlay" onclick="handleSettingsOverlayClick(event)">
+  <div class="settings-panel" onclick="event.stopPropagation()">
+    <div class="settings-title">Settings</div>
+
+    <div class="settings-group">
+      <div class="settings-group-label">API Keys</div>
+      <div class="settings-field">
+        <label class="settings-label">Anthropic API Key</label>
+        <input class="settings-input" type="password" id="s-anthropic-key" placeholder="sk-ant-…" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-label">Airtable</div>
+      <div class="settings-field">
+        <label class="settings-label">Airtable API Key</label>
+        <input class="settings-input" type="password" id="s-airtable-key" placeholder="pat…" />
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">Base ID</label>
+        <input class="settings-input" type="text" id="s-base-id" placeholder="app…" />
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">SALES Table ID</label>
+        <input class="settings-input" type="text" id="s-sales-id" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">SESSIONS Table ID</label>
+        <input class="settings-input" type="text" id="s-sessions-id" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">ITEMS Table ID</label>
+        <input class="settings-input" type="text" id="s-items-id" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">LISTINGS Table ID</label>
+        <input class="settings-input" type="text" id="s-listings-id" placeholder="tbl…" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-label">Location</div>
+      <div class="settings-field">
+        <label class="settings-label">Home base (for route planning)</label>
+        <input class="settings-input" type="text" id="s-home-base" placeholder="Long Beach, CA" />
+      </div>
+    </div>
+
+    <button class="settings-save-btn" onclick="saveSettings()">Save credentials</button>
+    <div class="settings-status" id="settings-status"></div>
+  </div>
+</div>
+
+<!-- BUY SHEET -->
+<div id="buy-sheet-overlay">
+  <div class="buy-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-item-name">—</div>
+    <div class="sheet-sub" id="sheet-item-cat">—</div>
+
+    <div class="sheet-field">
+      <div class="sheet-field-label">Cost of goods</div>
+      <input class="sheet-input" type="text" id="sheet-cog" placeholder="$0.00" inputmode="decimal" />
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-field-label">Condition</div>
+      <div class="cond-row">
+        <button class="cond-btn" onclick="selectCond(this)">Sealed</button>
+        <button class="cond-btn" onclick="selectCond(this)">Mint</button>
+        <button class="cond-btn active" onclick="selectCond(this)">Very Good</button>
+        <button class="cond-btn" onclick="selectCond(this)">Good</button>
+        <button class="cond-btn" onclick="selectCond(this)">Fair</button>
+      </div>
+    </div>
+
+    <button class="sheet-confirm-btn" onclick="confirmBuy()">Confirm Buy — Start Record</button>
+    <button class="sheet-cancel-btn" onclick="closeBuySheet()">Cancel</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+
+// ─── CREDENTIALS ─────────────────────────────────────────────────────────────
+const KEYS = {
+  anthropic: 'llv_anthropic_key',
+  airtable:  'llv_airtable_key',
+  baseId:    'llv_base_id',
+  salesId:   'llv_sales_table_id',
+  sessionsId:'llv_sessions_table_id',
+  itemsId:   'llv_items_table_id',
+  listingsId:'llv_listings_table_id',
+  homeBase:  'llv_home_base',
+};
+
+function getCred(key) { return localStorage.getItem(KEYS[key]) || ''; }
+function setCred(key, val) { localStorage.setItem(KEYS[key], val); }
+
+function loadSettings() {
+  document.getElementById('s-anthropic-key').value = getCred('anthropic');
+  document.getElementById('s-airtable-key').value  = getCred('airtable');
+  document.getElementById('s-base-id').value        = getCred('baseId');
+  document.getElementById('s-sales-id').value       = getCred('salesId');
+  document.getElementById('s-sessions-id').value    = getCred('sessionsId');
+  document.getElementById('s-items-id').value       = getCred('itemsId');
+  document.getElementById('s-listings-id').value    = getCred('listingsId');
+  document.getElementById('s-home-base').value      = getCred('homeBase');
+}
+
+function saveSettings() {
+  setCred('anthropic',  document.getElementById('s-anthropic-key').value.trim());
+  setCred('airtable',   document.getElementById('s-airtable-key').value.trim());
+  setCred('baseId',     document.getElementById('s-base-id').value.trim());
+  setCred('salesId',    document.getElementById('s-sales-id').value.trim());
+  setCred('sessionsId', document.getElementById('s-sessions-id').value.trim());
+  setCred('itemsId',    document.getElementById('s-items-id').value.trim());
+  setCred('listingsId', document.getElementById('s-listings-id').value.trim());
+  setCred('homeBase',   document.getElementById('s-home-base').value.trim());
+  const status = document.getElementById('settings-status');
+  status.textContent = 'Saved.';
+  setTimeout(() => status.textContent = '', 2000);
+}
+
+// ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelector(`.mode-btn[data-view="${id}"]`).classList.add('active');
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
+  const btn = document.getElementById('settings-btn');
+  const isOpen = overlay.classList.toggle('open');
+  btn.classList.toggle('active', isOpen);
+  if (isOpen) loadSettings();
+}
+function handleSettingsOverlayClick(e) {
+  if (e.target === document.getElementById('settings-overlay')) toggleSettings();
+}
+
+// ─── FIELD MODE ───────────────────────────────────────────────────────────────
+let pendingCardId = null;
+
+function handleSnap() {
+  showToast('Camera / scan coming soon', '');
+}
+function handleBarcode() {
+  showToast('Barcode scan coming soon', '');
+}
+function handleManual() {
+  showToast('Manual entry coming soon', '');
+}
+
+function passCard(id) {
+  const card = document.getElementById(id);
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(20px)';
+  setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
+}
+
+function openBuySheet(cardId, name, cat) {
+  pendingCardId = cardId;
+  document.getElementById('sheet-item-name').textContent = name;
+  document.getElementById('sheet-item-cat').textContent = cat;
+  document.getElementById('sheet-cog').value = '';
+  document.getElementById('buy-sheet-overlay').classList.add('open');
+}
+
+function closeBuySheet() {
+  document.getElementById('buy-sheet-overlay').classList.remove('open');
+  pendingCardId = null;
+}
+
+function confirmBuy() {
+  const cog = document.getElementById('sheet-cog').value;
+  if (!cog) { showToast('Enter cost of goods', 'error'); return; }
+  if (pendingCardId) {
+    const card = document.getElementById(pendingCardId);
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(-20px)';
+    setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
+  }
+  closeBuySheet();
+  showToast('Record started — pipeline open', 'success');
+}
+
+function selectCond(el) {
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateQueueCount() {
+  const cards = document.querySelectorAll('.queue-card:not(.processing)');
+  const processing = document.querySelectorAll('.queue-card.processing').length;
+  const total = cards.length + processing;
+  document.getElementById('queue-count').textContent = total === 0 ? 'empty' : total + ' pending';
+}
+
+// ─── STUDIO MODE ──────────────────────────────────────────────────────────────
+function selectStudioItem(el, itemId) {
+  document.querySelectorAll('.studio-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function switchTab(el) {
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 2500);
+}
+
+// ─── AIRTABLE HELPERS ────────────────────────────────────────────────────────
+async function airtableFetch(tableId, method = 'GET', body = null, recordId = '') {
+  const baseId = getCred('baseId');
+  const apiKey = getCred('airtable');
+  if (!baseId || !apiKey) { showToast('Add Airtable credentials in Settings', 'error'); return null; }
+  const url = `https://api.airtable.com/v0/${baseId}/${tableId}${recordId ? '/' + recordId : ''}`;
+  const opts = {
+    method,
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const res = await fetch(url, opts);
+    if (!res.ok) { const e = await res.json(); console.error('Airtable error:', e); showToast('Airtable error — check console', 'error'); return null; }
+    return await res.json();
+  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
+}
+
+// ─── CLAUDE HELPERS ───────────────────────────────────────────────────────────
+async function claudeFetch(messages, system = '') {
+  const apiKey = getCred('anthropic');
+  if (!apiKey) { showToast('Add Anthropic API key in Settings', 'error'); return null; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        system,
+        messages
+      })
+    });
+    if (!res.ok) { const e = await res.json(); console.error('Claude error:', e); showToast('Claude API error', 'error'); return null; }
+    const data = await res.json();
+    return data.content?.[0]?.text || null;
+  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Auto-populate Airtable IDs if not already set
+  if (!getCred('baseId')) setCred('baseId', 'app3DqxIJ1SUBKylb');
+  if (!getCred('salesId')) setCred('salesId', 'tblRfPldzPkqIlD7P');
+  if (!getCred('sessionsId')) setCred('sessionsId', 'tblGH4ziHZSneAtoI');
+  if (!getCred('itemsId')) setCred('itemsId', 'tblFeToiIcEseekfH');
+  if (!getCred('listingsId')) setCred('listingsId', 'tblW5u905moGRFsFw');
+  if (!getCred('homeBase')) setCred('homeBase', 'Long Beach, CA');
+});
+
+</script>
+</body>
+</html>

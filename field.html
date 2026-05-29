@@ -851,8 +851,9 @@ async function createSession(location, sessionType) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields: {
-        'LOCATION':     location,
-        'SESSION TYPE': sessionType
+        'LOCATION':       location,
+        'SESSION TYPE':   sessionType,
+        'SESSION STATUS': 'ACTIVE'
       }})
     });
     if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }

@@ -1015,7 +1015,8 @@ Use 0 for any price/count fields if data unavailable.`;
     if (!res.ok) {
       const e = await res.json();
       console.error('Claude error:', e);
-      showToast('Claude error — check console', 'error');
+      const msg = e?.error?.message || e?.error?.type || 'Unknown error';
+      showToast('Claude: ' + msg.substring(0, 45), 'error');
       return null;
     }
 
@@ -1245,7 +1246,7 @@ function showToast(msg, type) {
   t.textContent = msg;
   t.className = 'show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+  toastTimer = setTimeout(() => { t.className = ''; }, 5000);
 }
 
 </script>

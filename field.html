@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111010">
+<title>LLV Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+
+/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #111010;
+  --surface:   #1a1818;
+  --raised:    #211f1f;
+  --border:    #2e2c2c;
+  --borderlit: #3a3636;
+
+  --grape:     #654597;
+  --grape-dim: #4a3370;
+  --grape-bg:  #2a1f35;
+  --lavender:  #AB81CD;
+  --mauve:     #E2ADF2;
+  --silver:    #BDBBB0;
+  --olive:     #8A897C;
+  --dim:       #4a4846;
+  --ghost:     #2a2828;
+
+  --green:     #4a8a4a;
+  --green-bg:  #1a2a1a;
+  --red:       #8a3a3a;
+
+  --f-display: 'Oswald', sans-serif;
+  --f-mono:    'DM Mono', monospace;
+  --r:         10px;
+  --r-lg:      14px;
+  --r-xl:      20px;
+}
+
+/* ─── RESET ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; background: var(--bg); }
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  /* Safe area for notch / home indicator */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input  { font-family: inherit; }
+a      { color: inherit; text-decoration: none; }
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── APP SHELL ──────────────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────────────────────── */
+#header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.wordmark {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lavender);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.field-badge {
+  font-size: 10px;
+  color: var(--grape);
+  background: var(--grape-bg);
+  border: 1px solid var(--grape-dim);
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.header-right { display: flex; gap: 8px; align-items: center; }
+.icon-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r);
+  color: var(--dim);
+  font-size: 18px;
+  transition: color 0.15s;
+}
+.icon-btn:hover, .icon-btn.active { color: var(--lavender); }
+
+/* ─── SESSION BAR ────────────────────────────────────────────────────────── */
+#session-bar {
+  flex-shrink: 0;
+  padding: 8px 18px;
+  background: var(--ghost);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.session-info { display: flex; align-items: center; gap: 7px; }
+.session-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.session-name {
+  font-size: 11px;
+  color: var(--olive);
+  letter-spacing: 0.03em;
+}
+.session-name span { color: var(--silver); }
+.session-change {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* ─── SCROLL BODY ────────────────────────────────────────────────────────── */
+#scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── QUEUE HEADER ───────────────────────────────────────────────────────── */
+.queue-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.queue-label {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.queue-pill {
+  font-size: 10px;
+  background: var(--grape);
+  color: var(--mauve);
+  padding: 2px 9px;
+  border-radius: 12px;
+}
+
+/* ─── QUEUE CARD ─────────────────────────────────────────────────────────── */
+.q-card {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.q-card.processing { opacity: 0.7; border-color: var(--grape-dim); }
+
+.card-body {
+  display: flex;
+  gap: 12px;
+  padding: 13px;
+  align-items: flex-start;
+}
+.card-thumb {
+  width: 62px; height: 62px;
+  border-radius: var(--r);
+  background: var(--grape-bg);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--grape);
+  overflow: hidden;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-info { flex: 1; min-width: 0; }
+.card-name {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--silver);
+  line-height: 1.25;
+  margin-bottom: 3px;
+}
+.card-cat {
+  font-size: 10px;
+  color: var(--grape);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.comp-range {
+  font-size: 14px;
+  color: var(--lavender);
+  font-weight: 500;
+}
+.comp-sold { font-size: 11px; color: var(--dim); }
+.comp-link {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 10px;
+  color: var(--grape);
+  border: 1px solid var(--grape-dim);
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--grape-bg);
+  margin-left: auto;
+}
+.comp-link i { font-size: 12px; }
+
+.card-divider { height: 1px; background: var(--border); }
+
+.card-actions { display: flex; }
+.act-btn {
+  flex: 1;
+  padding: 13px 0;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+.act-pass { color: var(--dim); border-right: 1px solid var(--border); }
+.act-pass:active { background: var(--ghost); }
+.act-buy  { color: var(--lavender); }
+.act-buy:active  { background: var(--grape-bg); }
+
+/* Processing state */
+.proc-bar {
+  padding: 8px 13px 11px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 10px; color: var(--grape); letter-spacing: 0.07em; text-transform: uppercase;
+}
+.dots { display: flex; gap: 4px; }
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--grape);
+  animation: blink 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+/* ─── EMPTY STATE ────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 0 16px;
+  gap: 8px; color: var(--dim);
+}
+.empty-state i { font-size: 40px; color: var(--ghost); }
+.empty-state p { font-size: 12px; letter-spacing: 0.03em; }
+
+/* ─── SNAP FAB ───────────────────────────────────────────────────────────── */
+#fab-area {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+  max-width: 540px;
+  margin: 0 auto;
+}
+.fab-alts {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.fab-alt {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--olive);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.fab-alt:active { background: var(--grape-bg); border-color: var(--grape-dim); color: var(--lavender); }
+.fab-alt i { font-size: 15px; }
+
+.fab-snap {
+  width: 100%;
+  padding: 16px 0;
+  background: var(--grape);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mauve);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab-snap:active { background: var(--grape-dim); transform: scale(0.98); }
+.fab-snap i { font-size: 22px; }
+
+/* ─── BUY SHEET ──────────────────────────────────────────────────────────── */
+#sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,7,7,0.85);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+#sheet-overlay.open { display: flex; }
+
+.sheet {
+  background: var(--raised);
+  border-top: 1px solid var(--borderlit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  width: 100%;
+  max-width: 540px;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.sheet-handle {
+  width: 38px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.sheet-title {
+  font-family: var(--f-display);
+  font-size: 18px; font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+.sheet-sub {
+  font-size: 11px; color: var(--grape);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 20px;
+}
+.sheet-field { margin-bottom: 16px; }
+.sheet-lbl {
+  font-size: 10px; color: var(--olive);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sheet-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 18px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.sheet-input:focus { border-color: var(--grape); }
+
+.cond-row { display: flex; gap: 6px; }
+.cond-btn {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.15s;
+}
+.cond-btn.active {
+  background: var(--grape-bg);
+  border-color: var(--grape);
+  color: var(--lavender);
+}
+
+.sheet-confirm {
+  width: 100%;
+  padding: 15px 0;
+  background: var(--grape);
+  border-radius: var(--r);
+  color: var(--mauve);
+  font-family: var(--f-display);
+  font-size: 15px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+.sheet-confirm:active { background: var(--grape-dim); }
+.sheet-cancel {
+  width: 100%;
+  padding: 12px 0;
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ─── SETTINGS SHEET ─────────────────────────────────────────────────────── */
+#settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,7,7,0.85);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+#settings-overlay.open { display: flex; }
+
+.settings-sheet {
+  background: var(--raised);
+  border-top: 1px solid var(--borderlit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.settings-title {
+  font-family: var(--f-display);
+  font-size: 16px; font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 16px;
+}
+.settings-group { margin-bottom: 18px; }
+.settings-group-lbl {
+  font-size: 9px; color: var(--olive);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-field { margin-bottom: 10px; }
+.settings-lbl { font-size: 10px; color: var(--dim); margin-bottom: 4px; }
+.settings-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.settings-input:focus { border-color: var(--grape); }
+.settings-save {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--grape);
+  border-radius: var(--r);
+  color: var(--mauve);
+  font-family: var(--f-display);
+  font-size: 14px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-top: 4px;
+}
+.settings-save:active { background: var(--grape-dim); }
+.settings-status {
+  text-align: center; font-size: 11px;
+  color: var(--green); min-height: 18px; margin-top: 8px;
+}
+.settings-close {
+  width: 100%; padding: 10px 0;
+  color: var(--dim); font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: calc(110px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%) translateY(30px);
+  background: var(--raised);
+  border: 1px solid var(--borderlit);
+  border-radius: var(--r-lg);
+  padding: 10px 20px;
+  font-size: 12px; color: var(--silver);
+  z-index: 500;
+  transition: transform 0.25s ease, opacity 0.25s;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast.success { border-color: var(--green); color: #7acc7a; }
+#toast.error   { border-color: var(--red);   color: #ca7a7a; }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="wordmark">Last Laugh</span>
+      <span class="field-badge">Field</span>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="toggleSettings()" title="Settings">
+        <i class="ti ti-settings"></i>
+      </button>
+      <a href="index.html" class="icon-btn" title="Studio">
+        <i class="ti ti-layout-columns"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- SESSION BAR -->
+  <div id="session-bar">
+    <div class="session-info">
+      <div class="session-dot"></div>
+      <span class="session-name">Session: <span id="session-label">No active session</span></span>
+    </div>
+    <button class="session-change" onclick="promptNewSession()">Change</button>
+  </div>
+
+  <!-- SCROLL BODY -->
+  <div id="scroll-body">
+
+    <div class="queue-hdr">
+      <span class="queue-label">Queue</span>
+      <span class="queue-pill" id="queue-count">0 pending</span>
+    </div>
+
+    <div id="queue-list">
+      <div class="empty-state">
+        <i class="ti ti-camera"></i>
+        <p>Snap an item to start</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <div id="fab-area">
+    <div class="fab-alts">
+      <button class="fab-alt" onclick="handleBarcode()">
+        <i class="ti ti-barcode"></i> Barcode
+      </button>
+      <button class="fab-alt" onclick="handleManual()">
+        <i class="ti ti-keyboard"></i> Manual
+      </button>
+    </div>
+    <button class="fab-snap" onclick="handleSnap()">
+      <i class="ti ti-camera"></i> Snap
+    </button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- BUY SHEET -->
+<div id="sheet-overlay" onclick="handleSheetOverlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-name">—</div>
+    <div class="sheet-sub"   id="sheet-cat">—</div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Cost of goods</div>
+      <input class="sheet-input" type="text" id="sheet-cog"
+             placeholder="$0.00" inputmode="decimal" />
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Condition</div>
+      <div class="cond-row">
+        <button class="cond-btn"        onclick="selCond(this)">Sealed</button>
+        <button class="cond-btn"        onclick="selCond(this)">Mint</button>
+        <button class="cond-btn active" onclick="selCond(this)">V. Good</button>
+        <button class="cond-btn"        onclick="selCond(this)">Good</button>
+        <button class="cond-btn"        onclick="selCond(this)">Fair</button>
+      </div>
+    </div>
+
+    <button class="sheet-confirm" onclick="confirmBuy()">Confirm Buy — Start Record</button>
+    <button class="sheet-cancel"  onclick="closeSheet()">Cancel</button>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div id="settings-overlay" onclick="handleSettingsOverlayClick(event)">
+  <div class="settings-sheet">
+    <div class="sheet-handle"></div>
+    <div class="settings-title">Settings</div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">API Keys</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Anthropic API Key</div>
+        <input class="settings-input" type="password" id="s-anthropic" placeholder="sk-ant-…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">Airtable API Key</div>
+        <input class="settings-input" type="password" id="s-airtable" placeholder="pat…" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">Airtable IDs</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Base ID</div>
+        <input class="settings-input" type="text" id="s-base" placeholder="app…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">SESSIONS Table ID</div>
+        <input class="settings-input" type="text" id="s-sessions" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">ITEMS Table ID</div>
+        <input class="settings-input" type="text" id="s-items" placeholder="tbl…" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">Location</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Home base</div>
+        <input class="settings-input" type="text" id="s-home" placeholder="Long Beach, CA" />
+      </div>
+    </div>
+
+    <button class="settings-save" onclick="saveSettings()">Save</button>
+    <div class="settings-status" id="settings-status"></div>
+    <button class="settings-close" onclick="toggleSettings()">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- HIDDEN BARCODE INPUT -->
+<input id="barcode-input" type="text" style="position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;" />
+
+<script>
+'use strict';
+
+// ─── KEYS ─────────────────────────────────────────────────────────────────────
+const K = {
+  anthropic:  'llv_anthropic_key',
+  airtable:   'llv_airtable_key',
+  baseId:     'llv_base_id',
+  sessionsId: 'llv_sessions_table_id',
+  itemsId:    'llv_items_table_id',
+  homeBase:   'llv_home_base',
+};
+const get = k => localStorage.getItem(K[k]) || '';
+const set = (k, v) => localStorage.setItem(K[k], v);
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-populate Airtable IDs
+  if (!get('baseId'))     set('baseId',     'app3DqxIJ1SUBKylb');
+  if (!get('sessionsId')) set('sessionsId', 'tblGH4ziHZSneAtoI');
+  if (!get('itemsId'))    set('itemsId',    'tblFeToiIcEseekfH');
+  if (!get('homeBase'))   set('homeBase',   'Long Beach, CA');
+
+  // Restore active session label
+  const saved = localStorage.getItem('llv_active_session_name');
+  if (saved) document.getElementById('session-label').textContent = saved;
+
+  // Barcode scanner input listener
+  const barcodeInput = document.getElementById('barcode-input');
+  barcodeInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const raw = barcodeInput.value.trim().replace(/[^0-9a-zA-Z]/g, '');
+      barcodeInput.value = '';
+      if (raw.length >= 6) processBarcode(raw);
+    }
+  });
+});
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function toggleSettings() {
+  const el = document.getElementById('settings-overlay');
+  const isOpen = el.classList.toggle('open');
+  if (isOpen) {
+    document.getElementById('s-anthropic').value = get('anthropic');
+    document.getElementById('s-airtable').value  = get('airtable');
+    document.getElementById('s-base').value       = get('baseId');
+    document.getElementById('s-sessions').value   = get('sessionsId');
+    document.getElementById('s-items').value      = get('itemsId');
+    document.getElementById('s-home').value       = get('homeBase');
+  }
+}
+function handleSettingsOverlayClick(e) {
+  if (e.target === document.getElementById('settings-overlay')) toggleSettings();
+}
+function saveSettings() {
+  set('anthropic',  document.getElementById('s-anthropic').value.trim());
+  set('airtable',   document.getElementById('s-airtable').value.trim());
+  set('baseId',     document.getElementById('s-base').value.trim());
+  set('sessionsId', document.getElementById('s-sessions').value.trim());
+  set('itemsId',    document.getElementById('s-items').value.trim());
+  set('homeBase',   document.getElementById('s-home').value.trim());
+  const s = document.getElementById('settings-status');
+  s.textContent = 'Saved ✓';
+  setTimeout(() => s.textContent = '', 2000);
+}
+
+// ─── SESSION ──────────────────────────────────────────────────────────────────
+let activeSessionId   = localStorage.getItem('llv_active_session_id')   || null;
+let activeSessionName = localStorage.getItem('llv_active_session_name') || null;
+
+async function getOrCreateSession() {
+  if (activeSessionId) return activeSessionId;
+
+  const location = prompt('Where are you sourcing today?', get('homeBase') || 'Long Beach, CA');
+  if (location === null) return null; // user cancelled
+  const loc = location.trim() || get('homeBase') || 'Long Beach, CA';
+  return await createSession(loc, 'ESTATE SALE');
+}
+
+async function promptNewSession() {
+  const location = prompt('New session location:', get('homeBase') || 'Long Beach, CA');
+  if (!location) return;
+  const types = ['ESTATE SALE','THRIFT STORE','GARAGE SALE','OTHER'];
+  const typeChoice = prompt('Session type:\n1. Estate Sale\n2. Thrift Store\n3. Garage Sale\n4. Other\n\nEnter number:', '1');
+  const sessionType = types[(parseInt(typeChoice) || 1) - 1] || 'ESTATE SALE';
+  await createSession(location.trim(), sessionType);
+}
+
+async function createSession(location, sessionType) {
+  const today = new Date().toLocaleDateString('en-CA');
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const sessionsId  = get('sessionsId');
+  if (!airtableKey || !baseId || !sessionsId) {
+    showToast('Add Airtable credentials in Settings', 'error');
+    return null;
+  }
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: {
+        'LOCATION':       location,
+        'DATE':           today,
+        'SESSION TYPE':   sessionType,
+        'SESSION STATUS': 'ACTIVE'
+      }})
+    });
+    if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }
+    const data = await res.json();
+    activeSessionId   = data.id;
+    activeSessionName = location;
+    localStorage.setItem('llv_active_session_id',   activeSessionId);
+    localStorage.setItem('llv_active_session_name', activeSessionName);
+    document.getElementById('session-label').textContent = activeSessionName;
+    showToast(`Session: ${activeSessionName}`, 'success');
+    return activeSessionId;
+  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
+}
+
+// ─── CARD STATE ───────────────────────────────────────────────────────────────
+let cardCounter  = 0;
+let pendingCardId = null;
+const cardStore  = {};
+
+function updateQueueCount() {
+  const n = document.querySelectorAll('#queue-list .q-card').length;
+  document.getElementById('queue-count').textContent = n === 0 ? '0 pending' : n + ' pending';
+  // Show/hide empty state
+  let empty = document.querySelector('.empty-state');
+  if (n === 0 && !empty) {
+    empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = '<i class="ti ti-camera"></i><p>Snap an item to start</p>';
+    document.getElementById('queue-list').appendChild(empty);
+  } else if (n > 0 && empty) {
+    empty.remove();
+  }
+}
+
+// ─── CAPTURE METHODS ──────────────────────────────────────────────────────────
+function handleSnap() {
+  if (!get('anthropic')) { showToast('Add API key in Settings', 'error'); return; }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => processImage(ev.target.result, file.type);
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function handleBarcode() {
+  showToast('Trigger your scanner now', '');
+  document.getElementById('barcode-input').focus();
+}
+
+function handleManual() {
+  const term = prompt('Describe the item:');
+  if (term && term.trim()) processManual(term.trim());
+}
+
+// ─── PROCESS FLOWS ────────────────────────────────────────────────────────────
+async function processImage(dataUrl, mimeType) {
+  const id = 'card-' + (++cardCounter);
+  const base64 = dataUrl.split(',')[1];
+  addProcessingCard(id, dataUrl);
+  const result = await claudeIdentify([{
+    type: 'image',
+    source: { type: 'base64', media_type: mimeType, data: base64 }
+  }]);
+  result ? populateCard(id, result, dataUrl) : removeCard(id);
+}
+
+async function processBarcode(barcode) {
+  const id = 'card-' + (++cardCounter);
+  addProcessingCard(id, null);
+  const result = await claudeIdentify([{
+    type: 'text',
+    text: `Barcode: ${barcode}. Identify this product and find eBay sold comps.`
+  }]);
+  result ? populateCard(id, result, null) : removeCard(id);
+}
+
+async function processManual(description) {
+  const id = 'card-' + (++cardCounter);
+  addProcessingCard(id, null);
+  const result = await claudeIdentify([{
+    type: 'text',
+    text: `Item: ${description}. Identify and find eBay sold comps.`
+  }]);
+  result ? populateCard(id, result, null) : removeCard(id);
+}
+
+// ─── CLAUDE IDENTIFY + COMP ───────────────────────────────────────────────────
+async function claudeIdentify(contentBlocks) {
+  const apiKey = get('anthropic');
+  if (!apiKey) { showToast('Add API key in Settings', 'error'); return null; }
+
+  const system = `You are an expert vintage and collectible reseller assistant for Last Laugh Vintage, Long Beach CA.
+Identify items and research eBay SOLD listing prices.
+
+Categories: POSTER, VHS, CASSETTE, TOY, VINTAGE ELECTRONICS, MEMORABILIA, HOME DECOR, OTHER
+
+Steps:
+1. Identify the item from the photo/description
+2. Form the best eBay sold search query (experienced reseller style — not too specific, not too broad)
+3. Use web_search to fetch: https://www.ebay.com/sch/i.html?_nkw=QUERY&LH_Sold=1&LH_Complete=1
+4. Parse sold prices from the results page
+
+Return ONLY valid JSON, no markdown fences, no preamble:
+{
+  "name": "Brand + model/title + key descriptor",
+  "category": "POSTER|VHS|CASSETTE|TOY|VINTAGE ELECTRONICS|MEMORABILIA|HOME DECOR|OTHER",
+  "ebay_search_query": "the search term used",
+  "comp_low": 0,
+  "comp_high": 0,
+  "comp_median": 0,
+  "comp_sold_count": 0,
+  "ebay_search_url": "full eBay sold URL",
+  "ai_notes": "Brief ID notes and condition observations"
+}
+Use 0 for any price/count fields if data unavailable.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        system,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: contentBlocks }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      console.error('Claude error:', e);
+      showToast('Claude error — check console', 'error');
+      return null;
+    }
+
+    const data = await res.json();
+    const text = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    if (!text) { showToast('No response from Claude', 'error'); return null; }
+
+    // Strip any accidental markdown fences
+    const clean = text.replace(/```json|```/gi, '').trim();
+
+    // Find the JSON object
+    const jsonStart = clean.indexOf('{');
+    const jsonEnd   = clean.lastIndexOf('}');
+    if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found in response');
+
+    return JSON.parse(clean.substring(jsonStart, jsonEnd + 1));
+
+  } catch (err) {
+    console.error('claudeIdentify error:', err);
+    showToast('Identification failed', 'error');
+    return null;
+  }
+}
+
+// ─── CARD DOM ─────────────────────────────────────────────────────────────────
+function addProcessingCard(id, imageDataUrl) {
+  removeEmptyState();
+  const list = document.getElementById('queue-list');
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" alt="item">`
+    : `<i class="ti ti-loader"></i>`;
+
+  const card = document.createElement('div');
+  card.className = 'q-card processing';
+  card.id = id;
+  card.innerHTML = `
+    <div class="card-body">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0' : 'color:var(--dim)'}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name" style="color:var(--dim)">Identifying item...</div>
+        <div class="card-cat"  style="color:var(--ghost)">Searching eBay sold comps</div>
+        <div class="comp-row"><span style="font-size:11px;color:var(--ghost)">Pulling sold data</span></div>
+      </div>
+    </div>
+    <div class="proc-bar">
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      Processing
+    </div>`;
+  list.appendChild(card);
+  updateQueueCount();
+}
+
+function populateCard(id, result, imageDataUrl) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  cardStore[id] = { ...result, imageDataUrl };
+
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" alt="item">`
+    : `<i class="ti ti-package"></i>`;
+
+  const hasComps = result.comp_low || result.comp_high;
+  const compRange = hasComps
+    ? `$${result.comp_low} – $${result.comp_high}`
+    : 'No sold comps found';
+  const soldTxt = result.comp_sold_count ? `${result.comp_sold_count} sold` : '';
+  const ebayUrl = result.ebay_search_url ||
+    `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(result.ebay_search_query||result.name)}&LH_Sold=1&LH_Complete=1`;
+
+  card.className = 'q-card';
+  card.innerHTML = `
+    <div class="card-body">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0' : ''}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(result.name)}</div>
+        <div class="card-cat">${esc(result.category)}</div>
+        <div class="comp-row">
+          <span class="comp-range">${compRange}</span>
+          ${soldTxt ? `<span class="comp-sold">${soldTxt}</span>` : ''}
+          <a class="comp-link" href="${ebayUrl}" target="_blank">eBay <i class="ti ti-external-link"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="card-divider"></div>
+    <div class="card-actions">
+      <button class="act-btn act-pass" onclick="passCard('${id}')">Pass</button>
+      <button class="act-btn act-buy"  onclick="openSheet('${id}')">Buy →</button>
+    </div>`;
+  updateQueueCount();
+}
+
+function removeCard(id) {
+  const card = document.getElementById(id);
+  if (card) card.remove();
+  delete cardStore[id];
+  updateQueueCount();
+}
+
+function removeEmptyState() {
+  const e = document.querySelector('.empty-state');
+  if (e) e.remove();
+}
+
+function passCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.style.transition = 'opacity 0.2s, transform 0.2s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(24px)';
+  setTimeout(() => { card.remove(); delete cardStore[id]; updateQueueCount(); }, 210);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── BUY SHEET ────────────────────────────────────────────────────────────────
+function openSheet(cardId) {
+  pendingCardId = cardId;
+  const d = cardStore[cardId] || {};
+  document.getElementById('sheet-name').textContent = d.name || '—';
+  document.getElementById('sheet-cat').textContent  = d.category || '—';
+  document.getElementById('sheet-cog').value = '';
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.cond-btn:nth-child(3)').classList.add('active');
+  document.getElementById('sheet-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('sheet-cog').focus(), 320);
+}
+
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open');
+  pendingCardId = null;
+}
+
+function handleSheetOverlayClick(e) {
+  if (e.target === document.getElementById('sheet-overlay')) closeSheet();
+}
+
+function selCond(el) {
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── CONFIRM BUY → AIRTABLE ───────────────────────────────────────────────────
+async function confirmBuy() {
+  const cogRaw = document.getElementById('sheet-cog').value.trim().replace(/[$,]/g,'');
+  if (!cogRaw || isNaN(parseFloat(cogRaw))) { showToast('Enter cost of goods', 'error'); return; }
+  const cog = parseFloat(cogRaw);
+
+  const condEl  = document.querySelector('.cond-btn.active');
+  // Map display label to Airtable value
+  const condMap = { 'Sealed':'SEALED', 'Mint':'MINT', 'V. Good':'VERY GOOD', 'Good':'GOOD', 'Fair':'FAIR' };
+  const condition = condMap[condEl ? condEl.textContent.trim() : 'Good'] || 'GOOD';
+
+  const d = cardStore[pendingCardId] || {};
+  const today = new Date().toLocaleDateString('en-CA');
+
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const itemsId     = get('itemsId');
+  if (!airtableKey || !baseId || !itemsId) {
+    showToast('Add Airtable credentials in Settings', 'error');
+    return;
+  }
+
+  // Get or create session
+  const sessionId = await getOrCreateSession();
+
+  const fields = {
+    'ITEM NAME':               d.name || 'Unknown Item',
+    'CATEGORY':                d.category || 'OTHER',
+    'CONDITION':               condition,
+    'COST OF GOODS':           cog,
+    'AI IDENTIFICATION NOTES': d.ai_notes || '',
+    'EBAY COMP LOW':           d.comp_low  || 0,
+    'EBAY COMP HIGH':          d.comp_high || 0,
+    'EBAY COMP SOLD COUNT':    d.comp_sold_count || 0,
+    'ITEM STATUS':             'SOURCED',
+    'DATE SOURCED':            today,
+  };
+  if (sessionId) fields['SESSION'] = [sessionId];
+
+  showToast('Creating record...', '');
+
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${itemsId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    });
+
+    if (!res.ok) {
+      console.error(await res.json());
+      showToast('Airtable error — check console', 'error');
+      return;
+    }
+
+    const record = await res.json();
+    console.log('Record created:', record.id);
+
+    // Dismiss card
+    const card = document.getElementById(pendingCardId);
+    if (card) {
+      card.style.transition = 'opacity 0.2s, transform 0.2s';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-24px)';
+      setTimeout(() => { card.remove(); delete cardStore[pendingCardId]; updateQueueCount(); }, 210);
+    }
+    closeSheet();
+    showToast('Record created ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('Network error', 'error');
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+</script>
+</body>
+</html>

@@ -1249,21 +1249,44 @@ async function testAirtable() {
     showToast('Fill in all Airtable fields first', 'error');
     return;
   }
-  showToast('Testing connection...', '');
+  // Test read first
+  showToast('Testing read...', '');
   try {
-    const res = await fetch(
+    const readRes = await fetch(
       `https://api.airtable.com/v0/${baseId}/${sessionsId}?maxRecords=1`,
       { headers: { 'Authorization': `Bearer ${airtableKey}` } }
     );
-    const data = await res.json();
-    if (res.ok) {
-      showToast('Connected ✓ — ' + (data.records ? data.records.length + ' records read' : 'OK'), 'success');
+    const readData = await readRes.json();
+    if (!readRes.ok) {
+      const msg = readData?.error?.message || JSON.stringify(readData);
+      showToast('Read failed: ' + msg.substring(0, 50), 'error');
+      return;
+    }
+    // Test write with minimal record
+    showToast('Testing write...', '');
+    const writeRes = await fetch(
+      `https://api.airtable.com/v0/${baseId}/${sessionsId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${airtableKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fields: { 'LOCATION': 'TEST - DELETE ME' } })
+      }
+    );
+    const writeData = await writeRes.json();
+    if (writeRes.ok) {
+      showToast('Write OK ✓ — record: ' + writeData.id.substring(0,10), 'success');
     } else {
-      const msg = data?.error?.message || data?.error?.type || JSON.stringify(data);
-      showToast('AT error: ' + msg.substring(0, 50), 'error');
+      // Show full error
+      const fullErr = JSON.stringify(writeData);
+      showToast('Write failed: ' + fullErr.substring(0, 60), 'error');
+      console.error('Full write error:', writeData);
     }
   } catch (err) {
     showToast('Network error: ' + err.message.substring(0, 40), 'error');
+    console.error(err);
   }
 }
 

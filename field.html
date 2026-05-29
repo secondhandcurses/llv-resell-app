@@ -674,6 +674,7 @@ a      { color: inherit; text-decoration: none; }
 
     <button class="settings-save" onclick="saveSettings()">Save</button>
     <div class="settings-status" id="settings-status"></div>
+    <button class="settings-save" onclick="testAirtable()" style="background:var(--grape-dim);margin-top:6px;">Test Airtable connection</button>
     <button class="settings-close" onclick="toggleSettings()">Close</button>
   </div>
 </div>
@@ -1236,6 +1237,33 @@ async function confirmBuy() {
   } catch (err) {
     console.error(err);
     showToast('Network error', 'error');
+  }
+}
+
+// ─── TEST AIRTABLE ───────────────────────────────────────────────────────────
+async function testAirtable() {
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const sessionsId  = get('sessionsId');
+  if (!airtableKey || !baseId || !sessionsId) {
+    showToast('Fill in all Airtable fields first', 'error');
+    return;
+  }
+  showToast('Testing connection...', '');
+  try {
+    const res = await fetch(
+      `https://api.airtable.com/v0/${baseId}/${sessionsId}?maxRecords=1`,
+      { headers: { 'Authorization': `Bearer ${airtableKey}` } }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Connected ✓ — ' + (data.records ? data.records.length + ' records read' : 'OK'), 'success');
+    } else {
+      const msg = data?.error?.message || data?.error?.type || JSON.stringify(data);
+      showToast('AT error: ' + msg.substring(0, 50), 'error');
+    }
+  } catch (err) {
+    showToast('Network error: ' + err.message.substring(0, 40), 'error');
   }
 }
 

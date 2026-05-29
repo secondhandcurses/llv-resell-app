@@ -1007,7 +1007,7 @@ Use 0 for any price/count fields if data unavailable.`;
         model: 'claude-sonnet-4-5',
         max_tokens: 1024,
         system,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
         messages: [{ role: 'user', content: contentBlocks }]
       })
     });

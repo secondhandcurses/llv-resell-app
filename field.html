@@ -839,7 +839,7 @@ function selectType(el) {
 }
 
 async function createSession(location, sessionType) {
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toISOString().split('T')[0];
   const airtableKey = get('airtable');
   const baseId      = get('baseId');
   const sessionsId  = get('sessionsId');
@@ -1177,7 +1177,7 @@ async function confirmBuy() {
   const condition = condMap[condEl ? condEl.textContent.trim() : 'Good'] || 'GOOD';
 
   const d = cardStore[pendingCardId] || {};
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toISOString().split('T')[0];
 
   const airtableKey = get('airtable');
   const baseId      = get('baseId');
@@ -1272,7 +1272,12 @@ async function testAirtable() {
           'Authorization': `Bearer ${airtableKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ fields: { 'LOCATION': 'TEST - DELETE ME' } })
+        body: JSON.stringify({ fields: {
+          'LOCATION': 'TEST - DELETE ME',
+          'DATE': new Date().toISOString().split('T')[0],
+          'SESSION TYPE': 'ESTATE SALE',
+          'SESSION STATUS': 'ACTIVE'
+        } })
       }
     );
     const writeData = await writeRes.json();

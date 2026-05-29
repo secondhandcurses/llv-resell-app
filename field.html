@@ -513,6 +513,10 @@ a      { color: inherit; text-decoration: none; }
   font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
 }
 
+/* Modal open state */
+#session-modal-overlay.open,
+#manual-modal-overlay.open { display: flex !important; align-items: flex-end; justify-content: center; }
+
 /* ─── TOAST ──────────────────────────────────────────────────────────────── */
 #toast {
   position: fixed;
@@ -677,6 +681,45 @@ a      { color: inherit; text-decoration: none; }
 <!-- TOAST -->
 <div id="toast"></div>
 
+
+<!-- SESSION MODAL -->
+<div id="session-modal-overlay" style="position:fixed;inset:0;background:rgba(8,7,7,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--raised);border-top:1px solid var(--borderlit);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:540px;padding:16px 20px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--silver);margin-bottom:4px;">Where are you sourcing?</div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:18px;">Sets location for all items this session</div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--olive);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Location</div>
+      <input id="sm-location" class="sheet-input" type="text" placeholder="Belmont Shore Estate Sale" />
+    </div>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:10px;color:var(--olive);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Sale type</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="type-btn cond-btn active" data-type="ESTATE SALE" onclick="selectType(this)">Estate Sale</button>
+        <button class="type-btn cond-btn" data-type="THRIFT STORE" onclick="selectType(this)">Thrift Store</button>
+        <button class="type-btn cond-btn" data-type="GARAGE SALE" onclick="selectType(this)">Garage Sale</button>
+        <button class="type-btn cond-btn" data-type="OTHER" onclick="selectType(this)">Other</button>
+      </div>
+    </div>
+    <button class="sheet-confirm" onclick="confirmSession()">Start Session</button>
+    <button class="sheet-cancel" onclick="skipSession()">Skip — no session</button>
+  </div>
+</div>
+
+<!-- MANUAL MODAL -->
+<div id="manual-modal-overlay" style="position:fixed;inset:0;background:rgba(8,7,7,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--raised);border-top:1px solid var(--borderlit);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:540px;padding:16px 20px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--silver);margin-bottom:4px;">Describe the item</div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:18px;">Claude will identify it and pull eBay sold comps</div>
+    <div style="margin-bottom:14px;">
+      <textarea id="mm-description" class="sheet-input" rows="3" placeholder="e.g. Vintage Budweiser lighted bottle sign, bar decor, works..." style="font-size:15px;resize:none;"></textarea>
+    </div>
+    <button class="sheet-confirm" onclick="confirmManual()">Identify &amp; Research</button>
+    <button class="sheet-cancel" onclick="closeManualModal()">Cancel</button>
+  </div>
+</div>
+
 <!-- HIDDEN BARCODE INPUT -->
 <input id="barcode-input" type="text" style="position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;" />
 
@@ -749,23 +792,49 @@ function saveSettings() {
 // ─── SESSION ──────────────────────────────────────────────────────────────────
 let activeSessionId   = localStorage.getItem('llv_active_session_id')   || null;
 let activeSessionName = localStorage.getItem('llv_active_session_name') || null;
+let sessionResolve    = null;
 
 async function getOrCreateSession() {
   if (activeSessionId) return activeSessionId;
-
-  const location = prompt('Where are you sourcing today?', get('homeBase') || 'Long Beach, CA');
-  if (location === null) return null; // user cancelled
-  const loc = location.trim() || get('homeBase') || 'Long Beach, CA';
-  return await createSession(loc, 'ESTATE SALE');
+  return await showSessionModal();
 }
 
 async function promptNewSession() {
-  const location = prompt('New session location:', get('homeBase') || 'Long Beach, CA');
-  if (!location) return;
-  const types = ['ESTATE SALE','THRIFT STORE','GARAGE SALE','OTHER'];
-  const typeChoice = prompt('Session type:\n1. Estate Sale\n2. Thrift Store\n3. Garage Sale\n4. Other\n\nEnter number:', '1');
-  const sessionType = types[(parseInt(typeChoice) || 1) - 1] || 'ESTATE SALE';
-  await createSession(location.trim(), sessionType);
+  activeSessionId   = null;
+  activeSessionName = null;
+  localStorage.removeItem('llv_active_session_id');
+  localStorage.removeItem('llv_active_session_name');
+  return await showSessionModal();
+}
+
+function showSessionModal() {
+  return new Promise(resolve => {
+    sessionResolve = resolve;
+    document.getElementById('sm-location').value = get('homeBase') || 'Long Beach, CA';
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.type-btn[data-type="ESTATE SALE"]').classList.add('active');
+    document.getElementById('session-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('sm-location').focus(), 300);
+  });
+}
+
+async function confirmSession() {
+  const location = document.getElementById('sm-location').value.trim() || get('homeBase') || 'Long Beach, CA';
+  const typeEl = document.querySelector('.type-btn.active');
+  const sessionType = typeEl ? typeEl.dataset.type : 'ESTATE SALE';
+  document.getElementById('session-modal-overlay').classList.remove('open');
+  const id = await createSession(location, sessionType);
+  if (sessionResolve) { sessionResolve(id); sessionResolve = null; }
+}
+
+function skipSession() {
+  document.getElementById('session-modal-overlay').classList.remove('open');
+  if (sessionResolve) { sessionResolve(null); sessionResolve = null; }
+}
+
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
 }
 
 async function createSession(location, sessionType) {
@@ -843,8 +912,24 @@ function handleBarcode() {
 }
 
 function handleManual() {
-  const term = prompt('Describe the item:');
-  if (term && term.trim()) processManual(term.trim());
+  showManualModal();
+}
+
+function showManualModal() {
+  document.getElementById('manual-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('mm-description').focus(), 300);
+}
+
+function confirmManual() {
+  const term = document.getElementById('mm-description').value.trim();
+  document.getElementById('manual-modal-overlay').classList.remove('open');
+  document.getElementById('mm-description').value = '';
+  if (term) processManual(term);
+}
+
+function closeManualModal() {
+  document.getElementById('manual-modal-overlay').classList.remove('open');
+  document.getElementById('mm-description').value = '';
 }
 
 // ─── PROCESS FLOWS ────────────────────────────────────────────────────────────
@@ -1127,8 +1212,10 @@ async function confirmBuy() {
     });
 
     if (!res.ok) {
-      console.error(await res.json());
-      showToast('Airtable error — check console', 'error');
+      const errData = await res.json();
+      console.error('Airtable error:', errData);
+      const errMsg = errData?.error?.message || errData?.error?.type || 'Unknown error';
+      showToast('AT error: ' + errMsg.substring(0, 40), 'error');
       return;
     }
 

@@ -839,7 +839,6 @@ function selectType(el) {
 }
 
 async function createSession(location, sessionType) {
-  const today = new Date().toISOString().split('T')[0];
   const airtableKey = get('airtable');
   const baseId      = get('baseId');
   const sessionsId  = get('sessionsId');
@@ -852,10 +851,8 @@ async function createSession(location, sessionType) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields: {
-        'LOCATION':       location,
-        'DATE':           today,
-        'SESSION TYPE':   sessionType,
-        'SESSION STATUS': 'ACTIVE'
+        'LOCATION':     location,
+        'SESSION TYPE': sessionType
       }})
     });
     if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }
@@ -1273,10 +1270,7 @@ async function testAirtable() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ fields: {
-          'LOCATION': 'TEST - DELETE ME',
-          'DATE': new Date().toISOString().split('T')[0],
-          'SESSION TYPE': 'ESTATE SALE',
-          'SESSION STATUS': 'ACTIVE'
+          'LOCATION': 'TEST - DELETE ME'
         } })
       }
     );

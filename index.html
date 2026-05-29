@@ -1785,22 +1785,278 @@ function handleSettingsOverlayClick(e) {
 
 // ─── FIELD MODE ───────────────────────────────────────────────────────────────
 let pendingCardId = null;
+let cardCounter = 100; // avoid ID collisions with demo cards
 
+// Card data store — keyed by card ID
+const cardData = {};
+
+// ── Camera capture ────────────────────────────────────────────────────────────
 function handleSnap() {
-  showToast('Camera / scan coming soon', '');
-}
-function handleBarcode() {
-  showToast('Barcode scan coming soon', '');
-}
-function handleManual() {
-  showToast('Manual entry coming soon', '');
+  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment'; // rear camera on mobile
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => processImage(ev.target.result, file.type);
+    reader.readAsDataURL(file);
+  };
+  input.click();
 }
 
+function handleBarcode() {
+  // Barcode scanner types as keyboard — focus a hidden input to capture it
+  const existing = document.getElementById('barcode-capture');
+  if (existing) { existing.focus(); return; }
+  const inp = document.createElement('input');
+  inp.id = 'barcode-capture';
+  inp.type = 'text';
+  inp.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
+  inp.placeholder = 'Scan barcode...';
+  document.body.appendChild(inp);
+  inp.focus();
+  showToast('Ready to scan — trigger your scanner', '');
+  inp.onkeydown = e => {
+    if (e.key === 'Enter') {
+      const raw = inp.value.trim().replace(/[^0-9a-zA-Z]/g, '');
+      inp.value = '';
+      if (raw.length >= 6) processBarcode(raw);
+    }
+  };
+}
+
+function handleManual() {
+  const term = prompt('Describe the item:');
+  if (term && term.trim()) processManual(term.trim());
+}
+
+// ── Process image through Claude Vision ───────────────────────────────────────
+async function processImage(dataUrl, mimeType) {
+  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
+  const cardId = 'qcard-' + (++cardCounter);
+  const base64 = dataUrl.split(',')[1];
+  addProcessingCard(cardId, dataUrl);
+
+  try {
+    const result = await claudeIdentifyAndComp([{
+      type: 'image',
+      source: { type: 'base64', media_type: mimeType, data: base64 }
+    }]);
+    if (result) populateCard(cardId, result, dataUrl);
+    else removeCard(cardId);
+  } catch (err) {
+    console.error(err);
+    showToast('Identification failed', 'error');
+    removeCard(cardId);
+  }
+}
+
+// ── Process barcode ───────────────────────────────────────────────────────────
+async function processBarcode(barcode) {
+  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
+  const cardId = 'qcard-' + (++cardCounter);
+  addProcessingCard(cardId, null);
+
+  try {
+    const result = await claudeIdentifyAndComp([{
+      type: 'text',
+      text: `Barcode scanned: ${barcode}. Identify this product and research eBay sold comps.`
+    }]);
+    if (result) populateCard(cardId, result, null);
+    else removeCard(cardId);
+  } catch (err) {
+    console.error(err);
+    showToast('Lookup failed', 'error');
+    removeCard(cardId);
+  }
+}
+
+// ── Process manual description ────────────────────────────────────────────────
+async function processManual(description) {
+  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
+  const cardId = 'qcard-' + (++cardCounter);
+  addProcessingCard(cardId, null);
+
+  try {
+    const result = await claudeIdentifyAndComp([{
+      type: 'text',
+      text: `Item description: ${description}. Identify this product and research eBay sold comps.`
+    }]);
+    if (result) populateCard(cardId, result, null);
+    else removeCard(cardId);
+  } catch (err) {
+    console.error(err);
+    showToast('Lookup failed', 'error');
+    removeCard(cardId);
+  }
+}
+
+// ── Claude: identify item + search eBay sold comps ────────────────────────────
+async function claudeIdentifyAndComp(contentBlocks) {
+  const apiKey = getCred('anthropic');
+  const system = `You are an expert vintage and collectible reseller assistant for Last Laugh Vintage, based in Long Beach, CA.
+Your job is to identify items and research eBay sold listing prices.
+
+Categories you work with: POSTER, VHS, CASSETTE, TOY, VINTAGE ELECTRONICS, MEMORABILIA, HOME DECOR, OTHER.
+
+You have access to web search. Use it to search eBay SOLD listings for the item.
+Search URL pattern: https://www.ebay.com/sch/i.html?_nkw=SEARCH+TERM&LH_Sold=1&LH_Complete=1&LH_ItemCondition=4
+
+Steps:
+1. Identify the item from the image/description
+2. Generate the optimal eBay sold search query (think like an experienced reseller — not too specific, not too broad)
+3. Search eBay sold listings using web search
+4. Parse the sold prices from results
+
+Return ONLY valid JSON, no markdown, no preamble:
+{
+  "name": "Clean item name (brand + model/title + key descriptor)",
+  "category": "ONE OF: POSTER|VHS|CASSETTE|TOY|VINTAGE ELECTRONICS|MEMORABILIA|HOME DECOR|OTHER",
+  "ebay_search_query": "the search term used",
+  "comp_low": 0,
+  "comp_high": 0,
+  "comp_median": 0,
+  "comp_sold_count": 0,
+  "ebay_search_url": "full eBay sold search URL",
+  "ai_notes": "Brief identification notes and condition observations"
+}
+
+If you cannot determine sold comp data, use 0 for price fields and 0 for sold count.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        system,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: contentBlocks }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      console.error('Claude error:', e);
+      showToast('Claude API error', 'error');
+      return null;
+    }
+
+    const data = await res.json();
+
+    // Extract text from potentially mixed content blocks
+    const text = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    if (!text) { showToast('No response from Claude', 'error'); return null; }
+
+    // Strip any accidental markdown fences
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+
+  } catch (err) {
+    console.error('claudeIdentifyAndComp error:', err);
+    showToast('Identification error — check console', 'error');
+    return null;
+  }
+}
+
+// ── Queue card DOM helpers ────────────────────────────────────────────────────
+function addProcessingCard(cardId, imageDataUrl) {
+  const list = document.getElementById('queue-list');
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Item photo">`
+    : `<i class="ti ti-loader"></i>`;
+
+  const card = document.createElement('div');
+  card.className = 'queue-card processing';
+  card.id = cardId;
+  card.style.marginTop = '10px';
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0;' : 'color:var(--dim);'}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name" style="color:var(--dim);">Identifying item...</div>
+        <div class="card-cat" style="color:var(--ghost);">Searching eBay sold comps</div>
+        <div class="comp-row"><span style="font-size:10px;color:var(--ghost);">Pulling sold data</span></div>
+      </div>
+    </div>
+    <div class="processing-bar">
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      Processing
+    </div>`;
+  list.appendChild(card);
+  updateQueueCount();
+}
+
+function populateCard(cardId, result, imageDataUrl) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+
+  // Store data for use at buy confirmation
+  cardData[cardId] = { ...result, imageDataUrl };
+
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Item photo">`
+    : `<i class="ti ti-package"></i>`;
+
+  const compLow  = result.comp_low  ? '$' + result.comp_low  : '—';
+  const compHigh = result.comp_high ? '$' + result.comp_high : '—';
+  const compRange = (result.comp_low || result.comp_high) ? `${compLow} – ${compHigh}` : 'No comps found';
+  const soldCount = result.comp_sold_count ? result.comp_sold_count + ' sold' : 'No data';
+  const ebayUrl = result.ebay_search_url || `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(result.ebay_search_query || result.name)}&LH_Sold=1&LH_Complete=1`;
+
+  card.className = 'queue-card';
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0;' : ''}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name">${escHtml(result.name)}</div>
+        <div class="card-cat">${escHtml(result.category)}</div>
+        <div class="comp-row">
+          <span class="comp-range">${compRange}</span>
+          <span class="comp-sold">${soldCount}</span>
+          <a class="comp-link" href="${ebayUrl}" target="_blank">eBay <i class="ti ti-external-link"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="card-divider"></div>
+    <div class="card-actions">
+      <button class="card-btn card-btn-pass" onclick="passCard('${cardId}')">Pass</button>
+      <button class="card-btn card-btn-buy" onclick="openBuySheet('${cardId}', ${JSON.stringify(result.name)}, ${JSON.stringify(result.category)})">Buy →</button>
+    </div>`;
+  updateQueueCount();
+}
+
+function removeCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (card) { card.remove(); updateQueueCount(); }
+  delete cardData[cardId];
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Pass / Buy ────────────────────────────────────────────────────────────────
 function passCard(id) {
   const card = document.getElementById(id);
+  if (!card) return;
   card.style.opacity = '0';
   card.style.transform = 'translateX(20px)';
-  setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
+  card.style.transition = 'opacity 0.2s, transform 0.2s';
+  setTimeout(() => { card.remove(); updateQueueCount(); delete cardData[id]; }, 200);
 }
 
 function openBuySheet(cardId, name, cat) {
@@ -1808,7 +2064,11 @@ function openBuySheet(cardId, name, cat) {
   document.getElementById('sheet-item-name').textContent = name;
   document.getElementById('sheet-item-cat').textContent = cat;
   document.getElementById('sheet-cog').value = '';
+  // Reset condition to Very Good default
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.cond-btn:nth-child(3)').classList.add('active');
   document.getElementById('buy-sheet-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('sheet-cog').focus(), 300);
 }
 
 function closeBuySheet() {
@@ -1816,17 +2076,157 @@ function closeBuySheet() {
   pendingCardId = null;
 }
 
-function confirmBuy() {
-  const cog = document.getElementById('sheet-cog').value;
-  if (!cog) { showToast('Enter cost of goods', 'error'); return; }
-  if (pendingCardId) {
-    const card = document.getElementById(pendingCardId);
-    card.style.opacity = '0';
-    card.style.transform = 'translateX(-20px)';
-    setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
+// ── Confirm buy → Airtable ────────────────────────────────────────────────────
+async function confirmBuy() {
+  const cogRaw = document.getElementById('sheet-cog').value.trim().replace(/[$,]/g, '');
+  if (!cogRaw || isNaN(parseFloat(cogRaw))) { showToast('Enter cost of goods', 'error'); return; }
+  const cog = parseFloat(cogRaw);
+
+  const condEl = document.querySelector('.cond-btn.active');
+  const condition = condEl ? condEl.textContent.toUpperCase().replace(' ', ' ') : 'GOOD';
+
+  const data = cardData[pendingCardId] || {};
+  const dateStr = new Date().toLocaleDateString('en-CA');
+
+  // Get or create today's session
+  const sessionId = await getOrCreateSession();
+
+  // Build Airtable record
+  const fields = {
+    'ITEM NAME':              data.name || 'Unknown Item',
+    'CATEGORY':               data.category || 'OTHER',
+    'CONDITION':              condition,
+    'COST OF GOODS':          cog,
+    'AI IDENTIFICATION NOTES': data.ai_notes || '',
+    'EBAY COMP LOW':          data.comp_low || 0,
+    'EBAY COMP HIGH':         data.comp_high || 0,
+    'EBAY COMP SOLD COUNT':   data.comp_sold_count || 0,
+    'ITEM STATUS':            'SOURCED',
+    'DATE SOURCED':           dateStr,
+  };
+  if (sessionId) fields['SESSION'] = [sessionId];
+
+  const airtableKey = getCred('airtable');
+  const baseId = getCred('baseId');
+  const itemsId = getCred('itemsId');
+
+  if (!airtableKey || !baseId || !itemsId) {
+    showToast('Add Airtable credentials in Settings', 'error');
+    return;
   }
-  closeBuySheet();
-  showToast('Record started — pipeline open', 'success');
+
+  showToast('Creating record...', '');
+
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${itemsId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${airtableKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fields })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      console.error('Airtable create error:', e);
+      showToast('Airtable error — check console', 'error');
+      return;
+    }
+
+    const record = await res.json();
+    console.log('Record created:', record.id);
+
+    // If we have an image, attach it
+    if (data.imageDataUrl && record.id) {
+      attachImageToRecord(record.id, data.imageDataUrl, data.name);
+    }
+
+    // Remove card from queue
+    const card = document.getElementById(pendingCardId);
+    if (card) {
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      card.style.transition = 'opacity 0.2s, transform 0.2s';
+      setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
+    }
+    delete cardData[pendingCardId];
+    closeBuySheet();
+    showToast('Record created — pipeline open ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('Network error', 'error');
+  }
+}
+
+// ── Attach image to Airtable record ──────────────────────────────────────────
+async function attachImageToRecord(recordId, dataUrl, itemName) {
+  // Convert dataUrl to blob and upload via Airtable attachment
+  // Airtable requires a publicly accessible URL for attachments via API
+  // We store the base64 in AI IDENTIFICATION NOTES as a fallback marker
+  // Full attachment upload requires a file host — flagged for future enhancement
+  console.log('Image attachment pending file host setup for record:', recordId);
+}
+
+// ── Session management ────────────────────────────────────────────────────────
+let activeSessionId = null;
+
+async function getOrCreateSession() {
+  if (activeSessionId) return activeSessionId;
+
+  const airtableKey = getCred('airtable');
+  const baseId = getCred('baseId');
+  const sessionsId = getCred('sessionsId');
+  if (!airtableKey || !baseId || !sessionsId) return null;
+
+  const today = new Date().toLocaleDateString('en-CA');
+  const homeBase = getCred('homeBase') || 'Long Beach, CA';
+
+  // Check for existing session today
+  try {
+    const searchUrl = `https://api.airtable.com/v0/${baseId}/${sessionsId}?filterByFormula=IS_SAME({DATE}, "${today}", "day")&maxRecords=1`;
+    const res = await fetch(searchUrl, {
+      headers: { 'Authorization': `Bearer ${airtableKey}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.records && data.records.length > 0) {
+        activeSessionId = data.records[0].id;
+        return activeSessionId;
+      }
+    }
+  } catch (err) { console.error('Session search error:', err); }
+
+  // No session today — prompt for location and create one
+  const location = prompt('Where are you sourcing today? (optional)', homeBase) || homeBase;
+  const sessionType = 'ESTATE SALE'; // default — can be enhanced later
+
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${airtableKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fields: {
+          'LOCATION': location,
+          'DATE': today,
+          'SESSION TYPE': sessionType,
+          'SESSION STATUS': 'ACTIVE'
+        }
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      activeSessionId = data.id;
+      showToast(`Session: ${location}`, '');
+      return activeSessionId;
+    }
+  } catch (err) { console.error('Session create error:', err); }
+
+  return null;
 }
 
 function selectCond(el) {
@@ -1835,9 +2235,8 @@ function selectCond(el) {
 }
 
 function updateQueueCount() {
-  const cards = document.querySelectorAll('.queue-card:not(.processing)');
-  const processing = document.querySelectorAll('.queue-card.processing').length;
-  const total = cards.length + processing;
+  const allCards = document.querySelectorAll('#queue-list .queue-card');
+  const total = allCards.length;
   document.getElementById('queue-count').textContent = total === 0 ? 'empty' : total + ' pending';
 }
 

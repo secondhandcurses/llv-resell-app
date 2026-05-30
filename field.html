@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <style>
 
 /* ─── TOKENS ─────────────────────────────────────────────────────────────── */
@@ -769,11 +769,11 @@ a      { color: inherit; text-decoration: none; }
 
   <!-- TAB BAR -->
   <div id="tab-bar">
-    <button class="tab-btn active" id="tab-queue" onclick="switchTab('queue')">
-      <i class="ti ti-camera"></i> Queue
-    </button>
-    <button class="tab-btn" id="tab-plan" onclick="switchTab('plan')">
+    <button class="tab-btn active" id="tab-plan" onclick="switchTab('plan')">
       <i class="ti ti-map-pin"></i> Plan
+    </button>
+    <button class="tab-btn" id="tab-queue" onclick="switchTab('queue')">
+      <i class="ti ti-camera"></i> Queue
     </button>
   </div>
 
@@ -941,6 +941,7 @@ a      { color: inherit; text-decoration: none; }
         <button class="type-btn cond-btn active" data-type="ESTATE SALE" onclick="selectType(this)">Estate Sale</button>
         <button class="type-btn cond-btn" data-type="THRIFT STORE" onclick="selectType(this)">Thrift Store</button>
         <button class="type-btn cond-btn" data-type="GARAGE SALE" onclick="selectType(this)">Garage Sale</button>
+        <button class="type-btn cond-btn" data-type="YARD SALE" onclick="selectType(this)">Yard Sale</button>
         <button class="type-btn cond-btn" data-type="OTHER" onclick="selectType(this)">Other</button>
       </div>
     </div>
@@ -980,14 +981,24 @@ a      { color: inherit; text-decoration: none; }
       <input class="sheet-input-sm" type="text" id="as-address" placeholder="123 Main St, Long Beach, CA" />
     </div>
 
-    <div class="sheet-row-2" style="margin-bottom:14px;">
+    <div class="sheet-row-2" style="margin-bottom:10px;">
       <div>
-        <div class="sheet-lbl">Date</div>
+        <div class="sheet-lbl">Start Date</div>
         <input class="sheet-input-sm" type="date" id="as-date" />
       </div>
       <div>
+        <div class="sheet-lbl">End Date</div>
+        <input class="sheet-input-sm" type="date" id="as-date-end" />
+      </div>
+    </div>
+    <div class="sheet-row-2" style="margin-bottom:14px;">
+      <div>
         <div class="sheet-lbl">Start Time</div>
         <input class="sheet-input-sm" type="time" id="as-time" />
+      </div>
+      <div>
+        <div class="sheet-lbl">End Time</div>
+        <input class="sheet-input-sm" type="time" id="as-time-end" />
       </div>
     </div>
 
@@ -997,8 +1008,25 @@ a      { color: inherit; text-decoration: none; }
         <button class="type-btn cond-btn active" data-saletype="ESTATE SALE" onclick="selectSaleType(this)">Estate</button>
         <button class="type-btn cond-btn" data-saletype="THRIFT STORE" onclick="selectSaleType(this)">Thrift</button>
         <button class="type-btn cond-btn" data-saletype="GARAGE SALE" onclick="selectSaleType(this)">Garage</button>
+        <button class="type-btn cond-btn" data-saletype="YARD SALE" onclick="selectSaleType(this)">Yard Sale</button>
         <button class="type-btn cond-btn" data-saletype="OTHER" onclick="selectSaleType(this)">Other</button>
       </div>
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Lead Source</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="type-btn cond-btn active" data-source="IN PERSON" onclick="selectSource(this)">In Person</button>
+        <button class="type-btn cond-btn" data-source="FACEBOOK" onclick="selectSource(this)">Facebook</button>
+        <button class="type-btn cond-btn" data-source="NEWSLETTER" onclick="selectSource(this)">Newsletter</button>
+        <button class="type-btn cond-btn" data-source="AUCTION SITE" onclick="selectSource(this)">Auction Site</button>
+        <button class="type-btn cond-btn" data-source="OTHER" onclick="selectSource(this)">Other</button>
+      </div>
+    </div>
+
+    <div class="sheet-field" id="source-link-field" style="display:none;">
+      <div class="sheet-lbl">Listing Link</div>
+      <input class="sheet-input-sm" type="url" id="as-link" placeholder="https://..." />
     </div>
 
     <div class="sheet-field">
@@ -1056,6 +1084,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Debug: log current session state
   console.log('Session on load:', savedId, savedName);
+  // Start on Plan tab
+  switchTab('plan');
 
   // Barcode scanner input listener
   const barcodeInput = document.getElementById('barcode-input');
@@ -1605,7 +1635,7 @@ async function testAirtable() {
 
 
 // ─── TAB SWITCHING ────────────────────────────────────────────────────────────
-let currentTab = 'queue';
+let currentTab = 'plan';
 
 function switchTab(tab) {
   currentTab = tab;
@@ -1629,6 +1659,10 @@ function switchTab(tab) {
     planFabs.style.display  = 'flex';
     renderPlanList();
   }
+  // Sync tab button states
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('tab-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
 }
 
 // ─── SALES DATA ───────────────────────────────────────────────────────────────
@@ -1700,9 +1734,10 @@ function buildSaleCard(sale) {
         <div class="sale-card-name">${esc(sale.name)}</div>
         <div class="sale-card-type">${esc(sale.saleType)}</div>
         <div class="sale-card-meta">
-          ${dateStr ? `<span class="sale-meta-item"><i class="ti ti-calendar"></i>${dateStr}</span>` : ''}
-          ${timeStr ? `<span class="sale-meta-item"><i class="ti ti-clock"></i>${timeStr}</span>` : ''}
+          ${dateStr ? `<span class="sale-meta-item"><i class="ti ti-calendar"></i>${dateStr}${sale.dateEnd && sale.dateEnd !== sale.date ? ' – ' + formatDate(sale.dateEnd) : ''}</span>` : ''}
+          ${timeStr ? `<span class="sale-meta-item"><i class="ti ti-clock"></i>${timeStr}${sale.timeEnd ? ' – ' + formatTime(sale.timeEnd) : ''}</span>` : ''}
           ${sale.address ? `<span class="sale-meta-item"><i class="ti ti-map-pin"></i>${esc(sale.address.split(',')[0])}</span>` : ''}
+          ${sale.source && sale.source !== 'IN PERSON' ? `<span class="sale-meta-item"><i class="ti ti-link"></i>${esc(sale.source)}</span>` : ''}
         </div>
         ${sale.notes ? `<div style="font-size:10px;color:var(--dim);margin-top:5px;">${esc(sale.notes)}</div>` : ''}
       </div>
@@ -1710,6 +1745,9 @@ function buildSaleCard(sale) {
     </div>
     <div class="card-divider"></div>
     <div class="sale-card-actions">
+      <button class="sale-act-btn" style="color:var(--lavender);border-right:1px solid var(--border);" onclick="startSourcingFromSale('${sale.id}')">
+        <i class="ti ti-camera" style="font-size:13px;margin-right:3px;"></i> Source
+      </button>
       <button class="sale-act-btn sale-act-maps" onclick="openInMaps('${sale.id}')">
         <i class="ti ti-map" style="font-size:13px;margin-right:3px;"></i> Maps
       </button>
@@ -1786,13 +1824,20 @@ function openAddSaleSheet() {
   document.getElementById('as-notes').value   = '';
   // Default date to today
   const today = new Date();
-  document.getElementById('as-date').value = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  document.getElementById('as-time').value = '08:00';
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  document.getElementById('as-date').value     = todayStr;
+  document.getElementById('as-date-end').value = todayStr;
+  document.getElementById('as-time').value     = '08:00';
+  document.getElementById('as-time-end').value = '14:00';
   // Reset selects
   document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-saletype="ESTATE SALE"]').classList.add('active');
   document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-priority="MEDIUM"]').classList.add('active');
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-source="IN PERSON"]').classList.add('active');
+  document.getElementById('as-link').value = '';
+  document.getElementById('source-link-field').style.display = 'none';
   document.getElementById('add-sale-overlay').style.display = 'flex';
 }
 
@@ -1804,14 +1849,21 @@ function editSale(id) {
   document.getElementById('as-name').value    = sale.name || '';
   document.getElementById('as-address').value = sale.address || '';
   document.getElementById('as-notes').value   = sale.notes || '';
-  document.getElementById('as-date').value    = sale.date || '';
-  document.getElementById('as-time').value    = sale.time || '';
+  document.getElementById('as-date').value     = sale.date    || '';
+  document.getElementById('as-date-end').value = sale.dateEnd || '';
+  document.getElementById('as-time').value     = sale.time    || '';
+  document.getElementById('as-time-end').value = sale.timeEnd || '';
   document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
   const typeBtn = document.querySelector(`[data-saletype="${sale.saleType}"]`);
   if (typeBtn) typeBtn.classList.add('active');
   document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));
   const priBtn = document.querySelector(`[data-priority="${sale.priority}"]`);
   if (priBtn) priBtn.classList.add('active');
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  const srcBtn = document.querySelector(`[data-source="${sale.source || 'IN PERSON'}"]`);
+  if (srcBtn) srcBtn.classList.add('active');
+  document.getElementById('as-link').value = sale.link || '';
+  toggleSourceLink(sale.source || 'IN PERSON');
   document.getElementById('add-sale-overlay').style.display = 'flex';
 }
 
@@ -1827,21 +1879,26 @@ function saveSale() {
   const date     = document.getElementById('as-date').value;
   const time     = document.getElementById('as-time').value;
   const notes    = document.getElementById('as-notes').value.trim();
+  const dateEnd  = document.getElementById('as-date-end').value;
+  const timeEnd  = document.getElementById('as-time-end').value;
   const typeEl   = document.querySelector('[data-saletype].active');
   const priEl    = document.querySelector('[data-priority].active');
+  const srcEl    = document.querySelector('[data-source].active');
   const saleType = typeEl ? typeEl.dataset.saletype : 'ESTATE SALE';
   const priority = priEl  ? priEl.dataset.priority  : 'MEDIUM';
+  const source   = srcEl  ? srcEl.dataset.source    : 'IN PERSON';
+  const link     = document.getElementById('as-link').value.trim();
 
   if (editingSaleId) {
     const idx = salesData.findIndex(s => s.id === editingSaleId);
     if (idx > -1) {
-      salesData[idx] = { ...salesData[idx], name, address, date, time, notes, saleType, priority };
+      salesData[idx] = { ...salesData[idx], name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source, link };
     }
     showToast('Sale updated ✓', 'success');
   } else {
     salesData.push({
       id: 'sale-' + Date.now(),
-      name, address, date, time, notes, saleType, priority,
+      name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source, link,
       converted: false,
       createdAt: new Date().toISOString()
     });
@@ -1860,6 +1917,78 @@ function deleteSale(id) {
   showToast('Sale removed', '');
 }
 
+// ─── START SOURCING FROM SALE ────────────────────────────────────────────────
+async function startSourcingFromSale(id) {
+  const sale = salesData.find(s => s.id === id);
+  if (!sale) return;
+
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const sessionsId  = get('sessionsId');
+
+  showToast('Starting session...', '');
+
+  // Build session fields from sale data
+  const fields = {
+    'LOCATION':       sale.name,
+    'SESSION TYPE':   mapSaleTypeToSessionType(sale.saleType),
+    'SESSION STATUS': 'ACTIVE',
+    'DATE':           sale.date || (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })()
+  };
+
+  // If Airtable is configured, create session record
+  if (airtableKey && baseId && sessionsId) {
+    try {
+      const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        activeSessionId   = data.id;
+        activeSessionName = sale.name;
+        localStorage.setItem('llv_active_session_id',   activeSessionId);
+        localStorage.setItem('llv_active_session_name', activeSessionName);
+      } else {
+        const err = await res.json();
+        console.error('Session create error:', err);
+        // Continue anyway — session bar will show without Airtable link
+        activeSessionId   = null;
+        activeSessionName = sale.name;
+      }
+    } catch (err) {
+      console.error(err);
+      activeSessionName = sale.name;
+    }
+  } else {
+    activeSessionName = sale.name;
+  }
+
+  // Mark sale as converted in local data
+  const idx = salesData.findIndex(s => s.id === id);
+  if (idx > -1) salesData[idx].converted = true;
+  saveSalesData();
+
+  // Update session bar
+  document.getElementById('session-label').textContent = activeSessionName;
+
+  // Switch to Queue tab
+  switchTab('queue');
+  showToast('Session started: ' + activeSessionName, 'success');
+}
+
+function mapSaleTypeToSessionType(saleType) {
+  const map = {
+    'ESTATE SALE':  'ESTATE SALE',
+    'THRIFT STORE': 'THRIFT STORE',
+    'GARAGE SALE':  'GARAGE SALE',
+    'YARD SALE':    'GARAGE SALE',
+    'OTHER':        'OTHER'
+  };
+  return map[saleType] || 'ESTATE SALE';
+}
+
 // ─── MAPS ─────────────────────────────────────────────────────────────────────
 function openInMaps(id) {
   const sale = salesData.find(s => s.id === id);
@@ -1874,6 +2003,16 @@ function openInMaps(id) {
 function selectSaleType(el) {
   document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
+}
+function selectSource(el) {
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  toggleSourceLink(el.dataset.source);
+}
+function toggleSourceLink(source) {
+  const linkSources = ['FACEBOOK', 'NEWSLETTER', 'AUCTION SITE'];
+  const field = document.getElementById('source-link-field');
+  if (field) field.style.display = linkSources.includes(source) ? 'block' : 'none';
 }
 function selectPriority(el) {
   document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));

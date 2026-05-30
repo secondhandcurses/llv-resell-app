@@ -1551,7 +1551,7 @@ async function confirmBuy() {
     'EBAY COMP SOLD COUNT':    d.comp_sold_count || 0,
     'ITEM STATUS':             'SOURCED',
   };
-  if (sessionId) fields['SESSION'] = [sessionId];
+  if (sessionId && sessionId.startsWith('rec')) fields['SESSION'] = [sessionId];
 
   showToast('Creating record...', '');
 

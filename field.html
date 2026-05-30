@@ -854,7 +854,7 @@ async function createSession(location, sessionType) {
         'LOCATION':       location,
         'SESSION TYPE':   sessionType,
         'SESSION STATUS': 'ACTIVE',
-        'DATE':           new Date().toLocaleDateString('en-CA')
+        'DATE':           (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })()
       }})
     });
     if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }

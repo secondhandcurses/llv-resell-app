@@ -1957,21 +1957,27 @@ async function startSourcingFromSale(id) {
         const data = await res.json();
         activeSessionId   = data.id;
         activeSessionName = sale.name;
-        localStorage.setItem('llv_active_session_id',   activeSessionId);
-        localStorage.setItem('llv_active_session_name', activeSessionName);
       } else {
         const err = await res.json();
-        console.error('Session create error:', err);
-        // Continue anyway — session bar will show without Airtable link
-        activeSessionId   = null;
+        const msg = err?.error?.message || err?.error?.type || 'Unknown';
+        showToast('Session AT error: ' + msg.substring(0, 35), 'error');
+        activeSessionId   = 'local-' + Date.now();
         activeSessionName = sale.name;
       }
     } catch (err) {
       console.error(err);
+      activeSessionId   = 'local-' + Date.now();
       activeSessionName = sale.name;
     }
+    // Always persist so confirmBuy doesn't re-prompt
+    localStorage.setItem('llv_active_session_id',   activeSessionId);
+    localStorage.setItem('llv_active_session_name', activeSessionName);
   } else {
+    // No Airtable configured — use local ID
+    activeSessionId   = 'local-' + Date.now();
     activeSessionName = sale.name;
+    localStorage.setItem('llv_active_session_id',   activeSessionId);
+    localStorage.setItem('llv_active_session_name', activeSessionName);
   }
 
   // Mark sale as converted in local data

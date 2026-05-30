@@ -747,9 +747,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!get('itemsId'))    set('itemsId',    'tblFeToiIcEseekfH');
   if (!get('homeBase'))   set('homeBase',   'Long Beach, CA');
 
-  // Restore active session label
-  const saved = localStorage.getItem('llv_active_session_name');
-  if (saved) document.getElementById('session-label').textContent = saved;
+  // Restore active session label if exists
+  const savedName = localStorage.getItem('llv_active_session_name');
+  const savedId   = localStorage.getItem('llv_active_session_id');
+  if (savedName && savedId) {
+    activeSessionId   = savedId;
+    activeSessionName = savedName;
+    document.getElementById('session-label').textContent = savedName;
+  }
+  // Debug: log current session state
+  console.log('Session on load:', savedId, savedName);
 
   // Barcode scanner input listener
   const barcodeInput = document.getElementById('barcode-input');
@@ -857,7 +864,13 @@ async function createSession(location, sessionType) {
         'DATE':           (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })()
       }})
     });
-    if (!res.ok) { console.error(await res.json()); showToast('Session create failed', 'error'); return null; }
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error('Session create error:', errData);
+      const msg = errData?.error?.message || errData?.error?.type || JSON.stringify(errData);
+      showToast('Session error: ' + msg.substring(0, 45), 'error');
+      return null;
+    }
     const data = await res.json();
     activeSessionId   = data.id;
     activeSessionName = location;

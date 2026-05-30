@@ -1934,8 +1934,7 @@ async function startSourcingFromSale(id) {
   const airtableKey = get('airtable');
   const baseId      = get('baseId');
   const sessionsId  = get('sessionsId');
-  showToast('Starting: AT=' + (airtableKey ? 'yes' : 'no') + ' sess=' + (sessionsId ? sessionsId.substring(0,6) : 'none'), '');
-  await new Promise(r => setTimeout(r, 2000));
+  showToast('Starting session...', '');
 
   // Build session fields from sale data
   const fields = {

@@ -301,6 +301,8 @@ a      { color: inherit; text-decoration: none; }
   margin: 0 auto;
 }
 .fab-alts {
+  width: 100%;
+  margin-bottom: 4px;
   display: flex;
   gap: 8px;
   width: 100%;
@@ -770,10 +772,12 @@ a      { color: inherit; text-decoration: none; }
   <!-- TAB BAR -->
   <div id="tab-bar">
     <button class="tab-btn active" id="tab-plan" onclick="switchTab('plan')">
-      <i class="ti ti-map-pin"></i> Plan
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Plan
     </button>
     <button class="tab-btn" id="tab-queue" onclick="switchTab('queue')">
-      <i class="ti ti-camera"></i> Queue
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Queue
     </button>
   </div>
 
@@ -817,26 +821,31 @@ a      { color: inherit; text-decoration: none; }
   <!-- FAB -->
   <div id="fab-area">
     <!-- Queue FABs -->
-    <div id="queue-fabs">
+    <div id="queue-fabs" style="width:100%;display:flex;flex-direction:column;gap:8px;">
       <div class="fab-alts">
         <button class="fab-alt" onclick="handleBarcode()">
-          <i class="ti ti-barcode"></i> Barcode
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3M5 8v8M8 8v8M11 8v8M14 8v8M17 8v2M19 8v2M17 14v2M19 14v2"/></svg>
+          Barcode
         </button>
         <button class="fab-alt" onclick="handleManual()">
-          <i class="ti ti-keyboard"></i> Manual
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg>
+          Manual
         </button>
       </div>
       <button class="fab-snap" onclick="handleSnap()">
-        <i class="ti ti-camera"></i> Snap
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Snap
       </button>
     </div>
     <!-- Plan FABs -->
     <div id="plan-fabs" style="display:none;width:100%;flex-direction:column;gap:8px;">
       <button class="plan-route-btn" id="route-btn" onclick="toggleRouteView()">
-        <i class="ti ti-route"></i> Plan Route
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M12 19h4.5a3.5 3.5 0 0 0 0-7h-8a3.5 3.5 0 0 1 0-7H12"/></svg>
+        Plan Route
       </button>
       <button class="plan-fab" onclick="openAddSaleSheet()">
-        <i class="ti ti-plus"></i> Add Sale
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Sale
       </button>
     </div>
   </div>

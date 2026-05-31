@@ -1968,7 +1968,9 @@ async function startSourcingFromSale(id) {
         activeSessionName = sale.name;
       }
     } catch (err) {
-      console.error(err);
+      console.error('Session fetch caught:', err);
+      showToast('Catch: ' + String(err.message || err).substring(0, 40), 'error');
+      await new Promise(r => setTimeout(r, 3500));
       activeSessionId   = 'local-' + Date.now();
       activeSessionName = sale.name;
     }
@@ -1991,7 +1993,8 @@ async function startSourcingFromSale(id) {
   // Update session bar
   document.getElementById('session-label').textContent = activeSessionName;
 
-  // Switch to Queue tab
+  // Switch to Queue tab — delay so error toasts are readable
+  await new Promise(r => setTimeout(r, 500));
   switchTab('queue');
   showToast('Session started: ' + activeSessionName, 'success');
 }

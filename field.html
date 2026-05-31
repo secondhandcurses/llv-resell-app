@@ -1952,14 +1952,18 @@ async function startSourcingFromSale(id) {
         headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields })
       });
+      const respText = await res.text();
+      console.log('Session response:', res.status, respText);
       if (res.ok) {
-        const data = await res.json();
+        const data = JSON.parse(respText);
         activeSessionId   = data.id;
         activeSessionName = sale.name;
+        showToast('Session created: ' + data.id.substring(0,10), 'success');
       } else {
-        const err = await res.json();
-        const msg = err?.error?.message || err?.error?.type || 'Unknown';
-        showToast('Session AT error: ' + msg.substring(0, 35), 'error');
+        let err = {};
+        try { err = JSON.parse(respText); } catch(e) {}
+        const msg = err?.error?.message || err?.error?.type || respText.substring(0,40);
+        showToast('Session error: ' + msg.substring(0, 40), 'error');
         activeSessionId   = 'local-' + Date.now();
         activeSessionName = sale.name;
       }

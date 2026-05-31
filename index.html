@@ -117,6 +117,13 @@
   .photo-strip .pt img{width:100%;height:100%;object-fit:cover}
   .photo-strip .pt.primary{border-color:var(--lav)}
   .photo-strip .pt .pbadge{position:absolute;bottom:0;left:0;right:0;font-family:'DM Mono';font-size:.46rem;text-align:center;background:var(--lav);color:#1a1818;letter-spacing:.08em;padding:1px}
+  .photo-strip .pt-actions{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(16,14,14,.68);opacity:0;transition:.15s}
+  .photo-strip .pt:hover .pt-actions{opacity:1}
+  .photo-strip .pt-act{width:24px;height:24px;border-radius:6px;border:none;background:rgba(189,187,176,.18);display:grid;place-items:center;padding:0}
+  .photo-strip .pt-act svg{width:13px;height:13px;stroke:var(--txt);fill:none;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}
+  .photo-strip .pt-act:hover{background:rgba(171,129,205,.4)}
+  .photo-strip .pt-act.del:hover{background:rgba(207,125,125,.32)}
+  .photo-strip .pt-act.del:hover svg{stroke:var(--err)}
 
   .ptabs{display:flex;gap:3px;margin:15px 17px 0;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:4px}
   .ptabs button{flex:1;font-family:'DM Mono';font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-mute);background:none;border:none;padding:8px 4px;border-radius:6px;transition:.15s;position:relative}
@@ -524,7 +531,7 @@ function renderWorkspace(){
         <div class="dz-main">Drop photos or click to upload</div>
         <div class="dz-sub">attaches to ITEMS · PHOTOS — resized · ≤5MB each</div>
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none"></div>
-      <div class="photo-strip">${photos.length?photos.map((p,i)=>`<div class="pt ${i===0?'primary':''}"><img src="${esc((p.thumbnails&&p.thumbnails.small&&p.thumbnails.small.url)||p.url)}">${i===0?'<span class="pbadge">PRIMARY</span>':''}</div>`).join(''):'<span class="label" style="padding:4px 0">No photos yet</span>'}</div>
+      <div class="photo-strip">${photos.length?photos.map((p,i)=>`<div class="pt ${i===0?'primary':''}" data-att="${esc(p.id)}"><img src="${esc((p.thumbnails&&p.thumbnails.small&&p.thumbnails.small.url)||p.url)}">${i===0?'<span class="pbadge">PRIMARY</span>':''}<div class="pt-actions">${i!==0?`<button class="pt-act" data-primary="${esc(p.id)}" title="Set as primary"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.8.6-5.1 4.5 1.5 6.7L12 17.1 5.9 20.6l1.5-6.7L2.3 8.9l6.8-.6z"/></svg></button>`:''}<button class="pt-act del" data-del="${esc(p.id)}" title="Delete photo"><svg viewBox="0 0 24 24"><path d="M5 7h14 M9 7V5h6v2 M7 7l1 12h8l1-12"/></svg></button></div></div>`).join(''):'<span class="label" style="padding:4px 0">No photos yet</span>'}</div>
     </div>
     <div class="panel">
       <div class="panel-head"><span class="sec-title"><span class="num">2</span>Listing Copy</span></div>
@@ -610,6 +617,8 @@ function wireWorkspace(){
     dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(e.dataTransfer.files);});
     fi.addEventListener('change',()=>handleFiles(fi.files)); }
+  document.querySelectorAll('[data-primary]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();setPrimaryPhoto(b.dataset.primary);}));
+  document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deletePhoto(b.dataset.del);}));
   // generate + save
   $('#genBtn')&&$('#genBtn').addEventListener('click',generateAll);
   $('#saveBtn')&&$('#saveBtn').addEventListener('click',saveAll);
@@ -633,6 +642,22 @@ async function handleFiles(files){
       const idx=ITEMS.findIndex(i=>i.id===current.item.id); if(idx>=0 && updated && updated.fields){ ITEMS[idx]=updated; current.item=updated; } }
     toast('Photos uploaded','ok'); renderWorkspace();
   }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+// Reorder / delete by PATCHing the PHOTOS array with existing attachment ids (order = display; first = primary).
+function currentPhotoAtts(){ const p=F(current.item,'PHOTOS'); return Array.isArray(p)?p:[]; }
+async function patchPhotos(orderedIds){
+  const updated=await atPatch(CFG.items, current.item.id, { 'PHOTOS': orderedIds.map(id=>({id})) });
+  const idx=ITEMS.findIndex(i=>i.id===current.item.id); if(idx>=0 && updated && updated.fields){ ITEMS[idx]=updated; current.item=updated; }
+  renderWorkspace();
+}
+async function setPrimaryPhoto(attId){
+  try{ const ids=currentPhotoAtts().map(a=>a.id); await patchPhotos([attId, ...ids.filter(id=>id!==attId)]); toast('Primary photo set','ok'); }
+  catch(e){ console.error(e); toast(e.message,'err'); }
+}
+async function deletePhoto(attId){
+  if(!confirm('Delete this photo? This removes it from the Airtable record.')) return;
+  try{ await patchPhotos(currentPhotoAtts().map(a=>a.id).filter(id=>id!==attId)); toast('Photo deleted','ok'); }
+  catch(e){ console.error(e); toast(e.message,'err'); }
 }
 
 /* ---------- generation ---------- */

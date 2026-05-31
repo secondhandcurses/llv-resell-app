@@ -344,11 +344,12 @@ async function atCreate(tableId,fields){
   if(!r.ok) throw new Error('Airtable CREATE '+r.status+': '+(await r.text()).slice(0,200));
   return (await r.json());
 }
-// Native attachment upload (content API). Verified against official docs (May 2026):
-// POST api.airtable.com/v0/{base}/{recId}/{fieldNameOrId}/uploadAttachment
+// Native attachment upload. Host is content.airtable.com (NOT api.airtable.com — that 404s; the
+// /uploadAttachment route only exists on the content host). Path/body confirmed against official docs:
+// POST content.airtable.com/v0/{base}/{recId}/{fieldNameOrId}/uploadAttachment
 // Body: { contentType, file:<base64 NO data: prefix>, filename }. 5MB cap per file. Returns updated record.
 async function atUploadAttachment(recId, fieldName, base64NoPrefix, contentType, filename){
-  const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${recId}/${encodeURIComponent(fieldName)}/uploadAttachment`,{
+  const r=await fetch(`https://content.airtable.com/v0/${CFG.base}/${recId}/${encodeURIComponent(fieldName)}/uploadAttachment`,{
     method:'POST',headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
     body:JSON.stringify({contentType, file:base64NoPrefix, filename})});
   if(!r.ok) throw new Error('Attachment upload '+r.status+': '+(await r.text()).slice(0,200));

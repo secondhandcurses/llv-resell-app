@@ -2,2320 +2,723 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Last Laugh Vintage — General Reselling Toolkit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLV Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  :root{
+    --bg:#1a1818; --panel:#221f1f; --panel-2:#262222;
+    --line:rgba(189,187,176,.12); --line-strong:rgba(189,187,176,.22);
+    --grape:#654597; --lav:#AB81CD; --mauve:#E2ADF2; --silver:#BDBBB0; --olive:#8A897C;
+    --amber:#D9A441; --ready:#AB81CD; --green:#6FB36A; --grey:#5c5a52;
+    --txt:#E8E6DE; --txt-mute:#9A988C; --err:#cf7d7d;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Barlow',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:radial-gradient(circle at 18% -10%,rgba(101,69,151,.10),transparent 55%),radial-gradient(circle at 100% 0%,rgba(171,129,205,.06),transparent 45%);background-attachment:fixed;}
+  .label{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--olive)}
+  .mono{font-family:'DM Mono',monospace}
+  h1,h2,h3,.disp{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.02em}
+  button{cursor:pointer;font-family:inherit}
+  input,textarea,select{font-family:inherit}
 
-/* ─── DESIGN TOKENS ────────────────────────────────────────────────────────── */
-:root {
-  --bg:           #1a1818;
-  --bg-raised:    #211f1f;
-  --bg-deep:      #111010;
-  --bg-hover:     #262323;
-  --border:       #2e2c2c;
-  --border-light: #3a3636;
+  /* top bar */
+  .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:14px 26px;background:rgba(26,24,24,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(150deg,var(--grape),var(--lav));display:grid;place-items:center;flex:none}
+  .brand .mark svg{width:18px;height:18px;stroke:#1a1818;fill:none;stroke-width:2}
+  .brand .name{font-family:'Oswald';font-weight:600;letter-spacing:.08em;font-size:.95rem;text-transform:uppercase;line-height:1}
+  .brand .sub{font-family:'DM Mono';font-size:.6rem;letter-spacing:.22em;color:var(--lav);text-transform:uppercase}
+  .topbar .spacer{flex:1}
+  .tb-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;color:var(--olive);background:none}
+  .tb-btn:hover{color:var(--lav);border-color:var(--line-strong)}
+  .tb-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7}
 
-  --grape:        #654597;
-  --grape-dim:    #4a3370;
-  --grape-bg:     #2a1f35;
-  --lavender:     #AB81CD;
-  --mauve:        #E2ADF2;
-  --silver:       #BDBBB0;
-  --olive:        #8A897C;
-  --dim:          #4a4846;
-  --ghost:        #2e2c2c;
+  .wrap{max-width:1340px;margin:0 auto;padding:30px 26px 80px}
+  .view{display:none}.view.active{display:block;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  --green:        #4a8a4a;
-  --green-bg:     #1a2a1a;
-  --amber:        #8a6a1a;
-  --amber-bg:     #2a2010;
-  --red:          #8a3a3a;
-  --red-bg:       #2a1010;
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+  .dot.amber{background:var(--amber);box-shadow:0 0 8px rgba(217,164,65,.5)}
+  .dot.ready{background:var(--ready);box-shadow:0 0 8px rgba(171,129,205,.5)}
+  .dot.green{background:var(--green);box-shadow:0 0 8px rgba(111,179,106,.5)}
+  .dot.grey{background:var(--grey)}
+  .chip{display:inline-block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:rgba(189,187,176,.08);color:var(--silver);border:1px solid var(--line)}
 
-  --font-display: 'Oswald', sans-serif;
-  --font-mono:    'DM Mono', monospace;
-  --font-body:    'Barlow', sans-serif;
+  /* home */
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:30px 0 14px}
+  .sec-head h2{font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);font-weight:500}
+  .sec-head .count{font-family:'DM Mono';font-size:.72rem;color:var(--olive)}
+  .sessions{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+  .session-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 17px;transition:.18s}
+  .session-card .s-name{font-family:'Oswald';font-weight:500;font-size:1.02rem;letter-spacing:.01em;margin-bottom:3px}
+  .session-card .s-meta{font-family:'DM Mono';font-size:.66rem;color:var(--olive);letter-spacing:.04em}
+  .session-card .s-stats{display:flex;gap:14px;margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+  .session-card .stat{display:flex;align-items:center;gap:6px;font-family:'DM Mono';font-size:.7rem;color:var(--silver)}
+  .filterbar{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 20px}
+  .filterbar .search{flex:1;min-width:220px;position:relative}
+  .filterbar .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--olive);fill:none;stroke-width:1.8}
+  .filterbar input,.filterbar select{background:var(--panel);border:1px solid var(--line);color:var(--txt);font-size:.85rem;padding:10px 13px;border-radius:9px;outline:none}
+  .filterbar input{width:100%;padding-left:34px}
+  .filterbar select{font-family:'DM Mono';font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--silver)}
+  .filterbar input:focus,.filterbar select:focus{border-color:var(--lav)}
+  .inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px}
+  .item-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;transition:.18s;display:flex;flex-direction:column}
+  .item-card:hover{border-color:var(--lav);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.35)}
+  .item-card .thumb{aspect-ratio:4/3;background:linear-gradient(135deg,#2a2626,#201d1d);display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line);overflow:hidden}
+  .item-card .thumb img{width:100%;height:100%;object-fit:cover}
+  .item-card .thumb .ph{width:34px;height:34px;stroke:rgba(189,187,176,.28);fill:none;stroke-width:1.4}
+  .item-card .status{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:6px;background:rgba(20,18,18,.78);padding:4px 9px;border-radius:20px;font-family:'DM Mono';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+  .item-card .body{padding:13px 14px 15px}
+  .item-card .i-name{font-family:'Oswald';font-weight:500;font-size:.97rem;line-height:1.2;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item-card .i-row{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+  .item-card .comp{font-family:'DM Mono';font-size:.72rem;color:var(--mauve)}
+  .item-card .cog{font-family:'DM Mono';font-size:.66rem;color:var(--olive)}
 
-  --radius:       8px;
-  --radius-lg:    12px;
-  --radius-xl:    16px;
-}
+  /* workspace */
+  .ws-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .back{display:flex;align-items:center;gap:7px;font-family:'DM Mono';font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);background:none;border:none}
+  .back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .back:hover{color:var(--lav)}
+  .cols{display:grid;grid-template-columns:288px 1fr 348px;gap:18px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 17px;border-bottom:1px solid var(--line)}
+  .panel-head .ph-title{font-family:'DM Mono';font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--lav)}
+  .ro-badge{font-family:'DM Mono';font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--olive);border:1px solid var(--line);padding:3px 7px;border-radius:5px}
+  .field-photo{aspect-ratio:4/3;margin:15px 17px 0;border-radius:10px;background:linear-gradient(135deg,#2a2626,#201d1d);display:grid;place-items:center;border:1px solid var(--line);overflow:hidden}
+  .field-photo img{width:100%;height:100%;object-fit:cover}
+  .field-photo .ph{width:40px;height:40px;stroke:rgba(189,187,176,.3);fill:none;stroke-width:1.3}
+  .frec{padding:16px 17px}
+  .frec .fr-name{font-family:'Oswald';font-weight:600;font-size:1.2rem;line-height:1.15;margin-bottom:13px}
+  .frow{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:11px}
+  .frow:last-child{border-bottom:none;margin-bottom:0}
+  .frow dt{font-family:'DM Mono';font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--olive)}
+  .frow dd{font-size:.86rem;color:var(--txt);text-align:right;font-weight:500}
+  .comp-box{margin:4px 17px 17px;padding:13px;border-radius:10px;background:rgba(171,129,205,.07);border:1px solid rgba(171,129,205,.2)}
+  .comp-box .cb-range{font-family:'Oswald';font-weight:600;font-size:1.35rem;color:var(--mauve);margin-top:6px}
+  .comp-box .cb-sub{font-family:'DM Mono';font-size:.64rem;color:var(--olive);margin-top:5px}
+  .comp-box a{display:inline-flex;align-items:center;gap:5px;margin-top:11px;font-family:'DM Mono';font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lav);text-decoration:none}
+  .comp-box a svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
 
-/* ─── RESET ─────────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body {
-  background: var(--bg);
-  color: var(--silver);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-}
-button { cursor: pointer; font-family: inherit; }
-input, textarea, select { font-family: inherit; }
-a { color: inherit; text-decoration: none; }
+  .center{display:flex;flex-direction:column;gap:18px}
+  .sec-title{font-family:'DM Mono';font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--lav);display:flex;align-items:center;gap:9px}
+  .sec-title .num{width:20px;height:20px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-size:.6rem;color:var(--silver)}
+  .dropzone{margin:15px 17px;border:1.5px dashed var(--line-strong);border-radius:11px;padding:22px;text-align:center;transition:.15s}
+  .dropzone.drag{border-color:var(--lav);background:rgba(171,129,205,.06)}
+  .dropzone:hover{border-color:var(--lav);background:rgba(171,129,205,.04)}
+  .dropzone svg{width:26px;height:26px;stroke:var(--olive);fill:none;stroke-width:1.5;margin-bottom:8px}
+  .dropzone .dz-main{font-size:.86rem;color:var(--silver)}
+  .dropzone .dz-sub{font-family:'DM Mono';font-size:.6rem;color:var(--olive);margin-top:5px;letter-spacing:.05em}
+  .photo-strip{display:flex;gap:9px;padding:0 17px 16px;flex-wrap:wrap}
+  .photo-strip .pt{width:62px;height:62px;border-radius:8px;background:linear-gradient(135deg,#2a2626,#201d1d);border:1px solid var(--line);overflow:hidden;position:relative}
+  .photo-strip .pt img{width:100%;height:100%;object-fit:cover}
+  .photo-strip .pt.primary{border-color:var(--lav)}
+  .photo-strip .pt .pbadge{position:absolute;bottom:0;left:0;right:0;font-family:'DM Mono';font-size:.46rem;text-align:center;background:var(--lav);color:#1a1818;letter-spacing:.08em;padding:1px}
 
-/* ─── SCROLLBAR ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+  .ptabs{display:flex;gap:3px;margin:15px 17px 0;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:4px}
+  .ptabs button{flex:1;font-family:'DM Mono';font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-mute);background:none;border:none;padding:8px 4px;border-radius:6px;transition:.15s;position:relative}
+  .ptabs button.active{background:var(--grape);color:#fff}
+  .ptabs button .pdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:5px;vertical-align:middle;background:transparent}
+  .pt-done{background:var(--green)!important}.pt-draft{background:var(--amber)!important}
+  .gen-row{display:flex;justify-content:space-between;align-items:center;padding:13px 17px 4px;gap:10px}
+  .gen-btn{font-family:'DM Mono';font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,var(--lav),var(--mauve));border:none;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .gen-btn:disabled{opacity:.5}
+  .gen-btn svg{width:13px;height:13px;stroke:#1a1818;fill:none;stroke-width:2}
+  .copy-body{padding:8px 17px 17px}
+  .fld{margin-top:13px}
+  .fld label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .fld .lname{font-family:'DM Mono';font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--olive)}
+  .fld .lcount{font-family:'DM Mono';font-size:.58rem;color:var(--olive)}
+  .fld .lcount.warn{color:var(--amber)}
+  .fld input,.fld textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-size:.88rem;padding:10px 12px;border-radius:9px;outline:none;resize:vertical;line-height:1.5}
+  .fld input:focus,.fld textarea:focus{border-color:var(--lav)}
+  .fld textarea{min-height:90px}
 
-/* ─── LAYOUT ────────────────────────────────────────────────────────────────── */
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-}
+  .price-wrap{padding:15px 17px 18px;display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .price-block{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:14px}
+  .price-block h4{font-family:'DM Mono';font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+  .price-block h4 .tag{font-size:.5rem;color:#1a1818;background:var(--lav);padding:2px 6px;border-radius:4px;letter-spacing:.06em}
+  .pln{display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono';font-size:.72rem;padding:5px 0;color:var(--txt-mute)}
+  .pln .v{color:var(--txt)}.pln.muted .v{color:var(--olive)}.pln.neg .v{color:var(--mauve)}
+  .pbig{display:flex;gap:10px;margin-top:11px;padding-top:12px;border-top:1px solid var(--line)}
+  .pbig .pb{flex:1;text-align:center;padding:9px;border-radius:9px;background:rgba(171,129,205,.08);border:1px solid rgba(171,129,205,.2)}
+  .pbig .pb .pb-lab{font-family:'DM Mono';font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive)}
+  .pbig .pb .pb-val{font-family:'Oswald';font-weight:600;font-size:1.5rem;color:var(--mauve);margin-top:2px}
+  .pbig .pb.floor .pb-val{color:var(--silver)}
+  .price-input{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .price-input .pi-lab{font-family:'DM Mono';font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);flex:1}
+  .price-input input{width:80px;background:var(--bg);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.82rem;padding:7px 9px;border-radius:7px;outline:none;text-align:right}
+  .price-input input:focus{border-color:var(--lav)}
+  .pnote{margin-top:9px;font-family:'DM Mono';font-size:.56rem;letter-spacing:.04em;color:var(--olive)}
 
-/* ─── TOP BAR ───────────────────────────────────────────────────────────────── */
-#topbar {
-  flex-shrink: 0;
-  height: 48px;
-  background: var(--bg-deep);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  gap: 16px;
-  z-index: 100;
-}
+  .right{display:flex;flex-direction:column;gap:18px}
+  .live-head{display:flex;align-items:center;gap:10px;padding:15px 17px}
+  .live-head .lh-name{font-family:'Oswald';font-weight:500;font-size:1.02rem;line-height:1.15}
+  .live-head .lh-status{font-family:'DM Mono';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);display:flex;align-items:center;gap:6px;margin-top:3px}
+  .checklist{padding:4px 17px 17px}
+  .pub-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .pub-row:last-child{border-bottom:none}
+  .pub-platform{font-family:'DM Mono';font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;width:72px;flex:none;color:var(--silver)}
+  .pub-url{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.64rem;padding:7px 9px;border-radius:7px;outline:none}
+  .pub-url:focus{border-color:var(--lav)}
+  .pub-url::placeholder{color:var(--olive)}
+  .cbox{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center;transition:.15s;background:none}
+  .cbox.on{background:var(--green);border-color:var(--green)}
+  .cbox svg{width:13px;height:13px;stroke:#1a1818;fill:none;stroke-width:2.6;opacity:0}
+  .cbox.on svg{opacity:1}
+  .sop{padding:6px 17px 17px}
+  .sop-row{display:flex;align-items:center;gap:11px;padding:10px 0;font-size:.86rem;color:var(--txt-mute)}
+  .sop-row.done{color:var(--txt)}
+  .sop-tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center}
+  .sop-tick svg{width:11px;height:11px;stroke:#1a1818;fill:none;stroke-width:3;opacity:0}
+  .sop-row.done .sop-tick{background:var(--green);border-color:var(--green)}
+  .sop-row.done .sop-tick svg{opacity:1}
+  .save-bar{padding:0 17px 17px}
+  .save-btn{width:100%;font-family:'DM Mono';font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,var(--grape),var(--lav));border:none;padding:13px;border-radius:10px;font-weight:500}
+  .save-btn:disabled{opacity:.5}
 
-.topbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-.topbar-wordmark {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--lavender);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.topbar-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  flex-shrink: 0;
-}
+  /* states */
+  .loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:80px 0;color:var(--olive)}
+  .spinner{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--lav);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .empty{text-align:center;padding:60px 0;color:var(--olive);font-family:'DM Mono';font-size:.8rem}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--panel-2);border:1px solid var(--line-strong);color:var(--txt);padding:13px 20px;border-radius:10px;font-size:.85rem;z-index:60;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.err{border-color:var(--err);color:var(--err)}
+  .toast.ok{border-color:var(--green)}
 
-/* ─── MODE SWITCHER ─────────────────────────────────────────────────────────── */
-#mode-switcher {
-  display: flex;
-  gap: 2px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 3px;
-}
-.mode-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 5px;
-  border: none;
-  background: transparent;
-  color: var(--dim);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.mode-btn i { font-size: 14px; }
-.mode-btn:hover { color: var(--silver); }
-.mode-btn.active {
-  background: var(--grape-bg);
-  color: var(--lavender);
-  border: 1px solid var(--grape-dim);
-}
+  /* settings modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(10,9,9,.7);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line-strong);border-radius:16px;width:100%;max-width:480px;max-height:88vh;overflow:auto}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{font-size:1rem;letter-spacing:.04em;text-transform:uppercase}
+  .modal-body{padding:18px 22px}
+  .modal-body .mf{margin-bottom:14px}
+  .modal-body .mf label{display:block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:5px}
+  .modal-body .mf input{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.78rem;padding:9px 11px;border-radius:8px;outline:none}
+  .modal-body .mf input:focus{border-color:var(--lav)}
+  .modal-foot{padding:14px 22px 20px;display:flex;gap:10px;justify-content:flex-end}
+  .btn-ghost{background:none;border:1px solid var(--line);color:var(--silver);padding:10px 16px;border-radius:9px;font-family:'DM Mono';font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
+  .btn-solid{background:linear-gradient(150deg,var(--grape),var(--lav));border:none;color:#fff;padding:10px 18px;border-radius:9px;font-family:'DM Mono';font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
+  .modal-note{font-family:'DM Mono';font-size:.58rem;color:var(--olive);line-height:1.6;margin-top:4px}
 
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.topbar-icon-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--dim);
-  font-size: 16px;
-  transition: all 0.15s;
-}
-.topbar-icon-btn:hover {
-  background: var(--bg-raised);
-  border-color: var(--border);
-  color: var(--silver);
-}
-.topbar-icon-btn.active {
-  background: var(--grape-bg);
-  border-color: var(--grape-dim);
-  color: var(--lavender);
-}
-
-/* ─── MAIN CONTENT ──────────────────────────────────────────────────────────── */
-#main {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.view {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  display: none;
-}
-.view.active { display: flex; }
-
-/* ─── FIELD MODE ────────────────────────────────────────────────────────────── */
-#view-field {
-  flex-direction: column;
-  align-items: center;
-  background: var(--bg);
-  overflow-y: auto;
-  padding: 16px 0 80px;
-}
-
-.field-inner {
-  width: 100%;
-  max-width: 480px;
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Snap zone */
-.snap-zone {
-  background: var(--bg-deep);
-  border: 1px dashed var(--border-light);
-  border-radius: var(--radius-xl);
-  padding: 28px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.snap-zone:hover {
-  border-color: var(--grape);
-  background: var(--grape-bg);
-}
-.snap-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--grape);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  color: var(--mauve);
-  transition: background 0.15s, transform 0.15s;
-  pointer-events: none;
-}
-.snap-zone:hover .snap-btn { background: var(--grape-dim); transform: scale(1.05); }
-.snap-label {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--silver);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.snap-sub {
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 0.04em;
-}
-.snap-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-.snap-alt-btn {
-  flex: 1;
-  padding: 7px 0;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--olive);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: all 0.15s;
-}
-.snap-alt-btn:hover { border-color: var(--border-light); color: var(--silver); }
-
-/* Queue */
-.queue-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2px;
-}
-.queue-label {
-  font-size: 10px;
-  color: var(--olive);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.queue-count {
-  font-size: 10px;
-  background: var(--grape);
-  color: var(--mauve);
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-.queue-empty {
-  text-align: center;
-  padding: 24px 0;
-  color: var(--dim);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-/* Queue card */
-.queue-card {
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: opacity 0.2s, transform 0.2s;
-}
-.queue-card.processing {
-  border-color: var(--grape-dim);
-  opacity: 0.7;
-}
-.card-top {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  align-items: flex-start;
-}
-.card-thumb {
-  width: 54px;
-  height: 54px;
-  border-radius: var(--radius);
-  background: var(--grape-bg);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  color: var(--grape);
-  overflow: hidden;
-}
-.card-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.card-info { flex: 1; min-width: 0; }
-.card-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--silver);
-  line-height: 1.3;
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card-cat {
-  font-size: 10px;
-  color: var(--grape);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.comp-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.comp-range {
-  font-size: 12px;
-  color: var(--lavender);
-}
-.comp-sold {
-  font-size: 10px;
-  color: var(--dim);
-}
-.comp-link {
-  margin-left: auto;
-  font-size: 10px;
-  color: var(--grape);
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--grape-dim);
-  transition: all 0.15s;
-}
-.comp-link:hover { background: var(--grape-bg); color: var(--lavender); }
-.comp-link i { font-size: 11px; }
-
-.card-divider { height: 1px; background: var(--border); }
-
-.card-actions { display: flex; }
-.card-btn {
-  flex: 1;
-  padding: 10px 0;
-  background: transparent;
-  border: none;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: all 0.15s;
-}
-.card-btn-pass { color: var(--dim); border-right: 1px solid var(--border); }
-.card-btn-pass:hover { color: var(--olive); background: var(--bg-hover); }
-.card-btn-buy { color: var(--lavender); }
-.card-btn-buy:hover { background: var(--grape-bg); }
-
-.processing-bar {
-  padding: 8px 12px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: var(--grape);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.dots { display: flex; gap: 3px; }
-.dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--grape);
-  animation: blink 1.2s ease-in-out infinite;
-}
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 1; }
-}
-
-/* ─── STUDIO MODE ───────────────────────────────────────────────────────────── */
-#view-studio {
-  display: grid;
-  grid-template-columns: 220px 1fr 210px;
-}
-
-.studio-col {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-right: 1px solid var(--border);
-}
-.studio-col:last-child { border-right: none; }
-
-.col-header {
-  flex-shrink: 0;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-deep);
-}
-.col-label {
-  font-size: 9px;
-  color: var(--olive);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.col-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-/* Studio left — item list */
-.studio-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.1s;
-  margin-bottom: 2px;
-}
-.studio-item:hover { background: var(--bg-hover); }
-.studio-item.active { background: var(--grape-bg); }
-.studio-item-thumb {
-  width: 34px; height: 34px;
-  border-radius: 6px;
-  background: var(--grape-bg);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  color: var(--grape);
-}
-.studio-item-info { flex: 1; min-width: 0; }
-.studio-item-name {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--silver);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.studio-item-meta {
-  font-size: 9px;
-  color: var(--dim);
-  margin-top: 1px;
-}
-.status-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.status-dot.sourced   { background: var(--dim); }
-.status-dot.progress  { background: var(--amber); }
-.status-dot.listed    { background: var(--grape); }
-.status-dot.sold      { background: var(--green); }
-
-/* Studio center — active panel */
-.studio-center { background: var(--bg); }
-
-.center-item-header {
-  padding: 12px 14px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-deep);
-}
-.center-item-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--silver);
-  line-height: 1.2;
-}
-.center-item-sub {
-  font-size: 10px;
-  color: var(--grape);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 2px;
-}
-
-.func-block {
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.func-header {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-deep);
-}
-.func-header i { font-size: 14px; color: var(--grape); }
-.func-label {
-  font-size: 10px;
-  color: var(--olive);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.func-body { padding: 12px; }
-
-/* Photo grid */
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.photo-slot {
-  aspect-ratio: 1;
-  background: var(--bg-deep);
-  border-radius: var(--radius);
-  border: 1px dashed var(--border-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--ghost);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.photo-slot:hover { border-color: var(--grape); color: var(--grape); }
-.photo-slot.filled { background: var(--grape-bg); border: 1px solid var(--grape-dim); color: var(--grape); }
-
-/* Platform tabs */
-.platform-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-.platform-tab {
-  flex: 1;
-  padding: 5px 0;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--dim);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  text-align: center;
-}
-.platform-tab:hover { color: var(--silver); }
-.platform-tab.active {
-  background: var(--grape-bg);
-  border-color: var(--grape-dim);
-  color: var(--lavender);
-}
-
-.listing-textarea {
-  width: 100%;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--silver);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.6;
-  padding: 10px;
-  resize: vertical;
-  min-height: 80px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.listing-textarea:focus { border-color: var(--grape); }
-
-/* Pricing */
-.price-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.price-field-label {
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.price-input {
-  width: 100%;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--lavender);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 7px 10px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.price-input:focus { border-color: var(--grape); }
-.price-note {
-  font-size: 9px;
-  color: var(--dim);
-  margin-top: 4px;
-}
-
-/* Studio right — live record */
-.record-photo {
-  width: 100%;
-  aspect-ratio: 4/3;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: var(--ghost);
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.record-fields { margin-bottom: 14px; }
-.record-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--ghost);
-  gap: 8px;
-}
-.record-row:last-child { border-bottom: none; }
-.record-key {
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-.record-val {
-  font-size: 10px;
-  color: var(--olive);
-  text-align: right;
-  line-height: 1.3;
-}
-.record-val.accent { color: var(--lavender); }
-
-.checklist-section { margin-bottom: 14px; }
-.checklist-title {
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  margin-bottom: 4px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.check-row:hover { border-color: var(--border-light); }
-.check-row.checked { background: var(--green-bg); border-color: var(--green); }
-.check-icon { font-size: 14px; color: var(--ghost); }
-.check-row.checked .check-icon { color: var(--green); }
-.check-platform { flex: 1; font-size: 10px; color: var(--dim); }
-.check-row.checked .check-platform { color: var(--green); }
-.check-url { font-size: 9px; color: var(--ghost); max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.sop-section {}
-.sop-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 9px;
-  color: var(--dim);
-  padding: 3px 0;
-}
-.sop-item i { font-size: 12px; color: var(--ghost); }
-.sop-item.done { color: var(--green); }
-.sop-item.done i { color: var(--green); }
-
-/* ─── INVENTORY VIEW ────────────────────────────────────────────────────────── */
-#view-inventory {
-  flex-direction: column;
-  overflow: hidden;
-}
-.inventory-toolbar {
-  flex-shrink: 0;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-deep);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.search-input {
-  flex: 1;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--silver);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 7px 12px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.search-input:focus { border-color: var(--grape); }
-.search-input::placeholder { color: var(--dim); }
-.filter-pill {
-  padding: 6px 12px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--dim);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.filter-pill:hover { border-color: var(--border-light); color: var(--silver); }
-.filter-pill.active { background: var(--grape-bg); border-color: var(--grape-dim); color: var(--lavender); }
-.inventory-grid {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  align-content: start;
-}
-.inv-card {
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
-}
-.inv-card:hover { border-color: var(--grape-dim); transform: translateY(-1px); }
-.inv-card-img {
-  width: 100%;
-  aspect-ratio: 4/3;
-  background: var(--bg-deep);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: var(--ghost);
-}
-.inv-card-body { padding: 10px; }
-.inv-card-name {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--silver);
-  margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.inv-card-meta { font-size: 10px; color: var(--dim); }
-.inv-card-footer {
-  padding: 6px 10px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.inv-status-badge {
-  font-size: 9px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.badge-sourced   { background: var(--bg-deep); color: var(--dim); border: 1px solid var(--border); }
-.badge-progress  { background: var(--amber-bg); color: #c8a84a; border: 1px solid var(--amber); }
-.badge-listed    { background: var(--grape-bg); color: var(--lavender); border: 1px solid var(--grape-dim); }
-.badge-sold      { background: var(--green-bg); color: #7acc7a; border: 1px solid var(--green); }
-.inv-price { font-size: 11px; color: var(--lavender); }
-
-/* ─── DASHBOARD VIEW ────────────────────────────────────────────────────────── */
-#view-dashboard {
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 20px;
-  gap: 20px;
-  align-content: start;
-}
-.dash-section-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--olive);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.stat-card {
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-}
-.stat-label {
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--lavender);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-.stat-sub { font-size: 10px; color: var(--dim); }
-
-.sessions-list { display: flex; flex-direction: column; gap: 8px; }
-.session-row {
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-.session-row:hover { border-color: var(--border-light); }
-.session-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--silver);
-  flex: 1;
-}
-.session-meta { font-size: 10px; color: var(--dim); }
-.session-stat { text-align: right; }
-.session-stat-val { font-size: 13px; color: var(--lavender); }
-.session-stat-label { font-size: 9px; color: var(--dim); letter-spacing: 0.04em; }
-
-/* ─── SETTINGS PANEL ────────────────────────────────────────────────────────── */
-#settings-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 9, 9, 0.7);
-  z-index: 200;
-  display: none;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 56px 12px 12px;
-}
-#settings-overlay.open { display: flex; }
-.settings-panel {
-  background: var(--bg-raised);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  width: 340px;
-  max-height: calc(100vh - 70px);
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.settings-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--silver);
-  margin-bottom: 4px;
-}
-.settings-group { display: flex; flex-direction: column; gap: 10px; }
-.settings-group-label {
-  font-size: 9px;
-  color: var(--olive);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
-.settings-field { display: flex; flex-direction: column; gap: 4px; }
-.settings-label { font-size: 10px; color: var(--dim); letter-spacing: 0.04em; }
-.settings-input {
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--silver);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 8px 10px;
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.settings-input:focus { border-color: var(--grape); }
-.settings-save-btn {
-  width: 100%;
-  padding: 10px 0;
-  background: var(--grape);
-  border: none;
-  border-radius: var(--radius);
-  color: var(--mauve);
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: background 0.15s;
-}
-.settings-save-btn:hover { background: var(--grape-dim); }
-.settings-status {
-  font-size: 10px;
-  text-align: center;
-  color: var(--green);
-  min-height: 16px;
-}
-
-/* ─── BUY SHEET ─────────────────────────────────────────────────────────────── */
-#buy-sheet-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 9, 9, 0.8);
-  z-index: 300;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-}
-#buy-sheet-overlay.open { display: flex; }
-.buy-sheet {
-  background: var(--bg-raised);
-  border-top: 1px solid var(--border-light);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  width: 100%;
-  max-width: 480px;
-  padding: 16px 20px 32px;
-}
-.sheet-handle {
-  width: 36px; height: 3px;
-  background: var(--border-light);
-  border-radius: 2px;
-  margin: 0 auto 16px;
-}
-.sheet-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--silver);
-  margin-bottom: 2px;
-}
-.sheet-sub {
-  font-size: 10px;
-  color: var(--grape);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 18px;
-}
-.sheet-field { margin-bottom: 14px; }
-.sheet-field-label {
-  font-size: 10px;
-  color: var(--olive);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-.sheet-input {
-  width: 100%;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--silver);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 10px 12px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.sheet-input:focus { border-color: var(--grape); }
-.cond-row { display: flex; gap: 6px; }
-.cond-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--dim);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transition: all 0.15s;
-  text-align: center;
-}
-.cond-btn:hover { border-color: var(--border-light); color: var(--olive); }
-.cond-btn.active { background: var(--grape-bg); border-color: var(--grape); color: var(--lavender); }
-.sheet-confirm-btn {
-  width: 100%;
-  padding: 13px 0;
-  background: var(--grape);
-  border: none;
-  border-radius: var(--radius);
-  color: var(--mauve);
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  transition: background 0.15s;
-}
-.sheet-confirm-btn:hover { background: var(--grape-dim); }
-.sheet-cancel-btn {
-  width: 100%;
-  padding: 10px 0;
-  background: transparent;
-  border: none;
-  color: var(--dim);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  transition: color 0.15s;
-}
-.sheet-cancel-btn:hover { color: var(--olive); }
-
-/* ─── TOAST ─────────────────────────────────────────────────────────────────── */
-#toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--bg-raised);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 10px 20px;
-  font-size: 12px;
-  color: var(--silver);
-  z-index: 500;
-  transition: transform 0.3s ease;
-  white-space: nowrap;
-}
-#toast.show { transform: translateX(-50%) translateY(0); }
-#toast.success { border-color: var(--green); color: #7acc7a; }
-#toast.error { border-color: var(--red); color: #ca7a7a; }
-
-/* ─── UTILITIES ─────────────────────────────────────────────────────────────── */
-.placeholder-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: var(--dim);
-}
-.placeholder-view i { font-size: 48px; color: var(--ghost); }
-.placeholder-view h3 {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--olive);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.placeholder-view p { font-size: 11px; color: var(--dim); text-align: center; max-width: 280px; line-height: 1.6; }
-
-.no-item-selected {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--dim);
-}
-.no-item-selected i { font-size: 36px; color: var(--ghost); }
-.no-item-selected p { font-size: 11px; text-align: center; color: var(--dim); }
-
-.btn-primary {
-  padding: 8px 16px;
-  background: var(--grape);
-  border: none;
-  border-radius: var(--radius);
-  color: var(--mauve);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: background 0.15s;
-}
-.btn-primary:hover { background: var(--grape-dim); }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-size: 9px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
+  @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <div class="topbar-brand">
-      <span class="topbar-wordmark">Last Laugh Vintage</span>
-    </div>
-    <div class="topbar-divider"></div>
-
-    <div id="mode-switcher">
-      <button class="mode-btn active" data-view="field" onclick="switchView('field')">
-        <i class="ti ti-camera"></i> Field
-      </button>
-      <button class="mode-btn" data-view="studio" onclick="switchView('studio')">
-        <i class="ti ti-layout-columns"></i> Studio
-      </button>
-      <button class="mode-btn" data-view="inventory" onclick="switchView('inventory')">
-        <i class="ti ti-package"></i> Inventory
-      </button>
-      <button class="mode-btn" data-view="dashboard" onclick="switchView('dashboard')">
-        <i class="ti ti-chart-bar"></i> Dashboard
-      </button>
-    </div>
-
-    <div class="topbar-right">
-      <button class="topbar-icon-btn" onclick="toggleSettings()" id="settings-btn" title="Settings">
-        <i class="ti ti-settings"></i>
-      </button>
-    </div>
+<div class="topbar">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z M4 9h16 M9 9v11"/></svg></div>
+    <div><div class="name">Last Laugh Vintage</div><div class="sub">Studio</div></div>
   </div>
+  <div class="spacer"></div>
+  <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
+  <button class="tb-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></button>
+</div>
 
-  <!-- MAIN -->
-  <div id="main">
-
-    <!-- FIELD MODE -->
-    <div class="view active" id="view-field">
-      <div class="field-inner">
-
-        <!-- Snap zone -->
-        <div class="snap-zone" onclick="handleSnap()">
-          <button class="snap-btn"><i class="ti ti-camera"></i></button>
-          <span class="snap-label">Snap or Scan</span>
-          <span class="snap-sub">Photo · Barcode · Description</span>
-          <div class="snap-actions" onclick="event.stopPropagation()">
-            <button class="snap-alt-btn" onclick="handleBarcode()">
-              <i class="ti ti-barcode" style="font-size:13px;"></i> Barcode
-            </button>
-            <button class="snap-alt-btn" onclick="handleManual()">
-              <i class="ti ti-keyboard" style="font-size:13px;"></i> Manual
-            </button>
-          </div>
-        </div>
-
-        <!-- Queue -->
-        <div class="queue-header">
-          <span class="queue-label">Queue</span>
-          <span class="queue-count" id="queue-count">3 pending</span>
-        </div>
-
-        <div id="queue-list">
-
-          <!-- Card 1 — ready -->
-          <div class="queue-card" id="qcard-1">
-            <div class="card-top">
-              <div class="card-thumb"><i class="ti ti-device-gamepad-2"></i></div>
-              <div class="card-info">
-                <div class="card-name">Nintendo Game Boy, Original</div>
-                <div class="card-cat">Vintage Electronics</div>
-                <div class="comp-row">
-                  <span class="comp-range">$45 – $120</span>
-                  <span class="comp-sold">34 sold</span>
-                  <a class="comp-link" href="https://www.ebay.com/sch/i.html?_nkw=nintendo+game+boy+original&LH_Sold=1&LH_Complete=1" target="_blank">
-                    eBay <i class="ti ti-external-link"></i>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="card-btn card-btn-pass" onclick="passCard('qcard-1')">Pass</button>
-              <button class="card-btn card-btn-buy" onclick="openBuySheet('qcard-1', 'Nintendo Game Boy, Original', 'Vintage Electronics')">Buy →</button>
-            </div>
-          </div>
-
-          <!-- Card 2 — ready -->
-          <div class="queue-card" id="qcard-2" style="margin-top:10px;">
-            <div class="card-top">
-              <div class="card-thumb" style="background:#1f2a1f;color:#3a6a3a;"><i class="ti ti-photo"></i></div>
-              <div class="card-info">
-                <div class="card-name">Star Wars: A New Hope Poster</div>
-                <div class="card-cat">Movie Memorabilia</div>
-                <div class="comp-row">
-                  <span class="comp-range">$18 – $65</span>
-                  <span class="comp-sold">12 sold</span>
-                  <a class="comp-link" href="https://www.ebay.com/sch/i.html?_nkw=star+wars+new+hope+poster&LH_Sold=1&LH_Complete=1" target="_blank">
-                    eBay <i class="ti ti-external-link"></i>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="card-btn card-btn-pass" onclick="passCard('qcard-2')">Pass</button>
-              <button class="card-btn card-btn-buy" onclick="openBuySheet('qcard-2', 'Star Wars: A New Hope Poster', 'Movie Memorabilia')">Buy →</button>
-            </div>
-          </div>
-
-          <!-- Card 3 — processing -->
-          <div class="queue-card processing" id="qcard-3" style="margin-top:10px;">
-            <div class="card-top">
-              <div class="card-thumb" style="color:var(--dim);"><i class="ti ti-loader"></i></div>
-              <div class="card-info">
-                <div class="card-name" style="color:var(--dim);">Identifying item...</div>
-                <div class="card-cat" style="color:var(--ghost);">Checking comps</div>
-                <div class="comp-row">
-                  <span style="font-size:10px;color:var(--ghost);">Pulling eBay sold data</span>
-                </div>
-              </div>
-            </div>
-            <div class="processing-bar">
-              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-              Processing
-            </div>
-          </div>
-
-        </div>
-      </div>
+<!-- HOME -->
+<div id="view-home" class="view active">
+  <div class="wrap">
+    <div class="sec-head"><h2>Open Sessions</h2><span class="count" id="sessionsCount"></span></div>
+    <div class="sessions" id="sessionsList"></div>
+    <div class="sec-head"><h2>Inventory</h2><span class="count" id="invCount"></span></div>
+    <div class="filterbar">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="fSearch" placeholder="Search items by name…"></div>
+      <select id="fCat"><option value="">All Categories</option><option>POSTER</option><option>VHS</option><option>CASSETTE</option><option>TOY</option><option>VINTAGE ELECTRONICS</option><option>MEMORABILIA</option><option>HOME DECOR</option><option>OTHER</option></select>
+      <select id="fStatus"><option value="">All Statuses</option><option>SOURCED</option><option>IN PROGRESS</option><option>LISTED</option><option>SOLD</option><option>ARCHIVED</option></select>
+      <select id="fPlatform"><option value="">All Platforms</option><option>FACEBOOK</option><option>OFFERUP</option><option>EBAY</option><option>ETSY</option><option>MERCARI</option></select>
     </div>
-
-    <!-- STUDIO MODE -->
-    <div class="view" id="view-studio">
-
-      <!-- Left: item list -->
-      <div class="studio-col" style="min-width:220px;max-width:220px;">
-        <div class="col-header">
-          <span class="col-label">Haul · 4 items</span>
-          <span style="font-size:9px;color:var(--dim);">May 27</span>
-        </div>
-        <div class="col-body" style="padding:8px;">
-          <div class="studio-item active" onclick="selectStudioItem(this, 'item-gameboy')">
-            <div class="studio-item-thumb"><i class="ti ti-device-gamepad-2"></i></div>
-            <div class="studio-item-info">
-              <div class="studio-item-name">Game Boy Original</div>
-              <div class="studio-item-meta">$8 COG · Very Good</div>
-            </div>
-            <div class="status-dot progress"></div>
-          </div>
-          <div class="studio-item" onclick="selectStudioItem(this, 'item-poster')">
-            <div class="studio-item-thumb" style="background:#1f2a1f;color:#3a6a3a;"><i class="ti ti-photo"></i></div>
-            <div class="studio-item-info">
-              <div class="studio-item-name">Star Wars Poster</div>
-              <div class="studio-item-meta">$3 COG · Good</div>
-            </div>
-            <div class="status-dot sourced"></div>
-          </div>
-          <div class="studio-item" onclick="selectStudioItem(this, 'item-lp')">
-            <div class="studio-item-thumb" style="background:#2a2015;color:#6a5a1a;"><i class="ti ti-music"></i></div>
-            <div class="studio-item-info">
-              <div class="studio-item-name">Fleetwood Mac LP</div>
-              <div class="studio-item-meta">$5 COG · Mint</div>
-            </div>
-            <div class="status-dot listed"></div>
-          </div>
-          <div class="studio-item" onclick="selectStudioItem(this, 'item-optimus')">
-            <div class="studio-item-thumb" style="background:#1f1f2a;color:#3a3a6a;"><i class="ti ti-robot"></i></div>
-            <div class="studio-item-info">
-              <div class="studio-item-name">Optimus Prime Figure</div>
-              <div class="studio-item-meta">$12 COG · Good</div>
-            </div>
-            <div class="status-dot sourced"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Center: active functions -->
-      <div class="studio-col studio-center" id="studio-center" style="flex:1;">
-        <div id="center-item-header" class="center-item-header">
-          <div class="center-item-title">Nintendo Game Boy, Original</div>
-          <div class="center-item-sub">Vintage Electronics · Very Good</div>
-        </div>
-        <div class="col-body" id="center-body">
-
-          <!-- Photos -->
-          <div class="func-block">
-            <div class="func-header">
-              <i class="ti ti-camera"></i>
-              <span class="func-label">Photos</span>
-            </div>
-            <div class="func-body">
-              <div class="photo-grid">
-                <div class="photo-slot filled"><i class="ti ti-check"></i></div>
-                <div class="photo-slot filled"><i class="ti ti-check"></i></div>
-                <div class="photo-slot"><i class="ti ti-plus"></i></div>
-                <div class="photo-slot"><i class="ti ti-plus"></i></div>
-              </div>
-              <button class="snap-alt-btn" style="width:100%;">
-                <i class="ti ti-upload" style="font-size:13px;"></i> Upload from desktop
-              </button>
-            </div>
-          </div>
-
-          <!-- Listing copy -->
-          <div class="func-block">
-            <div class="func-header">
-              <i class="ti ti-file-text"></i>
-              <span class="func-label">Listing copy</span>
-              <button class="btn-primary" style="margin-left:auto;font-size:9px;padding:4px 10px;" onclick="showToast('Regenerating listing...', '')">
-                <i class="ti ti-refresh" style="font-size:11px;"></i> Regenerate
-              </button>
-            </div>
-            <div class="func-body">
-              <div class="platform-tabs">
-                <button class="platform-tab active" onclick="switchTab(this)">FB</button>
-                <button class="platform-tab" onclick="switchTab(this)">eBay</button>
-                <button class="platform-tab" onclick="switchTab(this)">Etsy</button>
-                <button class="platform-tab" onclick="switchTab(this)">Mercari</button>
-              </div>
-              <textarea class="listing-textarea" rows="4">Original Nintendo Game Boy in very good condition — screen is bright and clear, buttons are responsive, no cracks or breaks. Comes as shown. Local pickup in Long Beach preferred, will ship carefully packed. Feel free to make an offer.</textarea>
-            </div>
-          </div>
-
-          <!-- Pricing -->
-          <div class="func-block">
-            <div class="func-header">
-              <i class="ti ti-currency-dollar"></i>
-              <span class="func-label">Pricing</span>
-            </div>
-            <div class="func-body">
-              <div class="price-grid">
-                <div>
-                  <div class="price-field-label">Ask price (FB)</div>
-                  <input class="price-input" type="text" value="$65" />
-                  <div class="price-note">Floor $48 · margin 83%</div>
-                </div>
-                <div>
-                  <div class="price-field-label">eBay / Mercari</div>
-                  <input class="price-input" type="text" value="$72" />
-                  <div class="price-note">After fees ~$58</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Right: live record -->
-      <div class="studio-col" style="min-width:210px;max-width:210px;">
-        <div class="col-header">
-          <span class="col-label">Live record</span>
-        </div>
-        <div class="col-body">
-
-          <div class="record-photo"><i class="ti ti-photo"></i></div>
-
-          <div class="record-fields">
-            <div class="record-row">
-              <span class="record-key">Item</span>
-              <span class="record-val">Game Boy Original</span>
-            </div>
-            <div class="record-row">
-              <span class="record-key">Cat</span>
-              <span class="record-val">Vintage Electronics</span>
-            </div>
-            <div class="record-row">
-              <span class="record-key">Cond</span>
-              <span class="record-val">Very Good</span>
-            </div>
-            <div class="record-row">
-              <span class="record-key">COG</span>
-              <span class="record-val accent">$8.00</span>
-            </div>
-            <div class="record-row">
-              <span class="record-key">Source</span>
-              <span class="record-val">Belmont Shore</span>
-            </div>
-            <div class="record-row">
-              <span class="record-key">Date</span>
-              <span class="record-val">May 27, 2026</span>
-            </div>
-          </div>
-
-          <div class="checklist-section">
-            <div class="checklist-title">Publish checklist</div>
-            <div class="check-row checked" onclick="this.classList.toggle('checked')">
-              <i class="ti ti-circle-check check-icon"></i>
-              <span class="check-platform">Facebook</span>
-              <span class="check-url">fb.me/…</span>
-            </div>
-            <div class="check-row" onclick="this.classList.toggle('checked')">
-              <i class="ti ti-circle check-icon"></i>
-              <span class="check-platform">eBay</span>
-              <span class="check-url">—</span>
-            </div>
-            <div class="check-row" onclick="this.classList.toggle('checked')">
-              <i class="ti ti-circle check-icon"></i>
-              <span class="check-platform">Etsy</span>
-              <span class="check-url">—</span>
-            </div>
-            <div class="check-row" onclick="this.classList.toggle('checked')">
-              <i class="ti ti-circle check-icon"></i>
-              <span class="check-platform">Mercari</span>
-              <span class="check-url">—</span>
-            </div>
-          </div>
-
-          <div class="sop-section">
-            <div class="checklist-title">Item SOP</div>
-            <div class="sop-item done"><i class="ti ti-check"></i> Photos uploaded</div>
-            <div class="sop-item done"><i class="ti ti-check"></i> Listing copy reviewed</div>
-            <div class="sop-item"><i class="ti ti-circle"></i> Price set all platforms</div>
-            <div class="sop-item"><i class="ti ti-circle"></i> All platforms published</div>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-
-    <!-- INVENTORY VIEW -->
-    <div class="view" id="view-inventory">
-      <div class="inventory-toolbar">
-        <input class="search-input" type="text" placeholder="Search items..." />
-        <button class="filter-pill active">All</button>
-        <button class="filter-pill">Sourced</button>
-        <button class="filter-pill">Listed</button>
-        <button class="filter-pill">Sold</button>
-      </div>
-      <div class="inventory-grid">
-
-        <div class="inv-card">
-          <div class="inv-card-img"><i class="ti ti-device-gamepad-2"></i></div>
-          <div class="inv-card-body">
-            <div class="inv-card-name">Game Boy Original</div>
-            <div class="inv-card-meta">Vintage Electronics · Very Good</div>
-          </div>
-          <div class="inv-card-footer">
-            <span class="inv-status-badge badge-progress">In Progress</span>
-            <span class="inv-price">$65</span>
-          </div>
-        </div>
-
-        <div class="inv-card">
-          <div class="inv-card-img" style="color:#3a6a3a;"><i class="ti ti-photo"></i></div>
-          <div class="inv-card-body">
-            <div class="inv-card-name">Star Wars Poster</div>
-            <div class="inv-card-meta">Movie Memorabilia · Good</div>
-          </div>
-          <div class="inv-card-footer">
-            <span class="inv-status-badge badge-sourced">Sourced</span>
-            <span class="inv-price">—</span>
-          </div>
-        </div>
-
-        <div class="inv-card">
-          <div class="inv-card-img" style="color:#6a5a1a;"><i class="ti ti-music"></i></div>
-          <div class="inv-card-body">
-            <div class="inv-card-name">Fleetwood Mac LP</div>
-            <div class="inv-card-meta">Music · Mint</div>
-          </div>
-          <div class="inv-card-footer">
-            <span class="inv-status-badge badge-listed">Listed</span>
-            <span class="inv-price">$45</span>
-          </div>
-        </div>
-
-        <div class="inv-card">
-          <div class="inv-card-img" style="color:#3a3a6a;"><i class="ti ti-robot"></i></div>
-          <div class="inv-card-body">
-            <div class="inv-card-name">Optimus Prime Figure</div>
-            <div class="inv-card-meta">Toys · Good</div>
-          </div>
-          <div class="inv-card-footer">
-            <span class="inv-status-badge badge-sourced">Sourced</span>
-            <span class="inv-price">—</span>
-          </div>
-        </div>
-
-        <div class="inv-card">
-          <div class="inv-card-img" style="color:#4a8a4a;"><i class="ti ti-music"></i></div>
-          <div class="inv-card-body">
-            <div class="inv-card-name">Madonna — Like a Virgin</div>
-            <div class="inv-card-meta">Music · Very Good</div>
-          </div>
-          <div class="inv-card-footer">
-            <span class="inv-status-badge badge-sold">Sold</span>
-            <span class="inv-price">$38</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- DASHBOARD VIEW -->
-    <div class="view" id="view-dashboard">
-
-      <div class="dash-section-title">At a glance</div>
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label">Active listings</div>
-          <div class="stat-value">12</div>
-          <div class="stat-sub">across 4 platforms</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total COG</div>
-          <div class="stat-value" style="color:var(--mauve);">$94</div>
-          <div class="stat-sub">invested in inventory</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Est. value</div>
-          <div class="stat-value">$620</div>
-          <div class="stat-sub">at ask price</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Items sold</div>
-          <div class="stat-value" style="color:#7acc7a;">3</div>
-          <div class="stat-sub">$142 revenue</div>
-        </div>
-      </div>
-
-      <div class="dash-section-title">Recent sessions</div>
-      <div class="sessions-list">
-        <div class="session-row">
-          <div>
-            <div class="session-name">Belmont Shore Estate</div>
-            <div class="session-meta">May 27, 2026 · Estate Sale · 4 items</div>
-          </div>
-          <div class="session-stat">
-            <div class="session-stat-val">$28</div>
-            <div class="session-stat-label">COG</div>
-          </div>
-          <div class="session-stat">
-            <div class="session-stat-val">$0</div>
-            <div class="session-stat-label">Revenue</div>
-          </div>
-        </div>
-        <div class="session-row">
-          <div>
-            <div class="session-name">Goodwill Long Beach</div>
-            <div class="session-meta">May 24, 2026 · Thrift Store · 6 items</div>
-          </div>
-          <div class="session-stat">
-            <div class="session-stat-val">$41</div>
-            <div class="session-stat-label">COG</div>
-          </div>
-          <div class="session-stat">
-            <div class="session-stat-val" style="color:#7acc7a;">$142</div>
-            <div class="session-stat-label">Revenue</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-  </div><!-- /main -->
-</div><!-- /app -->
-
-<!-- SETTINGS OVERLAY -->
-<div id="settings-overlay" onclick="handleSettingsOverlayClick(event)">
-  <div class="settings-panel" onclick="event.stopPropagation()">
-    <div class="settings-title">Settings</div>
-
-    <div class="settings-group">
-      <div class="settings-group-label">API Keys</div>
-      <div class="settings-field">
-        <label class="settings-label">Anthropic API Key</label>
-        <input class="settings-input" type="password" id="s-anthropic-key" placeholder="sk-ant-…" />
-      </div>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-label">Airtable</div>
-      <div class="settings-field">
-        <label class="settings-label">Airtable API Key</label>
-        <input class="settings-input" type="password" id="s-airtable-key" placeholder="pat…" />
-      </div>
-      <div class="settings-field">
-        <label class="settings-label">Base ID</label>
-        <input class="settings-input" type="text" id="s-base-id" placeholder="app…" />
-      </div>
-      <div class="settings-field">
-        <label class="settings-label">SALES Table ID</label>
-        <input class="settings-input" type="text" id="s-sales-id" placeholder="tbl…" />
-      </div>
-      <div class="settings-field">
-        <label class="settings-label">SESSIONS Table ID</label>
-        <input class="settings-input" type="text" id="s-sessions-id" placeholder="tbl…" />
-      </div>
-      <div class="settings-field">
-        <label class="settings-label">ITEMS Table ID</label>
-        <input class="settings-input" type="text" id="s-items-id" placeholder="tbl…" />
-      </div>
-      <div class="settings-field">
-        <label class="settings-label">LISTINGS Table ID</label>
-        <input class="settings-input" type="text" id="s-listings-id" placeholder="tbl…" />
-      </div>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-label">Location</div>
-      <div class="settings-field">
-        <label class="settings-label">Home base (for route planning)</label>
-        <input class="settings-input" type="text" id="s-home-base" placeholder="Long Beach, CA" />
-      </div>
-    </div>
-
-    <button class="settings-save-btn" onclick="saveSettings()">Save credentials</button>
-    <div class="settings-status" id="settings-status"></div>
+    <div id="homeBody"></div>
   </div>
 </div>
 
-<!-- BUY SHEET -->
-<div id="buy-sheet-overlay">
-  <div class="buy-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-item-name">—</div>
-    <div class="sheet-sub" id="sheet-item-cat">—</div>
-
-    <div class="sheet-field">
-      <div class="sheet-field-label">Cost of goods</div>
-      <input class="sheet-input" type="text" id="sheet-cog" placeholder="$0.00" inputmode="decimal" />
+<!-- WORKSPACE -->
+<div id="view-ws" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="backBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <span class="chip" id="wsSession"></span>
     </div>
-
-    <div class="sheet-field">
-      <div class="sheet-field-label">Condition</div>
-      <div class="cond-row">
-        <button class="cond-btn" onclick="selectCond(this)">Sealed</button>
-        <button class="cond-btn" onclick="selectCond(this)">Mint</button>
-        <button class="cond-btn active" onclick="selectCond(this)">Very Good</button>
-        <button class="cond-btn" onclick="selectCond(this)">Good</button>
-        <button class="cond-btn" onclick="selectCond(this)">Fair</button>
-      </div>
-    </div>
-
-    <button class="sheet-confirm-btn" onclick="confirmBuy()">Confirm Buy — Start Record</button>
-    <button class="sheet-cancel-btn" onclick="closeBuySheet()">Cancel</button>
+    <div class="cols" id="wsCols"></div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div id="toast"></div>
+<!-- settings -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-head"><h3>Credentials</h3><button class="tb-btn" id="modalClose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="mf"><label>Anthropic API Key</label><input id="k_anthropic" type="password" placeholder="sk-ant-…"></div>
+      <div class="mf"><label>Airtable API Key</label><input id="k_airtable" type="password" placeholder="pat…"></div>
+      <div class="mf"><label>Base ID</label><input id="k_base" placeholder="app3DqxIJ1SUBKylb"></div>
+      <div class="mf"><label>Items Table ID</label><input id="k_items" placeholder="tblFeToiIcEseekfH"></div>
+      <div class="mf"><label>Listings Table ID</label><input id="k_listings" placeholder="tblW5u905moGRFsFw"></div>
+      <div class="mf"><label>Sessions Table ID</label><input id="k_sessions" placeholder="tblGH4ziHZSneAtoI"></div>
+      <p class="modal-note">Stored locally in this browser only (localStorage). Keys never leave the device except in direct calls to Airtable / Anthropic.</p>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" id="modalCancel">Cancel</button><button class="btn-solid" id="modalSave">Save &amp; Load</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-
-// ─── CREDENTIALS ─────────────────────────────────────────────────────────────
-const KEYS = {
-  anthropic: 'llv_anthropic_key',
-  airtable:  'llv_airtable_key',
-  baseId:    'llv_base_id',
-  salesId:   'llv_sales_table_id',
-  sessionsId:'llv_sessions_table_id',
-  itemsId:   'llv_items_table_id',
-  listingsId:'llv_listings_table_id',
-  homeBase:  'llv_home_base',
+/* ============================================================
+   LLV STUDIO — config & state
+   ============================================================ */
+const LS = {
+  anthropic:'llv_anthropic_key', airtable:'llv_airtable_key', base:'llv_base_id',
+  items:'llv_items_table_id', listings:'llv_listings_table_id', sessions:'llv_sessions_table_id'
 };
+const DEFAULTS = { base:'app3DqxIJ1SUBKylb', items:'tblFeToiIcEseekfH', listings:'tblW5u905moGRFsFw', sessions:'tblGH4ziHZSneAtoI' };
+const MODEL = 'claude-sonnet-4-5';
 
-function getCred(key) { return localStorage.getItem(KEYS[key]) || ''; }
-function setCred(key, val) { localStorage.setItem(KEYS[key], val); }
+// Platforms — FB & OfferUp are local (shared ask/floor); eBay/Etsy/Mercari national.
+// NOTE: these strings must EXACTLY match the PLATFORM single-select options in the
+// LISTINGS table, or Airtable returns INVALID_MULTIPLE_CHOICE_OPTIONS. Add OFFERUP if missing.
+const PLATFORMS = [
+  { key:'FACEBOOK', label:'Facebook', local:true,  shipping:false },
+  { key:'OFFERUP',  label:'OfferUp',  local:true,  shipping:false },
+  { key:'EBAY',     label:'eBay',     local:false, shipping:true  },
+  { key:'ETSY',     label:'Etsy',     local:false, shipping:true  },
+  { key:'MERCARI',  label:'Mercari',  local:false, shipping:true  }
+];
+// Matches the LISTINGS · LISTING STATUS single-select options exactly.
+const LISTING_STATUS = { draft:'DRAFT', ready:'READY', live:'LIVE', published:'PUBLISHED', sold:'SOLD' };
+const POSTED_STATUSES = ['LIVE','PUBLISHED','SOLD']; // publish checkbox reads "on" for any of these
 
-function loadSettings() {
-  document.getElementById('s-anthropic-key').value = getCred('anthropic');
-  document.getElementById('s-airtable-key').value  = getCred('airtable');
-  document.getElementById('s-base-id').value        = getCred('baseId');
-  document.getElementById('s-sales-id').value       = getCred('salesId');
-  document.getElementById('s-sessions-id').value    = getCred('sessionsId');
-  document.getElementById('s-items-id').value       = getCred('itemsId');
-  document.getElementById('s-listings-id').value    = getCred('listingsId');
-  document.getElementById('s-home-base').value      = getCred('homeBase');
+// Fee assumptions for the net calculator — verify against current platform rates.
+const FEES = {
+  EBAY:    { pct:0.1325, flat:0.40 },           // 13.25% + $0.40/order (>$10). Verified May 2026.
+  MERCARI: { pct:0.10, procPct:0, procFlat:0 }  // Flat 10% — separate 2.9%+$0.50 processing fee removed Jan 2025. Verified May 2026.
+};
+const DEFAULT_BUFFER = 0.18;   // negotiation buffer for local ask price
+const DEFAULT_MARGIN = 70;     // default target margin ($) — editable per item
+
+let CFG = {};
+let ITEMS = [];          // raw item records
+let LISTINGS_BY_ITEM = {};// { itemRecId: { PLATFORM: listingRecord } }
+let SESSIONS_BY_ID = {}; // { sessionRecId: sessionRecord }
+let current = null;      // { item, listings, draft, pricing } for open workspace
+
+/* ---------- tiny helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => (n==null||isNaN(n))?'—':'$'+Number(n).toFixed(2);
+function todayISO(){ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // explicit, not toLocaleDateString
+function toast(msg,type){ const t=$('#toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:''); clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',type==='err'?5000:2600); }
+function loadCfg(){ CFG={}; for(const k in LS){ CFG[k]=localStorage.getItem(LS[k])||DEFAULTS[k]||''; } }
+function cfgReady(){ return CFG.airtable && CFG.base && CFG.items && CFG.listings; }
+
+/* ============================================================
+   Airtable
+   ============================================================ */
+async function atList(tableId){
+  let out=[], offset=null;
+  do{
+    const url=new URL(`https://api.airtable.com/v0/${CFG.base}/${tableId}`);
+    url.searchParams.set('pageSize','100');
+    if(offset) url.searchParams.set('offset',offset);
+    const r=await fetch(url,{headers:{Authorization:'Bearer '+CFG.airtable}});
+    if(!r.ok) throw new Error('Airtable '+r.status+' on '+tableId+': '+(await r.text()).slice(0,180));
+    const j=await r.json(); out=out.concat(j.records||[]); offset=j.offset;
+  }while(offset);
+  return out;
+}
+async function atPatch(tableId,recId,fields){
+  const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${tableId}/${recId}`,{
+    method:'PATCH',headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
+    body:JSON.stringify({fields, typecast:true})});
+  if(!r.ok) throw new Error('Airtable PATCH '+r.status+': '+(await r.text()).slice(0,200));
+  return (await r.json());
+}
+async function atCreate(tableId,fields){
+  const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${tableId}`,{
+    method:'POST',headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
+    body:JSON.stringify({fields, typecast:true})});
+  if(!r.ok) throw new Error('Airtable CREATE '+r.status+': '+(await r.text()).slice(0,200));
+  return (await r.json());
+}
+// Native attachment upload (content API). Verified against official docs (May 2026):
+// POST api.airtable.com/v0/{base}/{recId}/{fieldNameOrId}/uploadAttachment
+// Body: { contentType, file:<base64 NO data: prefix>, filename }. 5MB cap per file. Returns updated record.
+async function atUploadAttachment(recId, fieldName, base64NoPrefix, contentType, filename){
+  const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${recId}/${encodeURIComponent(fieldName)}/uploadAttachment`,{
+    method:'POST',headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
+    body:JSON.stringify({contentType, file:base64NoPrefix, filename})});
+  if(!r.ok) throw new Error('Attachment upload '+r.status+': '+(await r.text()).slice(0,200));
+  return (await r.json());
 }
 
-function saveSettings() {
-  setCred('anthropic',  document.getElementById('s-anthropic-key').value.trim());
-  setCred('airtable',   document.getElementById('s-airtable-key').value.trim());
-  setCred('baseId',     document.getElementById('s-base-id').value.trim());
-  setCred('salesId',    document.getElementById('s-sales-id').value.trim());
-  setCred('sessionsId', document.getElementById('s-sessions-id').value.trim());
-  setCred('itemsId',    document.getElementById('s-items-id').value.trim());
-  setCred('listingsId', document.getElementById('s-listings-id').value.trim());
-  setCred('homeBase',   document.getElementById('s-home-base').value.trim());
-  const status = document.getElementById('settings-status');
-  status.textContent = 'Saved.';
-  setTimeout(() => status.textContent = '', 2000);
-}
+/* ---------- field readers (defensive: lookups can be arrays) ---------- */
+const F = (rec,name) => rec && rec.fields ? rec.fields[name] : undefined;
+const Fstr = (rec,name) => { let v=F(rec,name); if(Array.isArray(v)) v=v[0]; return v==null?'':String(v); };
+const Fnum = (rec,name) => { let v=F(rec,name); if(Array.isArray(v)) v=v[0]; return (v==null||v==='')?null:Number(v); };
+function firstPhotoUrl(rec){ const p=F(rec,'PHOTOS'); if(Array.isArray(p)&&p.length){ return (p[0].thumbnails&&p[0].thumbnails.large&&p[0].thumbnails.large.url)||p[0].url; } return null; }
 
-// ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
-function switchView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  document.querySelector(`.mode-btn[data-view="${id}"]`).classList.add('active');
-}
-
-// ─── SETTINGS ────────────────────────────────────────────────────────────────
-function toggleSettings() {
-  const overlay = document.getElementById('settings-overlay');
-  const btn = document.getElementById('settings-btn');
-  const isOpen = overlay.classList.toggle('open');
-  btn.classList.toggle('active', isOpen);
-  if (isOpen) loadSettings();
-}
-function handleSettingsOverlayClick(e) {
-  if (e.target === document.getElementById('settings-overlay')) toggleSettings();
-}
-
-// ─── FIELD MODE ───────────────────────────────────────────────────────────────
-let pendingCardId = null;
-let cardCounter = 100; // avoid ID collisions with demo cards
-
-// Card data store — keyed by card ID
-const cardData = {};
-
-// ── Camera capture ────────────────────────────────────────────────────────────
-function handleSnap() {
-  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.capture = 'environment'; // rear camera on mobile
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => processImage(ev.target.result, file.type);
-    reader.readAsDataURL(file);
-  };
-  input.click();
-}
-
-function handleBarcode() {
-  // Barcode scanner types as keyboard — focus a hidden input to capture it
-  const existing = document.getElementById('barcode-capture');
-  if (existing) { existing.focus(); return; }
-  const inp = document.createElement('input');
-  inp.id = 'barcode-capture';
-  inp.type = 'text';
-  inp.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
-  inp.placeholder = 'Scan barcode...';
-  document.body.appendChild(inp);
-  inp.focus();
-  showToast('Ready to scan — trigger your scanner', '');
-  inp.onkeydown = e => {
-    if (e.key === 'Enter') {
-      const raw = inp.value.trim().replace(/[^0-9a-zA-Z]/g, '');
-      inp.value = '';
-      if (raw.length >= 6) processBarcode(raw);
-    }
-  };
-}
-
-function handleManual() {
-  const term = prompt('Describe the item:');
-  if (term && term.trim()) processManual(term.trim());
-}
-
-// ── Process image through Claude Vision ───────────────────────────────────────
-async function processImage(dataUrl, mimeType) {
-  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
-  const cardId = 'qcard-' + (++cardCounter);
-  const base64 = dataUrl.split(',')[1];
-  addProcessingCard(cardId, dataUrl);
-
-  try {
-    const result = await claudeIdentifyAndComp([{
-      type: 'image',
-      source: { type: 'base64', media_type: mimeType, data: base64 }
-    }]);
-    if (result) populateCard(cardId, result, dataUrl);
-    else removeCard(cardId);
-  } catch (err) {
-    console.error(err);
-    showToast('Identification failed', 'error');
-    removeCard(cardId);
-  }
-}
-
-// ── Process barcode ───────────────────────────────────────────────────────────
-async function processBarcode(barcode) {
-  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
-  const cardId = 'qcard-' + (++cardCounter);
-  addProcessingCard(cardId, null);
-
-  try {
-    const result = await claudeIdentifyAndComp([{
-      type: 'text',
-      text: `Barcode scanned: ${barcode}. Identify this product and research eBay sold comps.`
-    }]);
-    if (result) populateCard(cardId, result, null);
-    else removeCard(cardId);
-  } catch (err) {
-    console.error(err);
-    showToast('Lookup failed', 'error');
-    removeCard(cardId);
-  }
-}
-
-// ── Process manual description ────────────────────────────────────────────────
-async function processManual(description) {
-  if (!getCred('anthropic')) { showToast('Add Anthropic API key in Settings', 'error'); return; }
-  const cardId = 'qcard-' + (++cardCounter);
-  addProcessingCard(cardId, null);
-
-  try {
-    const result = await claudeIdentifyAndComp([{
-      type: 'text',
-      text: `Item description: ${description}. Identify this product and research eBay sold comps.`
-    }]);
-    if (result) populateCard(cardId, result, null);
-    else removeCard(cardId);
-  } catch (err) {
-    console.error(err);
-    showToast('Lookup failed', 'error');
-    removeCard(cardId);
-  }
-}
-
-// ── Claude: identify item + search eBay sold comps ────────────────────────────
-async function claudeIdentifyAndComp(contentBlocks) {
-  const apiKey = getCred('anthropic');
-  const system = `You are an expert vintage and collectible reseller assistant for Last Laugh Vintage, based in Long Beach, CA.
-Your job is to identify items and research eBay sold listing prices.
-
-Categories you work with: POSTER, VHS, CASSETTE, TOY, VINTAGE ELECTRONICS, MEMORABILIA, HOME DECOR, OTHER.
-
-You have access to web search. Use it to search eBay SOLD listings for the item.
-Search URL pattern: https://www.ebay.com/sch/i.html?_nkw=SEARCH+TERM&LH_Sold=1&LH_Complete=1&LH_ItemCondition=4
-
-Steps:
-1. Identify the item from the image/description
-2. Generate the optimal eBay sold search query (think like an experienced reseller — not too specific, not too broad)
-3. Search eBay sold listings using web search
-4. Parse the sold prices from results
-
-Return ONLY valid JSON, no markdown, no preamble:
-{
-  "name": "Clean item name (brand + model/title + key descriptor)",
-  "category": "ONE OF: POSTER|VHS|CASSETTE|TOY|VINTAGE ELECTRONICS|MEMORABILIA|HOME DECOR|OTHER",
-  "ebay_search_query": "the search term used",
-  "comp_low": 0,
-  "comp_high": 0,
-  "comp_median": 0,
-  "comp_sold_count": 0,
-  "ebay_search_url": "full eBay sold search URL",
-  "ai_notes": "Brief identification notes and condition observations"
-}
-
-If you cannot determine sold comp data, use 0 for price fields and 0 for sold count.`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        system,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: contentBlocks }]
-      })
+/* ============================================================
+   Load
+   ============================================================ */
+async function loadAll(){
+  if(!cfgReady()){ openModal(); $('#homeBody').innerHTML='<div class="empty">Add your credentials to begin.</div>'; return; }
+  $('#homeBody').innerHTML='<div class="loading"><div class="spinner"></div><span class="label">Loading inventory…</span></div>';
+  try{
+    const [items, listings, sessions] = await Promise.all([ atList(CFG.items), atList(CFG.listings), CFG.sessions?atList(CFG.sessions):[] ]);
+    ITEMS=items;
+    SESSIONS_BY_ID={}; sessions.forEach(s=>SESSIONS_BY_ID[s.id]=s);
+    LISTINGS_BY_ITEM={};
+    listings.forEach(l=>{
+      const link=F(l,'ITEM'); const itemId=Array.isArray(link)?link[0]:link;
+      if(!itemId) return;
+      const plat=Fstr(l,'PLATFORM').toUpperCase();
+      (LISTINGS_BY_ITEM[itemId]=LISTINGS_BY_ITEM[itemId]||{})[plat]=l;
     });
-
-    if (!res.ok) {
-      const e = await res.json();
-      console.error('Claude error:', e);
-      showToast('Claude API error', 'error');
-      return null;
-    }
-
-    const data = await res.json();
-
-    // Extract text from potentially mixed content blocks
-    const text = (data.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('');
-
-    if (!text) { showToast('No response from Claude', 'error'); return null; }
-
-    // Strip any accidental markdown fences
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-
-  } catch (err) {
-    console.error('claudeIdentifyAndComp error:', err);
-    showToast('Identification error — check console', 'error');
-    return null;
-  }
+    renderSessions(); renderInventory();
+  }catch(e){ console.error(e); toast(e.message,'err'); $('#homeBody').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
 }
 
-// ── Queue card DOM helpers ────────────────────────────────────────────────────
-function addProcessingCard(cardId, imageDataUrl) {
-  const list = document.getElementById('queue-list');
-  const thumbHtml = imageDataUrl
-    ? `<img src="${imageDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Item photo">`
-    : `<i class="ti ti-loader"></i>`;
+/* ---------- status → dot ---------- */
+function statusDot(status){
+  status=(status||'').toUpperCase();
+  if(status==='IN PROGRESS') return {cls:'amber',label:'In Progress'};
+  if(status==='LISTED') return {cls:'green',label:'Published'};
+  if(status==='SOLD') return {cls:'green',label:'Sold'};
+  if(status==='ARCHIVED') return {cls:'grey',label:'Archived'};
+  return {cls:'ready',label:'Ready'}; // SOURCED / blank
+}
 
-  const card = document.createElement('div');
-  card.className = 'queue-card processing';
-  card.id = cardId;
-  card.style.marginTop = '10px';
-  card.innerHTML = `
-    <div class="card-top">
-      <div class="card-thumb" style="${imageDataUrl ? 'padding:0;' : 'color:var(--dim);'}">${thumbHtml}</div>
-      <div class="card-info">
-        <div class="card-name" style="color:var(--dim);">Identifying item...</div>
-        <div class="card-cat" style="color:var(--ghost);">Searching eBay sold comps</div>
-        <div class="comp-row"><span style="font-size:10px;color:var(--ghost);">Pulling sold data</span></div>
+/* ---------- sessions ---------- */
+function renderSessions(){
+  // group items by SESSION link; show sessions with unfinished (non LISTED/SOLD/ARCHIVED) items
+  const byS={};
+  ITEMS.forEach(it=>{ const link=F(it,'SESSION'); const sid=Array.isArray(link)?link[0]:link; if(!sid)return; (byS[sid]=byS[sid]||[]).push(it); });
+  const rows=[]; let openCount=0, unfinished=0;
+  Object.keys(byS).forEach(sid=>{
+    const items=byS[sid]; const cnt={ready:0,amber:0,green:0};
+    items.forEach(it=>{ const c=statusDot(Fstr(it,'ITEM STATUS')).cls; if(c==='ready')cnt.ready++; else if(c==='amber')cnt.amber++; else if(c==='green')cnt.green++; });
+    const open=cnt.ready+cnt.amber>0; if(open){openCount++; unfinished+=cnt.ready+cnt.amber;}
+    const s=SESSIONS_BY_ID[sid];
+    const name=s?(Fstr(s,'SESSION NAME')||Fstr(s,'NAME')||Fstr(s,'LOCATION')||'Session'):'Session';
+    const type=s?Fstr(s,'SESSION TYPE'):''; const date=s?Fstr(s,'DATE'):'';
+    rows.push({open, html:`<div class="session-card">
+        <div class="s-name">${esc(name)}</div>
+        <div class="s-meta">${esc([type,date,items.length+' items'].filter(Boolean).join(' · '))}</div>
+        <div class="s-stats">
+          <span class="stat"><span class="dot ready"></span>${cnt.ready}</span>
+          <span class="stat"><span class="dot amber"></span>${cnt.amber}</span>
+          <span class="stat"><span class="dot green"></span>${cnt.green}</span>
+        </div></div>`});
+  });
+  const openRows=rows.filter(r=>r.open);
+  $('#sessionsList').innerHTML = openRows.length?openRows.map(r=>r.html).join(''):'<div class="empty" style="grid-column:1/-1;padding:24px 0">No open sessions.</div>';
+  $('#sessionsCount').textContent = openCount+' open · '+unfinished+' unfinished items';
+}
+
+/* ---------- inventory ---------- */
+function renderInventory(){
+  const q=$('#fSearch').value.trim().toLowerCase(), cat=$('#fCat').value, st=$('#fStatus').value, plat=$('#fPlatform').value;
+  const list=ITEMS.filter(it=>{
+    if(q && !Fstr(it,'ITEM NAME').toLowerCase().includes(q)) return false;
+    if(cat && Fstr(it,'CATEGORY')!==cat) return false;
+    if(st && Fstr(it,'ITEM STATUS')!==st) return false;
+    if(plat){ const ls=LISTINGS_BY_ITEM[it.id]||{}; if(!ls[plat]) return false; }
+    return true;
+  });
+  $('#invCount').textContent = ITEMS.length+' items total';
+  if(!list.length){ $('#homeBody').innerHTML='<div class="empty">No items match.</div>'; return; }
+  $('#homeBody').innerHTML='<div class="inv-grid">'+list.map(it=>{
+    const d=statusDot(Fstr(it,'ITEM STATUS')); const url=firstPhotoUrl(it);
+    const lo=Fnum(it,'EBAY COMP LOW'), hi=Fnum(it,'EBAY COMP HIGH');
+    const comp=(lo!=null||hi!=null)?(money(lo).replace('.00','')+'–'+money(hi).replace('.00','')):'—';
+    return `<div class="item-card" data-id="${it.id}">
+      <div class="thumb">${url?`<img src="${esc(url)}" alt="">`:`<svg class="ph" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`}
+        <div class="status"><span class="dot ${d.cls}"></span>${d.label}</div></div>
+      <div class="body">
+        <div class="i-name">${esc(Fstr(it,'ITEM NAME'))}</div>
+        <span class="chip">${esc(Fstr(it,'CATEGORY')||'—')}</span> <span class="chip">${esc(Fstr(it,'CONDITION')||'—')}</span>
+        <div class="i-row"><span class="comp">${esc(comp)}</span><span class="cog">COG ${money(Fnum(it,'COST OF GOODS')).replace('.00','')}</span></div>
+      </div></div>`;
+  }).join('')+'</div>';
+  document.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openWorkspace(c.dataset.id)));
+}
+['#fSearch','#fCat','#fStatus','#fPlatform'].forEach(s=>{ const el=$(s); el&&el.addEventListener('input',renderInventory); });
+
+/* ============================================================
+   Workspace
+   ============================================================ */
+function pricing(item){
+  const cog=Fnum(item,'COST OF GOODS')||0;
+  const margin = current && current.margin!=null ? current.margin : DEFAULT_MARGIN;
+  const buffer = current && current.buffer!=null ? current.buffer : DEFAULT_BUFFER;
+  const floor = cog + margin;            // local: no fees
+  const ask = Math.round(floor*(1+buffer));
+  return {cog,margin,buffer,floor:Math.round(floor),ask};
+}
+function netCalc(listPrice){
+  const e=FEES.EBAY, m=FEES.MERCARI;
+  const eFee=listPrice*e.pct+e.flat;
+  const mFee=listPrice*m.pct + (listPrice*m.procPct+m.procFlat);
+  return { ebayFee:eFee, ebayNet:listPrice-eFee, mercFee:mFee, mercNet:listPrice-mFee };
+}
+
+function openWorkspace(itemId){
+  const item=ITEMS.find(i=>i.id===itemId); if(!item) return;
+  const listings=LISTINGS_BY_ITEM[itemId]||{};
+  // build editable draft from existing listings
+  const draft={}; PLATFORMS.forEach(p=>{
+    const l=listings[p.key];
+    draft[p.key]={ title:l?Fstr(l,'TITLE'):'', body:l?Fstr(l,'LISTING BODY'):'', keywords:l?Fstr(l,'KEYWORDS'):'',
+      price:l?Fnum(l,'LIST PRICE'):null, url:l?Fstr(l,'LISTING URL'):'',
+      published:l?POSTED_STATUSES.includes(Fstr(l,'LISTING STATUS').toUpperCase()):false, recId:l?l.id:null };
+  });
+  current={ item, listings, draft, active:'FACEBOOK',
+            margin: Fnum(item,'FLOOR PRICE')!=null ? (Fnum(item,'FLOOR PRICE')-(Fnum(item,'COST OF GOODS')||0)) : DEFAULT_MARGIN,
+            buffer: DEFAULT_BUFFER, listInput:(Fnum(item,'EBAY COMP LOW')||50) };
+  renderWorkspace();
+  $('#view-home').classList.remove('active'); $('#view-ws').classList.add('active'); window.scrollTo(0,0);
+}
+
+function renderWorkspace(){
+  const it=current.item;
+  const sid=(()=>{const l=F(it,'SESSION');return Array.isArray(l)?l[0]:l;})();
+  const s=SESSIONS_BY_ID[sid];
+  $('#wsSession').textContent = s?[Fstr(s,'SESSION NAME')||Fstr(s,'LOCATION')||'Session',Fstr(s,'DATE')].filter(Boolean).join(' · '):'';
+  const pr=pricing(it), nc=netCalc(current.listInput), photoUrl=firstPhotoUrl(it);
+  const photos=Array.isArray(F(it,'PHOTOS'))?F(it,'PHOTOS'):[];
+  const lo=Fnum(it,'EBAY COMP LOW'), hi=Fnum(it,'EBAY COMP HIGH'), sold=Fnum(it,'EBAY COMP SOLD COUNT');
+  const ebayUrl='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(Fstr(it,'ITEM NAME'))+'&LH_Sold=1&LH_Complete=1';
+
+  /* LEFT */
+  const left=`<div class="panel">
+    <div class="panel-head"><span class="ph-title">Field Record</span><span class="ro-badge">Read-only</span></div>
+    <div class="field-photo">${photoUrl?`<img src="${esc(photoUrl)}">`:`<svg class="ph" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`}</div>
+    <div class="frec"><div class="fr-name">${esc(Fstr(it,'ITEM NAME'))}</div>
+      <div class="frow"><dt>Category</dt><dd>${esc(Fstr(it,'CATEGORY')||'—')}</dd></div>
+      <div class="frow"><dt>Condition</dt><dd>${esc(Fstr(it,'CONDITION')||'—')}</dd></div>
+      <div class="frow"><dt>COG</dt><dd>${money(Fnum(it,'COST OF GOODS'))}</dd></div>
+      <div class="frow"><dt>Sourced From</dt><dd>${esc(Fstr(it,'SOURCED FROM')||'—')}</dd></div>
+      <div class="frow"><dt>Date Sourced</dt><dd>${esc(Fstr(it,'DATE SOURCED')||'—')}</dd></div>
+      <div class="frow"><dt>Field Status</dt><dd>${esc(Fstr(it,'ITEM STATUS')||'SOURCED')}</dd></div>
+    </div>
+    <div class="comp-box"><span class="label">eBay Sold Comps</span>
+      <div class="cb-range">${(lo!=null||hi!=null)?money(lo).replace('.00','')+' – '+money(hi).replace('.00',''):'—'}</div>
+      <div class="cb-sub">low – high${sold!=null?' · '+sold+' sold':''}</div>
+      <a href="${esc(ebayUrl)}" target="_blank"><svg viewBox="0 0 24 24"><path d="M7 17L17 7 M9 7h8v8"/></svg>View comps on eBay</a>
+    </div></div>`;
+
+  /* CENTER */
+  const tabs=PLATFORMS.map(p=>{ const d=current.draft[p.key]; const cls=d.published?'pt-done':(d.title||d.body?'pt-draft':''); 
+    return `<button class="${p.key===current.active?'active':''}" data-tab="${p.key}">${p.label}<span class="pdot ${cls}"></span></button>`;}).join('');
+  const ap=PLATFORMS.find(p=>p.key===current.active), d=current.draft[current.active];
+  const isEbay=current.active==='EBAY';
+  const titleCount = isEbay ? `<span class="lcount ${d.title.length>80?'warn':''}" id="titleCount">${d.title.length} / 80</span>` : '';
+  const center=`<div class="panel">
+      <div class="panel-head"><span class="sec-title"><span class="num">1</span>Photos</span></div>
+      <div class="dropzone" id="dropzone"><svg viewBox="0 0 24 24"><path d="M12 16V4 M7 9l5-5 5 5 M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <div class="dz-main">Drop photos or click to upload</div>
+        <div class="dz-sub">attaches to ITEMS · PHOTOS — resized · ≤5MB each</div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none"></div>
+      <div class="photo-strip">${photos.length?photos.map((p,i)=>`<div class="pt ${i===0?'primary':''}"><img src="${esc((p.thumbnails&&p.thumbnails.small&&p.thumbnails.small.url)||p.url)}">${i===0?'<span class="pbadge">PRIMARY</span>':''}</div>`).join(''):'<span class="label" style="padding:4px 0">No photos yet</span>'}</div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="sec-title"><span class="num">2</span>Listing Copy</span></div>
+      <div class="ptabs" id="ptabs">${tabs}</div>
+      <div class="gen-row"><span class="label">draft pre-filled from field data</span>
+        <button class="gen-btn" id="genBtn"><svg viewBox="0 0 24 24"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>Generate all platforms</button></div>
+      <div class="copy-body">
+        <div class="fld"><label><span class="lname">Title</span>${titleCount}</label><input id="d_title" value="${esc(d.title)}"></div>
+        <div class="fld"><label><span class="lname">Listing Body</span></label><textarea id="d_body">${esc(d.body)}</textarea></div>
+        <div class="fld"><label><span class="lname">${ap&&ap.key==='ETSY'?'Tags':'Keywords'}</span></label><input id="d_keywords" value="${esc(d.keywords)}"></div>
       </div>
     </div>
-    <div class="processing-bar">
-      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-      Processing
-    </div>`;
-  list.appendChild(card);
-  updateQueueCount();
-}
-
-function populateCard(cardId, result, imageDataUrl) {
-  const card = document.getElementById(cardId);
-  if (!card) return;
-
-  // Store data for use at buy confirmation
-  cardData[cardId] = { ...result, imageDataUrl };
-
-  const thumbHtml = imageDataUrl
-    ? `<img src="${imageDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Item photo">`
-    : `<i class="ti ti-package"></i>`;
-
-  const compLow  = result.comp_low  ? '$' + result.comp_low  : '—';
-  const compHigh = result.comp_high ? '$' + result.comp_high : '—';
-  const compRange = (result.comp_low || result.comp_high) ? `${compLow} – ${compHigh}` : 'No comps found';
-  const soldCount = result.comp_sold_count ? result.comp_sold_count + ' sold' : 'No data';
-  const ebayUrl = result.ebay_search_url || `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(result.ebay_search_query || result.name)}&LH_Sold=1&LH_Complete=1`;
-
-  card.className = 'queue-card';
-  card.innerHTML = `
-    <div class="card-top">
-      <div class="card-thumb" style="${imageDataUrl ? 'padding:0;' : ''}">${thumbHtml}</div>
-      <div class="card-info">
-        <div class="card-name">${escHtml(result.name)}</div>
-        <div class="card-cat">${escHtml(result.category)}</div>
-        <div class="comp-row">
-          <span class="comp-range">${compRange}</span>
-          <span class="comp-sold">${soldCount}</span>
-          <a class="comp-link" href="${ebayUrl}" target="_blank">eBay <i class="ti ti-external-link"></i></a>
+    <div class="panel">
+      <div class="panel-head"><span class="sec-title"><span class="num">3</span>Pricing</span></div>
+      <div class="price-wrap">
+        <div class="price-block"><h4>Facebook · OfferUp <span class="tag">LOCAL</span></h4>
+          <div class="pln muted"><span>COG</span><span class="v">${money(pr.cog)}</span></div>
+          <div class="pln muted"><span>Fees (local pickup)</span><span class="v">$0.00</span></div>
+          <div class="price-input"><span class="pi-lab">Target margin</span><input id="p_margin" value="$${pr.margin}"></div>
+          <div class="price-input"><span class="pi-lab">Negotiation buffer</span><input id="p_buffer" value="${Math.round(pr.buffer*100)}%"></div>
+          <div class="pbig"><div class="pb"><div class="pb-lab">Ask</div><div class="pb-val" id="v_ask">$${pr.ask}</div></div>
+            <div class="pb floor"><div class="pb-lab">Floor</div><div class="pb-val" id="v_floor">$${pr.floor}</div></div></div>
+          <div class="pnote">shared ask / floor — both negotiable, no fees</div>
+        </div>
+        <div class="price-block"><h4>eBay / Mercari <span class="tag">NET</span></h4>
+          <div class="price-input"><span class="pi-lab">List price</span><input id="p_list" value="$${current.listInput}"></div>
+          <div class="pln"><span>eBay fee (${(FEES.EBAY.pct*100).toFixed(2)}% + $${FEES.EBAY.flat.toFixed(2)})</span><span class="v" id="v_efee">−${money(nc.ebayFee)}</span></div>
+          <div class="pln neg"><span>eBay net</span><span class="v" id="v_enet">${money(nc.ebayNet)}</span></div>
+          <div class="pln" style="margin-top:6px"><span>Mercari fee (10%)</span><span class="v" id="v_mfee">−${money(nc.mercFee)}</span></div>
+          <div class="pln neg"><span>Mercari net</span><span class="v" id="v_mnet">${money(nc.mercNet)}</span></div>
         </div>
       </div>
-    </div>
-    <div class="card-divider"></div>
-    <div class="card-actions">
-      <button class="card-btn card-btn-pass" onclick="passCard('${cardId}')">Pass</button>
-      <button class="card-btn card-btn-buy" onclick="openBuySheet('${cardId}', ${JSON.stringify(result.name)}, ${JSON.stringify(result.category)})">Buy →</button>
     </div>`;
-  updateQueueCount();
+
+  /* RIGHT */
+  const itemStatus=Fstr(it,'ITEM STATUS')||'SOURCED'; const sd=statusDot(itemStatus);
+  const pubCount=PLATFORMS.filter(p=>current.draft[p.key].published).length;
+  const pubRows=PLATFORMS.map(p=>{ const dr=current.draft[p.key];
+    return `<div class="pub-row"><span class="pub-platform">${p.label}</span>
+      <input class="pub-url" data-url="${p.key}" value="${esc(dr.url)}" placeholder="paste listing URL…">
+      <button class="cbox ${dr.published?'on':''}" data-pub="${p.key}"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></button></div>`;}).join('');
+  const anyCopy=PLATFORMS.some(p=>current.draft[p.key].title||current.draft[p.key].body);
+  const sop=[ {label:'Photos uploaded',done:photos.length>0},
+    {label:'Listing copy reviewed',done:anyCopy},
+    {label:'Price set',done:Fnum(it,'ASK PRICE')!=null},
+    {label:'All platforms published',done:pubCount===PLATFORMS.length} ];
+  const right=`<div class="panel">
+      <div class="panel-head"><span class="ph-title">Live Record</span></div>
+      <div class="live-head"><span class="dot ${sd.cls}" style="width:12px;height:12px"></span>
+        <div><div class="lh-name">${esc(Fstr(it,'ITEM NAME'))}</div><div class="lh-status"><span>${esc(itemStatus)}</span> · ${pubCount} of ${PLATFORMS.length} published</div></div></div>
+      <div style="padding:0 17px"><span class="label">Publish Checklist</span></div>
+      <div class="checklist">${pubRows}</div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="ph-title">Item Checklist</span></div>
+      <div class="sop">${sop.map(r=>`<div class="sop-row ${r.done?'done':''}"><span class="sop-tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></span>${r.label}</div>`).join('')}</div>
+      <div class="save-bar"><button class="save-btn" id="saveBtn">Save to Airtable</button></div>
+    </div>`;
+
+  $('#wsCols').innerHTML = `<div>${left}</div><div class="center">${center}</div><div class="right">${right}</div>`;
+  wireWorkspace();
 }
 
-function removeCard(cardId) {
-  const card = document.getElementById(cardId);
-  if (card) { card.remove(); updateQueueCount(); }
-  delete cardData[cardId];
+function wireWorkspace(){
+  // tabs — persist current field edits before switching
+  document.querySelectorAll('#ptabs button').forEach(b=>b.addEventListener('click',()=>{ syncDraftFields(); current.active=b.dataset.tab; renderWorkspace(); }));
+  // copy field edits
+  ['d_title','d_body','d_keywords'].forEach(id=>{ const el=$('#'+id); if(!el)return; el.addEventListener('input',()=>{ syncDraftFields(); if(id==='d_title'&&current.active==='EBAY'){const c=$('#titleCount'); if(c){c.textContent=el.value.length+' / 80'; c.classList.toggle('warn',el.value.length>80);} } }); });
+  // pricing inputs
+  const mEl=$('#p_margin'), bEl=$('#p_buffer'), lEl=$('#p_list');
+  function recalc(){ current.margin=parseFloat((mEl.value||'').replace(/[^0-9.]/g,''))||0; current.buffer=(parseFloat((bEl.value||'').replace(/[^0-9.]/g,''))||0)/100; current.listInput=parseFloat((lEl.value||'').replace(/[^0-9.]/g,''))||0;
+    const pr=pricing(current.item), nc=netCalc(current.listInput);
+    $('#v_ask').textContent='$'+pr.ask; $('#v_floor').textContent='$'+pr.floor;
+    $('#v_efee').textContent='−'+money(nc.ebayFee); $('#v_enet').textContent=money(nc.ebayNet);
+    $('#v_mfee').textContent='−'+money(nc.mercFee); $('#v_mnet').textContent=money(nc.mercNet); }
+  [mEl,bEl,lEl].forEach(el=>el&&el.addEventListener('input',recalc));
+  // publish url + checkbox
+  document.querySelectorAll('[data-url]').forEach(el=>el.addEventListener('input',()=>{ current.draft[el.dataset.url].url=el.value; }));
+  document.querySelectorAll('[data-pub]').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.pub; current.draft[k].published=!current.draft[k].published; renderWorkspace(); }));
+  // photos
+  const dz=$('#dropzone'), fi=$('#fileInput');
+  if(dz&&fi){ dz.addEventListener('click',()=>fi.click());
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(e.dataTransfer.files);});
+    fi.addEventListener('change',()=>handleFiles(fi.files)); }
+  // generate + save
+  $('#genBtn')&&$('#genBtn').addEventListener('click',generateAll);
+  $('#saveBtn')&&$('#saveBtn').addEventListener('click',saveAll);
+}
+function syncDraftFields(){ const d=current.draft[current.active]; const t=$('#d_title'),b=$('#d_body'),k=$('#d_keywords'); if(t)d.title=t.value; if(b)d.body=b.value; if(k)d.keywords=k.value; }
+
+/* ---------- photos ---------- */
+function resizeToBase64(file,maxDim=1600,quality=0.85){
+  return new Promise((res,rej)=>{ const img=new Image(); const rd=new FileReader();
+    rd.onload=()=>{ img.onload=()=>{ let{width:w,height:h}=img; if(w>h&&w>maxDim){h=h*maxDim/w;w=maxDim;} else if(h>maxDim){w=w*maxDim/h;h=maxDim;}
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+      const durl=cv.toDataURL('image/jpeg',quality); res({base64:durl.split(',')[1],contentType:'image/jpeg'}); };
+      img.onerror=rej; img.src=rd.result; }; rd.onerror=rej; rd.readAsDataURL(file); });
+}
+async function handleFiles(files){
+  if(!files||!files.length) return;
+  toast('Uploading '+files.length+' photo'+(files.length>1?'s':'')+'…');
+  try{ for(const f of files){ const {base64,contentType}=await resizeToBase64(f);
+      const updated=await atUploadAttachment(current.item.id,'PHOTOS',base64,contentType,(f.name||'photo')+'.jpg');
+      // refresh item record in memory
+      const idx=ITEMS.findIndex(i=>i.id===current.item.id); if(idx>=0 && updated && updated.fields){ ITEMS[idx]=updated; current.item=updated; } }
+    toast('Photos uploaded','ok'); renderWorkspace();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
 }
 
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* ---------- generation ---------- */
+async function generateAll(){
+  if(!CFG.anthropic){ toast('Add your Anthropic key in settings','err'); return; }
+  const it=current.item; const btn=$('#genBtn'); btn.disabled=true; btn.textContent='Generating…';
+  const ctx={ name:Fstr(it,'ITEM NAME'), category:Fstr(it,'CATEGORY'), condition:Fstr(it,'CONDITION'),
+    cog:Fnum(it,'COST OF GOODS'), comp_low:Fnum(it,'EBAY COMP LOW'), comp_high:Fnum(it,'EBAY COMP HIGH'),
+    notes:Fstr(it,'AI IDENTIFICATION NOTES'), city:'Long Beach, CA' };
+  const prompt=`You write reselling listings for a vintage/collectible reseller (Last Laugh Vintage, ${ctx.city}). 
+Item data: ${JSON.stringify(ctx)}
+Write platform-optimized copy for FIVE platforms. Return ONLY raw JSON (no markdown, no prose) with this exact shape:
+{"FACEBOOK":{"title":"","body":"","keywords":""},"OFFERUP":{"title":"","body":"","keywords":""},"EBAY":{"title":"","body":"","keywords":""},"ETSY":{"title":"","body":"","keywords":""},"MERCARI":{"title":"","body":"","keywords":""}}
+Rules: FACEBOOK & OFFERUP = short, casual, local-pickup friendly. EBAY title MUST be <=80 chars, keyword-dense. ETSY = keyword-front-loaded title + comma tag list in keywords. MERCARI = concise, shipping-friendly. Be accurate to the condition; never invent specifics not implied by the data.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST',
+      headers:{'x-api-key':CFG.anthropic,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:1500,messages:[{role:'user',content:prompt}]}) });
+    if(!r.ok) throw new Error('Anthropic '+r.status+': '+(await r.text()).slice(0,200));
+    const j=await r.json();
+    const text=(j.content||[]).map(c=>c.type==='text'?c.text:'').join('').trim().replace(/^```json|^```|```$/g,'').trim();
+    const data=JSON.parse(text);
+    PLATFORMS.forEach(p=>{ const g=data[p.key]; if(g){ const d=current.draft[p.key]; d.title=g.title||d.title; d.body=g.body||d.body; d.keywords=g.keywords||d.keywords; } });
+    toast('Listings generated','ok'); renderWorkspace();
+  }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }
+  finally{ btn.disabled=false; }
 }
 
-// ── Pass / Buy ────────────────────────────────────────────────────────────────
-function passCard(id) {
-  const card = document.getElementById(id);
-  if (!card) return;
-  card.style.opacity = '0';
-  card.style.transform = 'translateX(20px)';
-  card.style.transition = 'opacity 0.2s, transform 0.2s';
-  setTimeout(() => { card.remove(); updateQueueCount(); delete cardData[id]; }, 200);
-}
-
-function openBuySheet(cardId, name, cat) {
-  pendingCardId = cardId;
-  document.getElementById('sheet-item-name').textContent = name;
-  document.getElementById('sheet-item-cat').textContent = cat;
-  document.getElementById('sheet-cog').value = '';
-  // Reset condition to Very Good default
-  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.cond-btn:nth-child(3)').classList.add('active');
-  document.getElementById('buy-sheet-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('sheet-cog').focus(), 300);
-}
-
-function closeBuySheet() {
-  document.getElementById('buy-sheet-overlay').classList.remove('open');
-  pendingCardId = null;
-}
-
-// ── Confirm buy → Airtable ────────────────────────────────────────────────────
-async function confirmBuy() {
-  const cogRaw = document.getElementById('sheet-cog').value.trim().replace(/[$,]/g, '');
-  if (!cogRaw || isNaN(parseFloat(cogRaw))) { showToast('Enter cost of goods', 'error'); return; }
-  const cog = parseFloat(cogRaw);
-
-  const condEl = document.querySelector('.cond-btn.active');
-  const condition = condEl ? condEl.textContent.toUpperCase().replace(' ', ' ') : 'GOOD';
-
-  const data = cardData[pendingCardId] || {};
-  const dateStr = new Date().toLocaleDateString('en-CA');
-
-  // Get or create today's session
-  const sessionId = await getOrCreateSession();
-
-  // Build Airtable record
-  const fields = {
-    'ITEM NAME':              data.name || 'Unknown Item',
-    'CATEGORY':               data.category || 'OTHER',
-    'CONDITION':              condition,
-    'COST OF GOODS':          cog,
-    'AI IDENTIFICATION NOTES': data.ai_notes || '',
-    'EBAY COMP LOW':          data.comp_low || 0,
-    'EBAY COMP HIGH':         data.comp_high || 0,
-    'EBAY COMP SOLD COUNT':   data.comp_sold_count || 0,
-    'ITEM STATUS':            'SOURCED',
-    'DATE SOURCED':           dateStr,
-  };
-  if (sessionId) fields['SESSION'] = [sessionId];
-
-  const airtableKey = getCred('airtable');
-  const baseId = getCred('baseId');
-  const itemsId = getCred('itemsId');
-
-  if (!airtableKey || !baseId || !itemsId) {
-    showToast('Add Airtable credentials in Settings', 'error');
-    return;
-  }
-
-  showToast('Creating record...', '');
-
-  try {
-    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${itemsId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${airtableKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ fields })
-    });
-
-    if (!res.ok) {
-      const e = await res.json();
-      console.error('Airtable create error:', e);
-      showToast('Airtable error — check console', 'error');
-      return;
+/* ---------- save ---------- */
+async function saveAll(){
+  syncDraftFields();
+  const it=current.item, btn=$('#saveBtn'); btn.disabled=true; btn.textContent='Saving…';
+  const pr=pricing(it);
+  try{
+    // 1) item-level pricing
+    await atPatch(CFG.items, it.id, { 'ASK PRICE':pr.ask, 'FLOOR PRICE':pr.floor });
+    // 2) per-platform listings (upsert only platforms that have content or a URL)
+    for(const p of PLATFORMS){
+      const d=current.draft[p.key];
+      if(!(d.title||d.body||d.keywords||d.url||d.published)) continue;
+      const isLocal=p.local;
+      const fields={ 'TITLE':d.title, 'PLATFORM':p.key, 'LISTING BODY':d.body, 'KEYWORDS':d.keywords,
+        'LIST PRICE': isLocal?pr.ask:(d.price||current.listInput||null),
+        'LISTING STATUS': d.published?LISTING_STATUS.live:LISTING_STATUS.draft,
+        'LISTING URL': d.url||'', 'ITEM':[it.id] };
+      if(d.published) fields['DATE PUBLISHED']=todayISO();
+      if(d.recId){ await atPatch(CFG.listings,d.recId,fields); }
+      else { const created=await atCreate(CFG.listings,fields); d.recId=created.id; (LISTINGS_BY_ITEM[it.id]=LISTINGS_BY_ITEM[it.id]||{})[p.key]=created; }
     }
-
-    const record = await res.json();
-    console.log('Record created:', record.id);
-
-    // If we have an image, attach it
-    if (data.imageDataUrl && record.id) {
-      attachImageToRecord(record.id, data.imageDataUrl, data.name);
-    }
-
-    // Remove card from queue
-    const card = document.getElementById(pendingCardId);
-    if (card) {
-      card.style.opacity = '0';
-      card.style.transform = 'translateX(-20px)';
-      card.style.transition = 'opacity 0.2s, transform 0.2s';
-      setTimeout(() => { card.remove(); updateQueueCount(); }, 200);
-    }
-    delete cardData[pendingCardId];
-    closeBuySheet();
-    showToast('Record created — pipeline open ✓', 'success');
-
-  } catch (err) {
-    console.error(err);
-    showToast('Network error', 'error');
-  }
+    // 3) roll up ITEM STATUS
+    const pubCount=PLATFORMS.filter(p=>current.draft[p.key].published).length;
+    const anyCopy=PLATFORMS.some(p=>current.draft[p.key].title||current.draft[p.key].body);
+    let newStatus=Fstr(it,'ITEM STATUS')||'SOURCED';
+    if(pubCount===PLATFORMS.length) newStatus='LISTED';
+    else if(anyCopy||pubCount>0) newStatus='IN PROGRESS';
+    if(newStatus!==Fstr(it,'ITEM STATUS')){ const u=await atPatch(CFG.items,it.id,{'ITEM STATUS':newStatus}); const idx=ITEMS.findIndex(i=>i.id===it.id); if(idx>=0){ITEMS[idx]=u; current.item=u;} }
+    else { const idx=ITEMS.findIndex(i=>i.id===it.id); if(idx>=0){ ITEMS[idx].fields['ASK PRICE']=pr.ask; ITEMS[idx].fields['FLOOR PRICE']=pr.floor; } }
+    toast('Saved to Airtable','ok'); renderWorkspace();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='Save to Airtable'; }
 }
 
-// ── Attach image to Airtable record ──────────────────────────────────────────
-async function attachImageToRecord(recordId, dataUrl, itemName) {
-  // Convert dataUrl to blob and upload via Airtable attachment
-  // Airtable requires a publicly accessible URL for attachments via API
-  // We store the base64 in AI IDENTIFICATION NOTES as a fallback marker
-  // Full attachment upload requires a file host — flagged for future enhancement
-  console.log('Image attachment pending file host setup for record:', recordId);
-}
-
-// ── Session management ────────────────────────────────────────────────────────
-let activeSessionId = null;
-
-async function getOrCreateSession() {
-  if (activeSessionId) return activeSessionId;
-
-  const airtableKey = getCred('airtable');
-  const baseId = getCred('baseId');
-  const sessionsId = getCred('sessionsId');
-  if (!airtableKey || !baseId || !sessionsId) return null;
-
-  const today = new Date().toLocaleDateString('en-CA');
-  const homeBase = getCred('homeBase') || 'Long Beach, CA';
-
-  // Check for existing session today
-  try {
-    const searchUrl = `https://api.airtable.com/v0/${baseId}/${sessionsId}?filterByFormula=IS_SAME({DATE}, "${today}", "day")&maxRecords=1`;
-    const res = await fetch(searchUrl, {
-      headers: { 'Authorization': `Bearer ${airtableKey}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.records && data.records.length > 0) {
-        activeSessionId = data.records[0].id;
-        return activeSessionId;
-      }
-    }
-  } catch (err) { console.error('Session search error:', err); }
-
-  // No session today — prompt for location and create one
-  const location = prompt('Where are you sourcing today? (optional)', homeBase) || homeBase;
-  const sessionType = 'ESTATE SALE'; // default — can be enhanced later
-
-  try {
-    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${airtableKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: {
-          'LOCATION': location,
-          'DATE': today,
-          'SESSION TYPE': sessionType,
-          'SESSION STATUS': 'ACTIVE'
-        }
-      })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      activeSessionId = data.id;
-      showToast(`Session: ${location}`, '');
-      return activeSessionId;
-    }
-  } catch (err) { console.error('Session create error:', err); }
-
-  return null;
-}
-
-function selectCond(el) {
-  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function updateQueueCount() {
-  const allCards = document.querySelectorAll('#queue-list .queue-card');
-  const total = allCards.length;
-  document.getElementById('queue-count').textContent = total === 0 ? 'empty' : total + ' pending';
-}
-
-// ─── STUDIO MODE ──────────────────────────────────────────────────────────────
-function selectStudioItem(el, itemId) {
-  document.querySelectorAll('.studio-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function switchTab(el) {
-  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-// ─── TOAST ───────────────────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show' + (type ? ' ' + type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.className = '', 2500);
-}
-
-// ─── AIRTABLE HELPERS ────────────────────────────────────────────────────────
-async function airtableFetch(tableId, method = 'GET', body = null, recordId = '') {
-  const baseId = getCred('baseId');
-  const apiKey = getCred('airtable');
-  if (!baseId || !apiKey) { showToast('Add Airtable credentials in Settings', 'error'); return null; }
-  const url = `https://api.airtable.com/v0/${baseId}/${tableId}${recordId ? '/' + recordId : ''}`;
-  const opts = {
-    method,
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  try {
-    const res = await fetch(url, opts);
-    if (!res.ok) { const e = await res.json(); console.error('Airtable error:', e); showToast('Airtable error — check console', 'error'); return null; }
-    return await res.json();
-  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
-}
-
-// ─── CLAUDE HELPERS ───────────────────────────────────────────────────────────
-async function claudeFetch(messages, system = '') {
-  const apiKey = getCred('anthropic');
-  if (!apiKey) { showToast('Add Anthropic API key in Settings', 'error'); return null; }
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
-        system,
-        messages
-      })
-    });
-    if (!res.ok) { const e = await res.json(); console.error('Claude error:', e); showToast('Claude API error', 'error'); return null; }
-    const data = await res.json();
-    return data.content?.[0]?.text || null;
-  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
-}
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Auto-populate Airtable IDs if not already set
-  if (!getCred('baseId')) setCred('baseId', 'app3DqxIJ1SUBKylb');
-  if (!getCred('salesId')) setCred('salesId', 'tblRfPldzPkqIlD7P');
-  if (!getCred('sessionsId')) setCred('sessionsId', 'tblGH4ziHZSneAtoI');
-  if (!getCred('itemsId')) setCred('itemsId', 'tblFeToiIcEseekfH');
-  if (!getCred('listingsId')) setCred('listingsId', 'tblW5u905moGRFsFw');
-  if (!getCred('homeBase')) setCred('homeBase', 'Long Beach, CA');
+/* ============================================================
+   settings modal + boot
+   ============================================================ */
+function openModal(){ loadCfg();
+  $('#k_anthropic').value=localStorage.getItem(LS.anthropic)||'';
+  $('#k_airtable').value=localStorage.getItem(LS.airtable)||'';
+  $('#k_base').value=CFG.base; $('#k_items').value=CFG.items; $('#k_listings').value=CFG.listings; $('#k_sessions').value=CFG.sessions;
+  $('#modal').classList.add('open'); }
+function closeModal(){ $('#modal').classList.remove('open'); }
+$('#settingsBtn').addEventListener('click',openModal);
+$('#modalClose').addEventListener('click',closeModal);
+$('#modalCancel').addEventListener('click',closeModal);
+$('#modalSave').addEventListener('click',()=>{
+  localStorage.setItem(LS.anthropic,$('#k_anthropic').value.trim());
+  localStorage.setItem(LS.airtable,$('#k_airtable').value.trim());
+  localStorage.setItem(LS.base,$('#k_base').value.trim());
+  localStorage.setItem(LS.items,$('#k_items').value.trim());
+  localStorage.setItem(LS.listings,$('#k_listings').value.trim());
+  localStorage.setItem(LS.sessions,$('#k_sessions').value.trim());
+  loadCfg(); closeModal(); loadAll();
 });
+$('#backBtn').addEventListener('click',()=>{ $('#view-ws').classList.remove('active'); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
+$('#refreshBtn').addEventListener('click',loadAll);
 
+loadCfg(); loadAll();
 </script>
 </body>
 </html>

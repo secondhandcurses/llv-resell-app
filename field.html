@@ -1931,58 +1931,20 @@ async function startSourcingFromSale(id) {
   const sale = salesData.find(s => s.id === id);
   if (!sale) return;
 
-  const airtableKey = get('airtable');
-  const baseId      = get('baseId');
-  const sessionsId  = get('sessionsId');
   showToast('Starting session...', '');
 
-  // Build session fields from sale data
-  const fields = {
-    'LOCATION':       sale.name,
-    'SESSION TYPE':   mapSaleTypeToSessionType(sale.saleType),
-    'SESSION STATUS': 'ACTIVE',
-    'DATE':           sale.date || (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })()
-  };
+  // Use the proven createSession function directly
+  const sessionType = mapSaleTypeToSessionType(sale.saleType);
+  const sessionId   = await createSession(sale.name, sessionType);
 
-  // If Airtable is configured, create session record
-  if (airtableKey && baseId && sessionsId) {
-    try {
-      const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields })
-      });
-      const respText = await res.text();
-      console.log('Session response:', res.status, respText);
-      if (res.ok) {
-        const data = JSON.parse(respText);
-        activeSessionId   = data.id;
-        activeSessionName = sale.name;
-        showToast('Session created: ' + data.id.substring(0,10), 'success');
-      } else {
-        let err = {};
-        try { err = JSON.parse(respText); } catch(e) {}
-        const msg = err?.error?.message || err?.error?.type || respText.substring(0,40);
-        showToast('Session error: ' + msg.substring(0, 40), 'error');
-        activeSessionId   = 'local-' + Date.now();
-        activeSessionName = sale.name;
-      }
-    } catch (err) {
-      console.error('Session fetch caught:', err);
-      showToast('Catch: ' + String(err.message || err).substring(0, 40), 'error');
-      await new Promise(r => setTimeout(r, 3500));
-      activeSessionId   = 'local-' + Date.now();
-      activeSessionName = sale.name;
-    }
-    // Always persist so confirmBuy doesn't re-prompt
-    localStorage.setItem('llv_active_session_id',   activeSessionId);
-    localStorage.setItem('llv_active_session_name', activeSessionName);
-  } else {
-    // No Airtable configured — use local ID
-    activeSessionId   = 'local-' + Date.now();
+  // createSession sets activeSessionId and activeSessionName internally
+  // If it returned null, set a local fallback so confirmBuy doesn't re-prompt
+  if (!sessionId) {
+    activeSessionId   = activeSessionId || 'local-' + Date.now();
     activeSessionName = sale.name;
     localStorage.setItem('llv_active_session_id',   activeSessionId);
     localStorage.setItem('llv_active_session_name', activeSessionName);
+    document.getElementById('session-label').textContent = activeSessionName;
   }
 
   // Mark sale as converted in local data
@@ -1993,10 +1955,8 @@ async function startSourcingFromSale(id) {
   // Update session bar
   document.getElementById('session-label').textContent = activeSessionName;
 
-  // Switch to Queue tab — delay so error toasts are readable
-  await new Promise(r => setTimeout(r, 500));
+  // Switch to Queue tab
   switchTab('queue');
-  showToast('Session started: ' + activeSessionName, 'success');
 }
 
 function mapSaleTypeToSessionType(saleType) {

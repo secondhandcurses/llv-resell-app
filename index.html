@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLV Studio</title>
+<!-- iOS home-screen app -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="LLV Studio">
+<meta name="theme-color" content="#1a1818">
+<link rel="apple-touch-icon" href="icon-studio-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -213,8 +220,58 @@
   .btn-solid{background:linear-gradient(150deg,var(--grape),var(--lav));border:none;color:#fff;padding:10px 18px;border-radius:9px;font-family:'DM Mono';font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
   .modal-note{font-family:'DM Mono';font-size:.58rem;color:var(--olive);line-height:1.6;margin-top:4px}
 
+  /* Labels view */
+  .labels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:14px}
+  .lbl-card{background:var(--panel);border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:11px;user-select:none}
+  .lbl-card:hover{border-color:var(--line-strong)}
+  .lbl-card.selected{border-color:var(--lav);background:rgba(171,129,205,.07)}
+  .lbl-card .lc-thumb{width:42px;height:42px;border-radius:7px;background:linear-gradient(135deg,#2a2626,#201d1d);overflow:hidden;flex:none}
+  .lbl-card .lc-thumb img{width:100%;height:100%;object-fit:cover}
+  .lbl-card .lc-meta{flex:1;min-width:0}
+  .lbl-card .lc-name{font-family:'Oswald';font-weight:500;font-size:.88rem;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbl-card .lc-cond{font-family:'DM Mono';font-size:.58rem;letter-spacing:.06em;color:var(--olive);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbl-card .lc-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center}
+  .lbl-card.selected .lc-check{background:var(--lav);border-color:var(--lav)}
+  .lbl-card .lc-check svg{width:13px;height:13px;stroke:#1a1818;fill:none;stroke-width:2.5;opacity:0}
+  .lbl-card.selected .lc-check svg{opacity:1}
+
+  .lbl-actions{display:flex;align-items:center;gap:10px;margin:18px 0 6px;padding:13px 18px;background:var(--panel);border:1px solid var(--line);border-radius:11px}
+  .lbl-actions .ct{font-family:'DM Mono';font-size:.72rem;color:var(--silver);flex:1}
+  .lbl-actions .ct b{color:var(--lav)}
+  .lbl-actions button{font-family:'DM Mono';font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--silver);cursor:pointer}
+  .lbl-actions button:hover{border-color:var(--lav);color:var(--lav)}
+  .lbl-actions .print-btn{background:linear-gradient(150deg,var(--grape),var(--lav));border:none;color:#fff}
+  .lbl-actions .print-btn:hover{color:#fff}
+  .lbl-actions .print-btn:disabled{opacity:.4;cursor:not-allowed}
+
+  #label-preview{margin-top:14px}
+  #lpGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:80px}
+  .lp-empty{grid-column:1/-1;text-align:center;color:var(--olive);font-family:'DM Mono';font-size:.7rem;padding:24px 0;letter-spacing:.04em}
+
+  .label-card{position:relative;background:#fff;color:#111;border:.5pt solid #ccc;border-radius:6px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:7px;min-height:150px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .label-card .l-badge{position:absolute;top:7px;left:7px;font-family:monospace;font-size:7px;letter-spacing:.12em;background:#f0e8ff;color:#654597;padding:3px 6px;border-radius:3px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .label-card .l-mark{position:absolute;bottom:5px;right:7px;font-family:monospace;font-size:6px;color:#aaa;letter-spacing:.14em;font-weight:600}
+  .label-card .l-barcode{width:100%;max-width:220px;height:38px}
+  .label-card .l-id{font-family:monospace;font-size:6.5px;color:#444;letter-spacing:.04em;text-align:center}
+  .label-card .l-title{font-family:Arial,sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;text-align:center;line-height:1.25;letter-spacing:.04em;max-width:100%;word-wrap:break-word;padding:0 6px;color:#111}
+  .label-card .l-sub{font-family:monospace;font-size:6.5px;color:#666;letter-spacing:.05em;text-align:center}
+
+  @media print {
+    .topbar, .modal-bg, .toast { display: none !important; }
+    #view-home, #view-ws { display: none !important; }
+    body { background: #fff !important; }
+    #view-labels { display: block !important; padding: 0 !important; background: #fff !important; }
+    #view-labels > .wrap { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+    #view-labels > .wrap > *:not(#label-preview) { display: none !important; }
+    #label-preview { margin: 0 !important; padding: 12mm; background: #fff; }
+    #lpGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8mm !important; background: #fff !important; padding: 0 !important; border: none !important; min-height: 0 !important; border-radius: 0 !important; }
+    .label-card { break-inside: avoid; page-break-inside: avoid; }
+    .lp-empty { display: none !important; }
+  }
+
   @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
 
@@ -225,6 +282,7 @@
   </div>
   <div class="spacer"></div>
   <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
+  <button class="tb-btn" id="labelsBtn" title="Label Printer"><svg viewBox="0 0 24 24"><path d="M3 5v14 M7 5v14 M11 5v14 M15 5v14 M19 5v14"/></svg></button>
   <button class="tb-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></button>
 </div>
 
@@ -252,6 +310,29 @@
       <span class="chip" id="wsSession"></span>
     </div>
     <div class="cols" id="wsCols"></div>
+  </div>
+</div>
+
+<!-- LABELS -->
+<div id="view-labels" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="labelsBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <span class="chip">Label Printer</span>
+    </div>
+    <div class="filterbar">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="lblSearch" placeholder="Search items by name…"></div>
+      <select id="lblStatus"><option value="">All Statuses</option><option>SOURCED</option><option>IN PROGRESS</option><option>LISTED</option><option>SOLD</option><option>ARCHIVED</option></select>
+    </div>
+    <div class="sec-head"><h2>Items</h2><span class="count" id="labelsSelCount"></span></div>
+    <div class="labels-grid" id="labelsSelGrid"></div>
+    <div class="lbl-actions">
+      <span class="ct"><b id="labelsSelectedCount">0</b> selected</span>
+      <button id="selectAllBtn">Select Visible</button>
+      <button id="clearSelectionBtn">Clear</button>
+      <button class="print-btn" id="printBtn" disabled>Print Labels</button>
+    </div>
+    <div id="label-preview"><div id="lpGrid"></div></div>
   </div>
 </div>
 
@@ -660,6 +741,73 @@ async function deletePhoto(attId){
   catch(e){ console.error(e); toast(e.message,'err'); }
 }
 
+/* ============================================================
+   Label Printer — Code128 via JsBarcode, 2-up letter print
+   ============================================================ */
+const SELECTED_LABELS = new Set();
+
+function openLabelsView(){
+  $('#view-home').classList.remove('active');
+  $('#view-ws').classList.remove('active');
+  $('#view-labels').classList.add('active');
+  renderLabelsView();
+  window.scrollTo(0,0);
+}
+function filteredLabelItems(){
+  const q=($('#lblSearch').value||'').trim().toLowerCase(), st=$('#lblStatus').value||'';
+  return ITEMS.filter(it=>{
+    if(q && !Fstr(it,'ITEM NAME').toLowerCase().includes(q)) return false;
+    if(st && Fstr(it,'ITEM STATUS')!==st) return false;
+    return true;
+  });
+}
+function renderLabelsView(){
+  const list=filteredLabelItems();
+  $('#labelsSelCount').textContent=list.length+' items';
+  $('#labelsSelGrid').innerHTML = list.length
+    ? list.map(it=>{ const url=firstPhotoUrl(it); const sel=SELECTED_LABELS.has(it.id)?'selected':'';
+        return `<div class="lbl-card ${sel}" data-id="${it.id}">
+          <div class="lc-thumb">${url?`<img src="${esc(url)}">`:''}</div>
+          <div class="lc-meta"><div class="lc-name">${esc(Fstr(it,'ITEM NAME'))}</div>
+            <div class="lc-cond">${esc(Fstr(it,'CATEGORY')||'—')} · ${esc(Fstr(it,'CONDITION')||'—')}</div></div>
+          <div class="lc-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></div></div>`;}).join('')
+    : '<div class="empty" style="grid-column:1/-1">No items match.</div>';
+  document.querySelectorAll('#labelsSelGrid .lbl-card').forEach(c=>c.addEventListener('click',()=>{
+    const id=c.dataset.id;
+    if(SELECTED_LABELS.has(id)) SELECTED_LABELS.delete(id); else SELECTED_LABELS.add(id);
+    renderLabelsView();
+  }));
+  $('#labelsSelectedCount').textContent=SELECTED_LABELS.size;
+  $('#printBtn').disabled = SELECTED_LABELS.size===0;
+  renderLabelPreview();
+}
+function renderLabelPreview(){
+  const grid=$('#lpGrid'); grid.innerHTML='';
+  if(SELECTED_LABELS.size===0){ grid.innerHTML='<div class="lp-empty">Select items above to preview their labels</div>'; return; }
+  // Stable order: by item name
+  const items=Array.from(SELECTED_LABELS).map(id=>ITEMS.find(i=>i.id===id)).filter(Boolean)
+    .sort((a,b)=>Fstr(a,'ITEM NAME').localeCompare(Fstr(b,'ITEM NAME')));
+  items.forEach(it=>grid.appendChild(makeLabelCard(it)));
+}
+function makeLabelCard(item){
+  const card=document.createElement('div'); card.className='label-card';
+  const id='LLV-I-'+item.id;
+  card.innerHTML=`<div class="l-badge">ITEM</div><div class="l-mark">LLV</div>
+    <svg class="l-barcode"></svg>
+    <div class="l-id">${esc(id)}</div>
+    <div class="l-title">${esc(Fstr(item,'ITEM NAME')||'(untitled)')}</div>
+    <div class="l-sub">${esc(Fstr(item,'CATEGORY')||'—')} · ${esc(Fstr(item,'CONDITION')||'—')}</div>`;
+  const svg=card.querySelector('svg');
+  requestAnimationFrame(()=>{
+    if(!window.JsBarcode){ console.warn('JsBarcode not loaded'); return; }
+    try{ JsBarcode(svg, id, { format:'CODE128', width:1.2, height:32, displayValue:false, margin:2, background:'transparent', lineColor:'#111' }); }
+    catch(e){ console.error('Barcode render failed for',id,e); }
+  });
+  return card;
+}
+function selectAllVisible(){ filteredLabelItems().forEach(it=>SELECTED_LABELS.add(it.id)); renderLabelsView(); }
+function clearLabelSelection(){ SELECTED_LABELS.clear(); renderLabelsView(); }
+
 /* ---------- generation ---------- */
 async function generateAll(){
   if(!CFG.anthropic){ toast('Add your Anthropic key in settings','err'); return; }
@@ -743,6 +891,13 @@ $('#modalSave').addEventListener('click',()=>{
 });
 $('#backBtn').addEventListener('click',()=>{ $('#view-ws').classList.remove('active'); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
 $('#refreshBtn').addEventListener('click',loadAll);
+$('#labelsBtn').addEventListener('click',openLabelsView);
+$('#labelsBackBtn').addEventListener('click',()=>{ $('#view-labels').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
+$('#lblSearch').addEventListener('input',renderLabelsView);
+$('#lblStatus').addEventListener('change',renderLabelsView);
+$('#selectAllBtn').addEventListener('click',selectAllVisible);
+$('#clearSelectionBtn').addEventListener('click',clearLabelSelection);
+$('#printBtn').addEventListener('click',()=>window.print());
 
 loadCfg(); loadAll();
 </script>

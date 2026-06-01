@@ -251,7 +251,7 @@
   .label-card{position:relative;background:#fff;color:#111;border:.5pt solid #ccc;border-radius:6px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:7px;min-height:150px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .label-card .l-badge{position:absolute;top:7px;left:7px;font-family:monospace;font-size:7px;letter-spacing:.12em;background:#f0e8ff;color:#654597;padding:3px 6px;border-radius:3px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .label-card .l-mark{position:absolute;bottom:5px;right:7px;font-family:monospace;font-size:6px;color:#aaa;letter-spacing:.14em;font-weight:600}
-  .label-card .l-barcode{width:100%;max-width:220px;height:38px}
+  .label-card .l-barcode{display:block;width:100%}
   .label-card .l-id{font-family:monospace;font-size:6.5px;color:#444;letter-spacing:.04em;text-align:center}
   .label-card .l-title{font-family:Arial,sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;text-align:center;line-height:1.25;letter-spacing:.04em;max-width:100%;word-wrap:break-word;padding:0 6px;color:#111}
   .label-card .l-sub{font-family:monospace;font-size:6.5px;color:#666;letter-spacing:.05em;text-align:center}
@@ -833,8 +833,12 @@ function makeLabelCard(item){
   const svg=card.querySelector('svg');
   requestAnimationFrame(()=>{
     if(!window.JsBarcode){ console.warn('JsBarcode not loaded'); return; }
-    try{ JsBarcode(svg, id, { format:'CODE128', width:1.2, height:32, displayValue:false, margin:2, background:'transparent', lineColor:'#111' }); }
-    catch(e){ console.error('Barcode render failed for',id,e); }
+    try{
+      JsBarcode(svg, id, { format:'CODE128', width:1.5, height:50, displayValue:false, margin:6, background:'transparent', lineColor:'#111' });
+      // Make SVG responsive: set viewBox from generated dimensions so width:100% scales proportionally
+      const w=svg.getAttribute('width'), h=svg.getAttribute('height');
+      if(w&&h){ svg.setAttribute('viewBox',`0 0 ${w} ${h}`); svg.setAttribute('width','100%'); svg.removeAttribute('height'); svg.setAttribute('preserveAspectRatio','xMidYMid meet'); }
+    }catch(e){ console.error('Barcode render failed for',id,e); }
   });
   return card;
 }

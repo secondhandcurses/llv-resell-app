@@ -738,6 +738,48 @@ a      { color: inherit; text-decoration: none; }
 #toast.success { border-color: var(--green); color: #7acc7a; }
 #toast.error   { border-color: var(--red);   color: #ca7a7a; }
 
+/* ─── INVENTORY SCAN SHEET ────────────────────────────────────────────────── */
+.inv-confirm-btn {
+  width: 100%; padding: 14px;
+  background: var(--grape); color: var(--mauve);
+  font-family: var(--f-mono); font-size: 13px; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  border: none; border-radius: var(--r); cursor: pointer;
+  transition: background 0.15s; margin-bottom: 8px;
+}
+.inv-confirm-btn:active { background: var(--grape-dim); }
+.inv-plat-btn {
+  padding: 8px 11px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r); color: var(--dim);
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s;
+}
+.inv-plat-btn.active {
+  background: var(--grape-bg); border-color: var(--grape); color: var(--lavender);
+}
+.inv-listed-chip {
+  padding: 4px 9px;
+  background: var(--ghost); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 9px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--silver);
+}
+.inv-summary-box {
+  padding: 12px; background: var(--ghost);
+  border-radius: var(--r); border: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.inv-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.inv-summary-lbl { font-size: 9px; color: var(--olive); margin-bottom: 2px; }
+.inv-summary-val { font-size: 13px; color: var(--silver); }
+.inv-summary-val.accent { color: var(--lavender); }
+.inv-copy-btn {
+  font-size: 9px; color: var(--lavender);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  background: none; border: none; padding: 0; cursor: pointer; white-space: nowrap;
+}
+
 </style>
 </head>
 <body>
@@ -881,6 +923,89 @@ a      { color: inherit; text-decoration: none; }
   </div>
 </div>
 
+<!-- INVENTORY SCAN SHEET -->
+<div id="inv-sheet-overlay" onclick="handleInvSheetOverlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+
+    <!-- item header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div id="inv-thumb" style="width:52px;height:52px;border-radius:8px;background:var(--ghost);overflow:hidden;flex:none;display:grid;place-items:center;color:var(--dim)">
+        <i class="ti ti-package" style="font-size:20px"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="sheet-title" id="inv-name" style="font-size:15px;margin-bottom:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+        <div style="font-size:10px;color:var(--olive);margin-top:2px" id="inv-meta">—</div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:7px">
+          <span id="inv-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none;display:inline-block"></span>
+          <span id="inv-status-label" style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--silver)">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- listed-on chips (read-only) -->
+    <div id="inv-listed-row" style="margin-bottom:14px;display:none">
+      <div class="sheet-lbl">Live listings</div>
+      <div id="inv-listed-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+    </div>
+
+    <!-- SOLD SUMMARY (shown when SOLD or SHIPPED) -->
+    <div id="inv-sold-summary" class="inv-summary-box" style="display:none">
+      <div class="sheet-lbl" style="margin-bottom:8px">Sale Record</div>
+      <div class="inv-summary-grid">
+        <div><div class="inv-summary-lbl">Platform</div><div class="inv-summary-val" id="inv-s-platform">—</div></div>
+        <div><div class="inv-summary-lbl">Price</div><div class="inv-summary-val accent" id="inv-s-price">—</div></div>
+        <div><div class="inv-summary-lbl">Date</div><div class="inv-summary-val" id="inv-s-date">—</div></div>
+      </div>
+    </div>
+
+    <!-- MARK SOLD (shown when SOURCED / IN PROGRESS / LISTED) -->
+    <div id="inv-sell-section" style="display:none">
+      <div class="sheet-lbl" style="margin-bottom:8px">Sold on</div>
+      <div id="inv-plat-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div class="sheet-field">
+        <div class="sheet-lbl">Sale Price</div>
+        <input class="sheet-input" id="inv-sold-price" type="number" inputmode="decimal" placeholder="0.00">
+      </div>
+      <div style="font-size:10px;color:var(--olive);margin-bottom:16px" id="inv-sell-date"></div>
+      <button class="inv-confirm-btn" onclick="confirmSale()">Mark as Sold</button>
+    </div>
+
+    <!-- SHIPPED SUMMARY (shown when SHIPPED) -->
+    <div id="inv-shipped-summary" class="inv-summary-box" style="display:none">
+      <div class="sheet-lbl" style="margin-bottom:8px">Shipment Record</div>
+      <div style="margin-bottom:8px">
+        <div class="inv-summary-lbl">Carrier</div>
+        <div class="inv-summary-val" id="inv-sh-carrier">—</div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="inv-summary-lbl" style="display:flex;justify-content:space-between;align-items:center">
+          Tracking<button class="inv-copy-btn" onclick="copyTrackingDisplay()">Copy <i class="ti ti-copy"></i></button>
+        </div>
+        <div class="inv-summary-val" id="inv-sh-tracking" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+      </div>
+      <div><div class="inv-summary-lbl">Shipped</div><div class="inv-summary-val" id="inv-sh-date">—</div></div>
+    </div>
+
+    <!-- MARK SHIPPED (shown when SOLD) -->
+    <div id="inv-ship-section" style="display:none">
+      <div class="sheet-field">
+        <div class="sheet-lbl">Carrier</div>
+        <input class="sheet-input" id="inv-carrier" type="text" placeholder="USPS · UPS · FedEx…" autocomplete="off">
+      </div>
+      <div class="sheet-field">
+        <div class="sheet-lbl" style="display:flex;justify-content:space-between;align-items:center">
+          Tracking Number<button class="inv-copy-btn" onclick="copyTracking()">Copy <i class="ti ti-copy"></i></button>
+        </div>
+        <input class="sheet-input" id="inv-tracking" type="text" placeholder="1Z000…" autocomplete="off">
+      </div>
+      <div style="font-size:10px;color:var(--olive);margin-bottom:16px" id="inv-ship-date"></div>
+      <button class="inv-confirm-btn" onclick="confirmShipped()">Mark as Shipped</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- SETTINGS SHEET -->
 <div id="settings-overlay" onclick="handleSettingsOverlayClick(event)">
   <div class="settings-sheet">
@@ -912,6 +1037,10 @@ a      { color: inherit; text-decoration: none; }
       <div class="settings-field">
         <div class="settings-lbl">ITEMS Table ID</div>
         <input class="settings-input" type="text" id="s-items" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">LISTINGS Table ID</div>
+        <input class="settings-input" type="text" id="s-listings" placeholder="tbl…" />
       </div>
     </div>
 
@@ -1070,6 +1199,7 @@ const K = {
   baseId:     'llv_base_id',
   sessionsId: 'llv_sessions_table_id',
   itemsId:    'llv_items_table_id',
+  listingsId: 'llv_listings_table_id',
   homeBase:   'llv_home_base',
 };
 const get = k => localStorage.getItem(K[k]) || '';
@@ -1081,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!get('baseId'))     set('baseId',     'app3DqxIJ1SUBKylb');
   if (!get('sessionsId')) set('sessionsId', 'tblGH4ziHZSneAtoI');
   if (!get('itemsId'))    set('itemsId',    'tblFeToiIcEseekfH');
+  if (!get('listingsId')) set('listingsId', 'tblW5u905moGRFsFw');
   if (!get('homeBase'))   set('homeBase',   'Long Beach, CA');
 
   // Restore active session label if exists
@@ -1100,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const barcodeInput = document.getElementById('barcode-input');
   barcodeInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
-      const raw = barcodeInput.value.trim().replace(/[^0-9a-zA-Z]/g, '');
+      const raw = barcodeInput.value.trim().replace(/[^0-9a-zA-Z\-]/g, '');
       barcodeInput.value = '';
       if (raw.length >= 6) processBarcode(raw);
     }
@@ -1117,6 +1248,7 @@ function toggleSettings() {
     document.getElementById('s-base').value       = get('baseId');
     document.getElementById('s-sessions').value   = get('sessionsId');
     document.getElementById('s-items').value      = get('itemsId');
+    document.getElementById('s-listings').value   = get('listingsId');
     document.getElementById('s-home').value       = get('homeBase');
   }
 }
@@ -1129,6 +1261,7 @@ function saveSettings() {
   set('baseId',     document.getElementById('s-base').value.trim());
   set('sessionsId', document.getElementById('s-sessions').value.trim());
   set('itemsId',    document.getElementById('s-items').value.trim());
+  set('listingsId', document.getElementById('s-listings').value.trim());
   set('homeBase',   document.getElementById('s-home').value.trim());
   const s = document.getElementById('settings-status');
   s.textContent = 'Saved ✓';
@@ -1296,6 +1429,11 @@ async function processImage(dataUrl, mimeType) {
 }
 
 async function processBarcode(barcode) {
+  // LLV-I- prefix = inventory management (scan to update status)
+  if (barcode.startsWith('LLV-I-')) {
+    await openInventorySheet(barcode);
+    return;
+  }
   const id = 'card-' + (++cardCounter);
   addProcessingCard(id, null);
   const result = await claudeIdentify([{
@@ -2024,6 +2162,192 @@ function showToast(msg, type) {
   t.className = 'show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.className = ''; }, 5000);
+}
+// ─── INVENTORY SCAN SHEET ─────────────────────────────────────────────────────
+let inventoryItem      = null;
+let inventoryListings  = [];
+let selectedSalePlat   = null;
+
+const PLAT_LABELS = { FACEBOOK:'Facebook', OFFERUP:'OfferUp', EBAY:'eBay', ETSY:'Etsy', MERCARI:'Mercari' };
+const STATUS_COLORS = { 'SOURCED':'#AB81CD','IN PROGRESS':'#D9A441','LISTED':'#D9A441','SOLD':'#6FB36A','SHIPPED':'#6FB36A','ARCHIVED':'#4a4846' };
+
+function handleInvSheetOverlayClick(e) {
+  if (e.target === document.getElementById('inv-sheet-overlay')) closeInvSheet();
+}
+function closeInvSheet() {
+  document.getElementById('inv-sheet-overlay').classList.remove('open');
+  inventoryItem = null; inventoryListings = []; selectedSalePlat = null;
+}
+
+async function openInventorySheet(barcodeId) {
+  const recId = barcodeId.replace('LLV-I-', '');
+  if (!recId.startsWith('rec')) { showToast('Invalid item barcode', 'error'); return; }
+  const key = get('airtable'), base = get('baseId'), items = get('itemsId');
+  if (!key || !base || !items) { showToast('Add credentials in Settings', 'error'); return; }
+  showToast('Loading item…', '');
+  try {
+    const r = await fetch(`https://api.airtable.com/v0/${base}/${items}/${recId}`, {
+      headers: { 'Authorization': `Bearer ${key}` }
+    });
+    if (!r.ok) throw new Error((await r.json())?.error?.message || 'Item not found');
+    inventoryItem = await r.json();
+
+    // Load linked listings via LISTINGS field on the item record (array of listing rec IDs)
+    const listingIds = (inventoryItem.fields['LISTINGS'] || []);
+    inventoryListings = [];
+    const lid = get('listingsId');
+    if (lid && listingIds.length) {
+      const formula = 'OR(' + listingIds.map(id => `RECORD_ID()="${id}"`).join(',') + ')';
+      const lr = await fetch(
+        `https://api.airtable.com/v0/${base}/${lid}?filterByFormula=${encodeURIComponent(formula)}`,
+        { headers: { 'Authorization': `Bearer ${key}` } }
+      );
+      inventoryListings = (await lr.json()).records || [];
+    }
+
+    renderInventorySheet();
+    document.getElementById('inv-sheet-overlay').classList.add('open');
+  } catch (err) {
+    console.error(err);
+    showToast('Could not load item', 'error');
+  }
+}
+
+function renderInventorySheet() {
+  const f = inventoryItem.fields || {};
+  const status = (f['ITEM STATUS'] || 'SOURCED').toUpperCase();
+
+  // Thumb
+  const photos = f['PHOTOS'];
+  const photoUrl = photos && photos.length ? (photos[0].thumbnails?.small?.url || photos[0].url) : null;
+  const thumb = document.getElementById('inv-thumb');
+  thumb.innerHTML = photoUrl
+    ? `<img src="${esc(photoUrl)}" style="width:100%;height:100%;object-fit:cover">`
+    : `<i class="ti ti-package" style="font-size:20px;color:var(--dim)"></i>`;
+
+  document.getElementById('inv-name').textContent = f['ITEM NAME'] || '—';
+  document.getElementById('inv-meta').textContent = [f['CATEGORY'], f['CONDITION']].filter(Boolean).join(' · ') || '—';
+  document.getElementById('inv-status-dot').style.background = STATUS_COLORS[status] || '#4a4846';
+  document.getElementById('inv-status-label').textContent = status;
+
+  // Live listings chips
+  const livePlatforms = inventoryListings
+    .filter(l => ['LIVE','PUBLISHED'].includes((l.fields['LISTING STATUS']||'').toUpperCase()))
+    .map(l => l.fields['PLATFORM'] || '').filter(Boolean);
+  const listedRow = document.getElementById('inv-listed-row');
+  listedRow.style.display = livePlatforms.length ? 'block' : 'none';
+  document.getElementById('inv-listed-chips').innerHTML =
+    livePlatforms.map(p => `<span class="inv-listed-chip">${esc(PLAT_LABELS[p]||p)}</span>`).join('');
+
+  // Section visibility
+  const isSellable  = ['SOURCED','IN PROGRESS','LISTED'].includes(status);
+  const isSold      = ['SOLD','SHIPPED'].includes(status);
+  const isShippable = status === 'SOLD';
+  const isShipped   = status === 'SHIPPED';
+
+  document.getElementById('inv-sell-section').style.display    = isSellable  ? 'block' : 'none';
+  document.getElementById('inv-sold-summary').style.display    = isSold      ? 'block' : 'none';
+  document.getElementById('inv-ship-section').style.display    = isShippable ? 'block' : 'none';
+  document.getElementById('inv-shipped-summary').style.display = isShipped   ? 'block' : 'none';
+
+  // Sell section setup
+  if (isSellable) {
+    selectedSalePlat = null;
+    document.getElementById('inv-plat-row').innerHTML =
+      ['FACEBOOK','OFFERUP','EBAY','ETSY','MERCARI'].map(p =>
+        `<button class="inv-plat-btn" onclick="selectSalePlat(this,'${p}')">${esc(PLAT_LABELS[p])}</button>`
+      ).join('');
+    document.getElementById('inv-sold-price').value = '';
+    document.getElementById('inv-sell-date').textContent = 'Date: ' + new Date().toISOString().split('T')[0];
+  }
+
+  // Sold summary
+  if (isSold) {
+    document.getElementById('inv-s-platform').textContent = PLAT_LABELS[f['SOLD PLATFORM']] || f['SOLD PLATFORM'] || '—';
+    document.getElementById('inv-s-price').textContent    = f['SOLD PRICE'] != null ? '$' + f['SOLD PRICE'] : '—';
+    document.getElementById('inv-s-date').textContent     = f['SOLD DATE'] || '—';
+  }
+
+  // Ship section setup
+  if (isShippable) {
+    document.getElementById('inv-carrier').value  = '';
+    document.getElementById('inv-tracking').value = '';
+    document.getElementById('inv-ship-date').textContent = 'Date: ' + new Date().toISOString().split('T')[0];
+  }
+
+  // Shipped summary
+  if (isShipped) {
+    document.getElementById('inv-sh-carrier').textContent  = f['CARRIER'] || '—';
+    document.getElementById('inv-sh-tracking').textContent = f['TRACKING NUMBER'] || '—';
+    document.getElementById('inv-sh-date').textContent     = f['SHIPPED DATE'] || '—';
+  }
+}
+
+function selectSalePlat(el, platform) {
+  document.querySelectorAll('#inv-plat-row .inv-plat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedSalePlat = platform;
+}
+
+async function atPatchInv(tableId, recId, fields) {
+  const key = get('airtable'), base = get('baseId');
+  const r = await fetch(`https://api.airtable.com/v0/${base}/${tableId}/${recId}`, {
+    method: 'PATCH',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields, typecast: true })
+  });
+  if (!r.ok) throw new Error((await r.json())?.error?.message || 'Airtable error');
+  return r.json();
+}
+
+async function confirmSale() {
+  if (!selectedSalePlat) { showToast('Select the platform', 'error'); return; }
+  const priceRaw = document.getElementById('inv-sold-price').value.trim().replace(/[$,]/g,'');
+  const price = parseFloat(priceRaw);
+  if (!price || isNaN(price)) { showToast('Enter sale price', 'error'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  const items = get('itemsId'), lid = get('listingsId');
+  try {
+    await atPatchInv(items, inventoryItem.id, {
+      'ITEM STATUS': 'SOLD', 'SOLD PRICE': price, 'SOLD PLATFORM': selectedSalePlat, 'SOLD DATE': today
+    });
+    // Mark all listings as SOLD so studio reflects the change
+    if (lid && inventoryListings.length) {
+      await Promise.all(inventoryListings.map(l => atPatchInv(lid, l.id, { 'LISTING STATUS': 'SOLD' })));
+    }
+    showToast('Marked as sold ✓', 'success');
+    closeInvSheet();
+  } catch (err) { console.error(err); showToast('Save failed', 'error'); }
+}
+
+async function confirmShipped() {
+  const carrier  = document.getElementById('inv-carrier').value.trim();
+  const tracking = document.getElementById('inv-tracking').value.trim();
+  if (!tracking) { showToast('Enter tracking number', 'error'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  const items = get('itemsId');
+  try {
+    await atPatchInv(items, inventoryItem.id, {
+      'ITEM STATUS': 'SHIPPED', 'CARRIER': carrier, 'TRACKING NUMBER': tracking, 'SHIPPED DATE': today
+    });
+    showToast('Marked as shipped ✓', 'success');
+    closeInvSheet();
+  } catch (err) { console.error(err); showToast('Save failed', 'error'); }
+}
+
+function copyTracking() {
+  const val = document.getElementById('inv-tracking').value.trim();
+  if (!val) { showToast('Enter tracking number first', 'error'); return; }
+  navigator.clipboard.writeText(val)
+    .then(() => showToast('Tracking copied ✓', 'success'))
+    .catch(() => { document.getElementById('inv-tracking').select(); showToast('Select and copy manually', ''); });
+}
+function copyTrackingDisplay() {
+  const val = document.getElementById('inv-sh-tracking').textContent.trim();
+  if (!val || val === '—') { showToast('No tracking number saved', 'error'); return; }
+  navigator.clipboard.writeText(val)
+    .then(() => showToast('Tracking copied ✓', 'success'))
+    .catch(() => showToast('Copy failed', 'error'));
 }
 
 </script>

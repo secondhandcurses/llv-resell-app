@@ -269,6 +269,24 @@
     .lp-empty { display: none !important; }
   }
 
+  /* Scan bar */
+  .scan-bar{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 12px;width:240px;flex-shrink:1}
+  .scan-bar svg{width:15px;height:15px;stroke:var(--olive);fill:none;stroke-width:1.8;flex:none;transition:.15s}
+  .scan-bar:focus-within{border-color:var(--lav)}
+  .scan-bar:focus-within svg{stroke:var(--lav)}
+  .scan-input{background:none;border:none;color:var(--txt);font-family:'DM Mono';font-size:.7rem;outline:none;width:100%;min-width:0}
+  .scan-input::placeholder{color:var(--olive)}
+
+  /* Status modal */
+  .sm-summary-box{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+  .sm-sum-lbl{font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:3px}
+  .sm-sum-val{font-size:.9rem;color:var(--txt)}
+  .sm-plat-btn{padding:7px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--txt-mute);font-family:'DM Mono';font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.15s}
+  .sm-plat-btn.active{background:var(--grape);border-color:var(--grape);color:#fff}
+  .sm-confirm-btn{width:100%;font-family:'DM Mono';font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,var(--grape),var(--lav));border:none;padding:13px;border-radius:10px;cursor:pointer;font-weight:500;margin-top:4px}
+  .sm-confirm-btn:disabled{opacity:.5}
+  .sm-copy-btn{font-family:'DM Mono';font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lav);background:none;border:none;cursor:pointer;padding:0}
+
   @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -279,6 +297,10 @@
   <div class="brand">
     <div class="mark"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z M4 9h16 M9 9v11"/></svg></div>
     <div><div class="name">Last Laugh Vintage</div><div class="sub">Studio</div></div>
+  </div>
+  <div class="scan-bar">
+    <svg viewBox="0 0 24 24"><path d="M3 5v14 M7 5v14 M11 5v14 M15 5v14 M19 5v14"/></svg>
+    <input id="scanInput" class="scan-input" placeholder="Scan LLV-I-… or paste ID">
   </div>
   <div class="spacer"></div>
   <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
@@ -354,6 +376,17 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- status update modal (scan sheet) -->
+<div class="modal-bg" id="status-modal-bg">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3>Item Status</h3>
+      <button class="tb-btn" id="statusModalClose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body" id="statusModalBody" style="padding-bottom:24px"></div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -808,6 +841,148 @@ function makeLabelCard(item){
 function selectAllVisible(){ filteredLabelItems().forEach(it=>SELECTED_LABELS.add(it.id)); renderLabelsView(); }
 function clearLabelSelection(){ SELECTED_LABELS.clear(); renderLabelsView(); }
 
+/* ============================================================
+   Status Update Modal — scan LLV-I-recXXXX to manage pipeline
+   Data already in memory: no fetch needed to open, only to write
+   ============================================================ */
+const SM_PLATS = ['FACEBOOK','OFFERUP','EBAY','ETSY','MERCARI'];
+const SM_LABELS = {FACEBOOK:'Facebook',OFFERUP:'OfferUp',EBAY:'eBay',ETSY:'Etsy',MERCARI:'Mercari'};
+let statusItemId  = null;
+let smSelectedPlat = null;
+
+function openStatusModal(barcodeId){
+  const recId = barcodeId.replace('LLV-I-','');
+  if(!recId.startsWith('rec')){ toast('Not a valid LLV item barcode','err'); return; }
+  const item = ITEMS.find(i=>i.id===recId);
+  if(!item){ toast('Item not found — refresh to sync','err'); return; }
+  statusItemId = recId; smSelectedPlat = null;
+  renderStatusModal(item, Object.values(LISTINGS_BY_ITEM[recId]||{}));
+  $('#status-modal-bg').classList.add('open');
+}
+function closeStatusModal(){
+  $('#status-modal-bg').classList.remove('open');
+  statusItemId = null; smSelectedPlat = null;
+}
+function smSelectPlat(el, plat){
+  document.querySelectorAll('#sm-plat-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); smSelectedPlat = plat;
+}
+function smCopyFromInput(){
+  const val = $('#sm-tracking')?.value?.trim();
+  if(!val){ toast('Enter tracking number first','err'); return; }
+  navigator.clipboard.writeText(val).then(()=>toast('Copied ✓','ok')).catch(()=>toast('Copy failed','err'));
+}
+function smCopyTracking(){
+  const item = ITEMS.find(i=>i.id===statusItemId);
+  const val = item ? Fstr(item,'TRACKING NUMBER') : '';
+  if(!val){ toast('No tracking number saved','err'); return; }
+  navigator.clipboard.writeText(val).then(()=>toast('Copied ✓','ok')).catch(()=>toast('Copy failed','err'));
+}
+
+function renderStatusModal(item, listings){
+  const f = item.fields || {};
+  const status = (f['ITEM STATUS']||'SOURCED').toUpperCase();
+  const photoUrl = firstPhotoUrl(item);
+  const today = todayISO();
+  const dotCls = {SOURCED:'ready','IN PROGRESS':'amber',LISTED:'amber',SOLD:'green',SHIPPED:'green',ARCHIVED:'grey'}[status]||'grey';
+  const isSellable  = ['SOURCED','IN PROGRESS','LISTED'].includes(status);
+  const isSold      = ['SOLD','SHIPPED'].includes(status);
+  const isShippable = status==='SOLD';
+  const isShipped   = status==='SHIPPED';
+  const livePlatforms = listings.filter(l=>['LIVE','PUBLISHED'].includes((l.fields['LISTING STATUS']||'').toUpperCase())).map(l=>l.fields['PLATFORM']||'').filter(Boolean);
+
+  let html = `<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+    <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#2a2626,#201d1d);overflow:hidden;flex:none;display:grid;place-items:center;border:1px solid var(--line)">
+      ${photoUrl?`<img src="${esc(photoUrl)}" style="width:100%;height:100%;object-fit:cover">`:`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(189,187,176,.3)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:'Oswald';font-weight:500;font-size:1.05rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)">${esc(Fstr(item,'ITEM NAME'))}</div>
+      <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin-top:3px">${esc([Fstr(item,'CATEGORY'),Fstr(item,'CONDITION')].filter(Boolean).join(' · '))}</div>
+      <div style="display:flex;align-items:center;gap:7px;margin-top:6px">
+        <span class="dot ${dotCls}" style="width:8px;height:8px"></span>
+        <span style="font-family:'DM Mono';font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--silver)">${status}</span>
+      </div>
+    </div></div>`;
+
+  if(livePlatforms.length)
+    html += `<div style="margin-bottom:16px"><div class="label" style="margin-bottom:6px">Live listings</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${livePlatforms.map(p=>`<span class="chip">${esc(SM_LABELS[p]||p)}</span>`).join('')}</div></div>`;
+
+  if(isSold) html += `<div class="sm-summary-box">
+    <div class="label" style="margin-bottom:10px">Sale Record</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div><div class="sm-sum-lbl">Platform</div><div class="sm-sum-val">${esc(SM_LABELS[f['SOLD PLATFORM']]||f['SOLD PLATFORM']||'—')}</div></div>
+      <div><div class="sm-sum-lbl">Price</div><div class="sm-sum-val" style="color:var(--mauve)">${f['SOLD PRICE']!=null?money(f['SOLD PRICE']):'—'}</div></div>
+      <div><div class="sm-sum-lbl">Date</div><div class="sm-sum-val">${esc(f['SOLD DATE']||'—')}</div></div>
+    </div></div>`;
+
+  if(isSellable) html += `<div>
+    <div class="label" style="margin-bottom:8px">Sold on</div>
+    <div id="sm-plat-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      ${SM_PLATS.map(p=>`<button class="sm-plat-btn" onclick="smSelectPlat(this,'${p}')">${esc(SM_LABELS[p])}</button>`).join('')}
+    </div>
+    <div class="mf"><label>Sale Price</label><input id="sm-sold-price" type="number" inputmode="decimal" placeholder="0.00" style="font-size:.9rem"></div>
+    <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 14px">Date: ${today}</div>
+    <button class="sm-confirm-btn" onclick="confirmStatusSale()">Mark as Sold</button></div>`;
+
+  if(isShipped) html += `<div class="sm-summary-box">
+    <div class="label" style="margin-bottom:10px">Shipment Record</div>
+    <div style="margin-bottom:8px"><div class="sm-sum-lbl">Carrier</div><div class="sm-sum-val">${esc(f['CARRIER']||'—')}</div></div>
+    <div style="margin-bottom:8px">
+      <div class="sm-sum-lbl" style="display:flex;align-items:center;justify-content:space-between">Tracking<button class="sm-copy-btn" onclick="smCopyTracking()">Copy</button></div>
+      <div class="sm-sum-val" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f['TRACKING NUMBER']||'—')}</div>
+    </div>
+    <div><div class="sm-sum-lbl">Shipped</div><div class="sm-sum-val">${esc(f['SHIPPED DATE']||'—')}</div></div></div>`;
+
+  if(isShippable) html += `<div>
+    <div class="mf"><label>Carrier</label><input id="sm-carrier" type="text" placeholder="USPS · UPS · FedEx…" autocomplete="off"></div>
+    <div class="mf">
+      <label style="display:flex;align-items:center;justify-content:space-between">Tracking Number<button class="sm-copy-btn" onclick="smCopyFromInput()">Copy</button></label>
+      <input id="sm-tracking" type="text" placeholder="1Z000…" autocomplete="off">
+    </div>
+    <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 14px">Date: ${today}</div>
+    <button class="sm-confirm-btn" onclick="confirmStatusShipped()">Mark as Shipped</button></div>`;
+
+  if(!isSellable && !isSold) html += `<div style="font-family:'DM Mono';font-size:.76rem;color:var(--olive);text-align:center;padding:12px 0">No actions available for ${status} status.</div>`;
+
+  $('#statusModalBody').innerHTML = html;
+}
+
+async function confirmStatusSale(){
+  if(!statusItemId || !smSelectedPlat){ toast('Select the platform','err'); return; }
+  const priceRaw = $('#sm-sold-price')?.value?.trim().replace(/[$,]/g,'');
+  const price = parseFloat(priceRaw);
+  if(!price || isNaN(price)){ toast('Enter sale price','err'); return; }
+  const today = todayISO();
+  const listings = Object.values(LISTINGS_BY_ITEM[statusItemId]||{});
+  try{
+    await atPatch(CFG.items, statusItemId, {'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':smSelectedPlat,'SOLD DATE':today});
+    if(CFG.listings && listings.length)
+      await Promise.all(listings.map(l=>atPatch(CFG.listings, l.id, {'LISTING STATUS':'SOLD'})));
+    // update in-memory item
+    const idx=ITEMS.findIndex(i=>i.id===statusItemId);
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':smSelectedPlat,'SOLD DATE':today}); }
+    // refresh workspace if it's open on this item
+    if(current && current.item.id===statusItemId){ current.item=ITEMS[idx]; renderWorkspace(); }
+    toast('Marked as sold ✓','ok'); closeStatusModal(); renderInventory();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
+async function confirmStatusShipped(){
+  if(!statusItemId){ return; }
+  const carrier  = $('#sm-carrier')?.value?.trim()||'';
+  const tracking = $('#sm-tracking')?.value?.trim()||'';
+  if(!tracking){ toast('Enter tracking number','err'); return; }
+  const today = todayISO();
+  try{
+    await atPatch(CFG.items, statusItemId, {'ITEM STATUS':'SHIPPED','CARRIER':carrier,'TRACKING NUMBER':tracking,'SHIPPED DATE':today});
+    const idx=ITEMS.findIndex(i=>i.id===statusItemId);
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SHIPPED','CARRIER':carrier,'TRACKING NUMBER':tracking,'SHIPPED DATE':today}); }
+    if(current && current.item.id===statusItemId){ current.item=ITEMS[idx]; renderWorkspace(); }
+    toast('Marked as shipped ✓','ok'); closeStatusModal(); renderInventory();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
 /* ---------- generation ---------- */
 async function generateAll(){
   if(!CFG.anthropic){ toast('Add your Anthropic key in settings','err'); return; }
@@ -898,6 +1073,43 @@ $('#lblStatus').addEventListener('change',renderLabelsView);
 $('#selectAllBtn').addEventListener('click',selectAllVisible);
 $('#clearSelectionBtn').addEventListener('click',clearLabelSelection);
 $('#printBtn').addEventListener('click',()=>window.print());
+$('#statusModalClose').addEventListener('click',closeStatusModal);
+$('#status-modal-bg').addEventListener('click',e=>{ if(e.target===$('#status-modal-bg')) closeStatusModal(); });
+$('#scanInput').addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  const raw = $('#scanInput').value.trim().replace(/[^0-9a-zA-Z\-]/g,'');
+  $('#scanInput').value = '';
+  if(!raw) return;
+  if(raw.startsWith('LLV-I-')) openStatusModal(raw);
+  else toast('Not an LLV item barcode — scan an item label','err');
+});
+// Global USB scanner capture — works when no text input is focused.
+// Scanner fires chars in <100ms total; human typing is >150ms/char.
+// We capture only when nothing editable is active so listing copy editing is unaffected.
+(()=>{
+  let buf='', timer=null;
+  document.addEventListener('keydown', e=>{
+    const active = document.activeElement;
+    const isEditing = active && (active.tagName==='INPUT'||active.tagName==='TEXTAREA');
+    if(isEditing) return; // let keystrokes reach the focused input normally
+    if(e.ctrlKey||e.metaKey||e.altKey) return; // don't swallow keyboard shortcuts
+    if(e.key==='Enter'){
+      const raw = buf.trim().replace(/[^0-9a-zA-Z\-]/g,'');
+      buf=''; clearTimeout(timer);
+      if(raw.length>=10){
+        if(raw.startsWith('LLV-I-')) openStatusModal(raw);
+        else toast('Not an LLV item barcode','err');
+      }
+      return;
+    }
+    if(e.key.length===1){
+      buf+=e.key;
+      clearTimeout(timer);
+      timer=setTimeout(()=>{ buf=''; },500); // clear stale buffer if no Enter within 500ms
+      e.preventDefault();
+    }
+  });
+})();
 
 loadCfg(); loadAll();
 </script>

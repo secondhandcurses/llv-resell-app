@@ -215,6 +215,12 @@
   .modal-body .mf label{display:block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:5px}
   .modal-body .mf input{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.78rem;padding:9px 11px;border-radius:8px;outline:none}
   .modal-body .mf input:focus{border-color:var(--lav)}
+  .modal-body .mf select,.modal-body .mf textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.78rem;padding:9px 11px;border-radius:8px;outline:none}
+  .modal-body .mf select:focus,.modal-body .mf textarea:focus{border-color:var(--lav)}
+  .modal-body .mf select option{background:var(--panel-2)}
+  .modal-body .mf textarea{resize:vertical;min-height:72px;line-height:1.5}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .modal-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .modal-foot{padding:14px 22px 20px;display:flex;gap:10px;justify-content:flex-end}
   .btn-ghost{background:none;border:1px solid var(--line);color:var(--silver);padding:10px 16px;border-radius:9px;font-family:'DM Mono';font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
   .btn-solid{background:linear-gradient(150deg,var(--grape),var(--lav));border:none;color:#fff;padding:10px 18px;border-radius:9px;font-family:'DM Mono';font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
@@ -313,7 +319,13 @@
   <div class="wrap">
     <div class="sec-head"><h2>Open Sessions</h2><span class="count" id="sessionsCount"></span></div>
     <div class="sessions" id="sessionsList"></div>
-    <div class="sec-head"><h2>Inventory</h2><span class="count" id="invCount"></span></div>
+    <div class="sec-head">
+      <h2>Inventory</h2>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button id="addItemBtn" style="font-family:'DM Mono';font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,var(--grape),var(--lav));border:none;padding:8px 14px;border-radius:8px;cursor:pointer">+ Add Item</button>
+        <span class="count" id="invCount"></span>
+      </div>
+    </div>
     <div class="filterbar">
       <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="fSearch" placeholder="Search items by name…"></div>
       <select id="fCat"><option value="">All Categories</option><option>POSTER</option><option>VHS</option><option>CASSETTE</option><option>TOY</option><option>VINTAGE ELECTRONICS</option><option>MEMORABILIA</option><option>HOME DECOR</option><option>OTHER</option></select>
@@ -358,8 +370,50 @@
   </div>
 </div>
 
-<!-- settings -->
-<div class="modal-bg" id="modal">
+<!-- add item modal -->
+<div class="modal-bg" id="add-item-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add Item</h3>
+      <button class="tb-btn" id="addItemModalClose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="mf"><label>Item Name *</label><input id="ai-name" placeholder="Brand · model · descriptor" autocomplete="off"></div>
+      <div class="modal-2col">
+        <div class="mf"><label>Category *</label>
+          <select id="ai-category">
+            <option value="">— select —</option>
+            <option>POSTER</option><option>VHS</option><option>CASSETTE</option>
+            <option>TOY</option><option>VINTAGE ELECTRONICS</option>
+            <option>MEMORABILIA</option><option>HOME DECOR</option><option>OTHER</option>
+          </select>
+        </div>
+        <div class="mf"><label>Condition *</label>
+          <select id="ai-condition">
+            <option>SEALED</option><option>MINT</option>
+            <option>VERY GOOD</option><option selected>GOOD</option><option>FAIR</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label>Cost of Goods *</label><input id="ai-cog" type="number" inputmode="decimal" placeholder="0.00"></div>
+      <div class="mf"><label>Session <span class="modal-note" style="display:inline;margin:0">optional</span></label>
+        <select id="ai-session"><option value="">No session</option></select>
+      </div>
+      <p class="modal-note" style="margin-bottom:8px">eBay comps — fill in if you've already researched</p>
+      <div class="modal-2col">
+        <div class="mf"><label>Comp Low</label><input id="ai-comp-low" type="number" inputmode="decimal" placeholder="0.00"></div>
+        <div class="mf"><label>Comp High</label><input id="ai-comp-high" type="number" inputmode="decimal" placeholder="0.00"></div>
+      </div>
+      <div class="mf"><label>Notes <span class="modal-note" style="display:inline;margin:0">optional</span></label>
+        <textarea id="ai-notes" placeholder="Condition details, provenance, anything useful…"></textarea>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" id="addItemCancel">Cancel</button>
+        <button class="btn-solid" id="addItemSubmit">Create Item</button>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="modal">
     <div class="modal-head"><h3>Credentials</h3><button class="tb-btn" id="modalClose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button></div>
     <div class="modal-body">
@@ -987,6 +1041,70 @@ async function confirmStatusShipped(){
   }catch(e){ console.error(e); toast(e.message,'err'); }
 }
 
+/* ============================================================
+   Manual Item Upload
+   ============================================================ */
+function openAddItemModal(){
+  ['ai-name','ai-cog','ai-comp-low','ai-comp-high','ai-notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  $('#ai-category').value='';
+  $('#ai-condition').value='GOOD';
+  // Populate session picker from loaded sessions
+  const sel=$('#ai-session');
+  sel.innerHTML='<option value="">No session</option>';
+  Object.values(SESSIONS_BY_ID).sort((a,b)=>{
+    // most recent first
+    const da=Fstr(a,'DATE')||'', db=Fstr(b,'DATE')||'';
+    return db.localeCompare(da);
+  }).forEach(s=>{
+    const name=Fstr(s,'SESSION NAME')||Fstr(s,'LOCATION')||Fstr(s,'NAME')||'Session';
+    const date=Fstr(s,'DATE');
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=date?`${name} · ${date}`:name;
+    sel.appendChild(opt);
+  });
+  $('#add-item-modal').classList.add('open');
+  setTimeout(()=>$('#ai-name').focus(), 120);
+}
+
+function closeAddItemModal(){
+  $('#add-item-modal').classList.remove('open');
+}
+
+async function submitAddItem(){
+  const name=$('#ai-name').value.trim();
+  const category=$('#ai-category').value;
+  const condition=$('#ai-condition').value;
+  const cogRaw=$('#ai-cog').value.trim().replace(/[$,]/g,'');
+  const cog=parseFloat(cogRaw);
+  if(!name){ toast('Enter an item name','err'); return; }
+  if(!category){ toast('Select a category','err'); return; }
+  if(!cog||isNaN(cog)){ toast('Enter cost of goods','err'); return; }
+  const sessionId=$('#ai-session').value;
+  const compLow=parseFloat($('#ai-comp-low').value)||0;
+  const compHigh=parseFloat($('#ai-comp-high').value)||0;
+  const notes=$('#ai-notes').value.trim();
+  const fields={
+    'ITEM NAME':name,'CATEGORY':category,'CONDITION':condition,
+    'COST OF GOODS':cog,'ITEM STATUS':'SOURCED',
+    'EBAY COMP LOW':compLow,'EBAY COMP HIGH':compHigh,
+    'AI IDENTIFICATION NOTES':notes
+  };
+  if(sessionId&&sessionId.startsWith('rec')) fields['SESSION']=[sessionId];
+  const btn=$('#addItemSubmit');
+  btn.disabled=true; btn.textContent='Creating…';
+  try{
+    const rec=await atCreate(CFG.items,fields);
+    ITEMS.push(rec);
+    LISTINGS_BY_ITEM[rec.id]={};
+    toast('Item created — opening workspace','ok');
+    closeAddItemModal();
+    renderSessions(); renderInventory();
+    openWorkspace(rec.id);
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='Create Item'; }
+}
+
 /* ---------- generation ---------- */
 async function generateAll(){
   if(!CFG.anthropic){ toast('Add your Anthropic key in settings','err'); return; }
@@ -1079,6 +1197,11 @@ $('#clearSelectionBtn').addEventListener('click',clearLabelSelection);
 $('#printBtn').addEventListener('click',()=>window.print());
 $('#statusModalClose').addEventListener('click',closeStatusModal);
 $('#status-modal-bg').addEventListener('click',e=>{ if(e.target===$('#status-modal-bg')) closeStatusModal(); });
+$('#addItemBtn').addEventListener('click',openAddItemModal);
+$('#addItemModalClose').addEventListener('click',closeAddItemModal);
+$('#addItemCancel').addEventListener('click',closeAddItemModal);
+$('#addItemSubmit').addEventListener('click',submitAddItem);
+$('#add-item-modal').addEventListener('click',e=>{ if(e.target===$('#add-item-modal')) closeAddItemModal(); });
 $('#scanInput').addEventListener('keydown',e=>{
   if(e.key!=='Enter') return;
   const raw = $('#scanInput').value.trim().replace(/[^0-9a-zA-Z\-]/g,'');

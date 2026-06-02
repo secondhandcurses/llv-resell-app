@@ -292,6 +292,9 @@
   .sm-confirm-btn{width:100%;font-family:'DM Mono';font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,var(--grape),var(--lav));border:none;padding:13px;border-radius:10px;cursor:pointer;font-weight:500;margin-top:4px}
   .sm-confirm-btn:disabled{opacity:.5}
   .sm-copy-btn{font-family:'DM Mono';font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lav);background:none;border:none;cursor:pointer;padding:0}
+  .launch-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);display:grid;place-items:center;color:var(--olive);background:none;text-decoration:none;flex:none;transition:.15s}
+  .launch-btn:hover{color:var(--lav);border-color:var(--line-strong)}
+  .launch-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
   @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
@@ -487,8 +490,16 @@ const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'
 const money = n => (n==null||isNaN(n))?'—':'$'+Number(n).toFixed(2);
 function todayISO(){ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // explicit, not toLocaleDateString
 function toast(msg,type){ const t=$('#toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:''); clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',type==='err'?5000:2600); }
-function loadCfg(){ CFG={}; for(const k in LS){ CFG[k]=localStorage.getItem(LS[k])||DEFAULTS[k]||''; } }
-function cfgReady(){ return CFG.airtable && CFG.base && CFG.items && CFG.listings; }
+function loadCfg(){
+  CFG={};
+  for(const k in LS){
+    const stored=localStorage.getItem(LS[k]);
+    const val=stored||DEFAULTS[k]||'';
+    CFG[k]=val;
+    if(!stored&&DEFAULTS[k]) localStorage.setItem(LS[k],DEFAULTS[k]); // persist defaults once
+  }
+}
+function cfgReady(){ return !!CFG.airtable; } // only the PAT is user-specific; table IDs have defaults
 
 /* ============================================================
    Airtable
@@ -644,6 +655,7 @@ function netCalc(listPrice){
 
 function openWorkspace(itemId){
   const item=ITEMS.find(i=>i.id===itemId); if(!item) return;
+  wsSelectedSalePlat=null;
   const listings=LISTINGS_BY_ITEM[itemId]||{};
   // build editable draft from existing listings
   const draft={}; PLATFORMS.forEach(p=>{
@@ -739,6 +751,7 @@ function renderWorkspace(){
   const pubCount=PLATFORMS.filter(p=>current.draft[p.key].published).length;
   const pubRows=PLATFORMS.map(p=>{ const dr=current.draft[p.key];
     return `<div class="pub-row"><span class="pub-platform">${p.label}</span>
+      <a href="${PLATFORM_CREATE_URLS[p.key]}" target="_blank" rel="noopener" class="launch-btn" title="Open ${p.label}"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
       <input class="pub-url" data-url="${p.key}" value="${esc(dr.url)}" placeholder="paste listing URL…">
       <button class="cbox ${dr.published?'on':''}" data-pub="${p.key}"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></button></div>`;}).join('');
   const anyCopy=PLATFORMS.some(p=>current.draft[p.key].title||current.draft[p.key].body);
@@ -753,6 +766,7 @@ function renderWorkspace(){
       <div style="padding:0 17px"><span class="label">Publish Checklist</span></div>
       <div class="checklist">${pubRows}</div>
     </div>
+    ${buildStatusPanel(it)}
     <div class="panel"><div class="panel-head"><span class="ph-title">Item Checklist</span></div>
       <div class="sop">${sop.map(r=>`<div class="sop-row ${r.done?'done':''}"><span class="sop-tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></span>${r.label}</div>`).join('')}</div>
       <div class="save-bar"><button class="save-btn" id="saveBtn">Save to Airtable</button></div>
@@ -905,8 +919,101 @@ function clearLabelSelection(){ SELECTED_LABELS.clear(); renderLabelsView(); }
    ============================================================ */
 const SM_PLATS = ['FACEBOOK','OFFERUP','EBAY','ETSY','MERCARI'];
 const SM_LABELS = {FACEBOOK:'Facebook',OFFERUP:'OfferUp',EBAY:'eBay',ETSY:'Etsy',MERCARI:'Mercari'};
+const PLATFORM_CREATE_URLS = {
+  FACEBOOK:'https://www.facebook.com/marketplace/create/item',
+  OFFERUP:'https://offerup.com/post',
+  EBAY:'https://www.ebay.com/sl/sell',
+  ETSY:'https://www.etsy.com/sell',
+  MERCARI:'https://www.mercari.com/sell/'
+};
 let statusItemId  = null;
 let smSelectedPlat = null;
+let wsSelectedSalePlat = null;
+
+function wsSelectSalePlat(el,plat){
+  document.querySelectorAll('#ws-plat-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); wsSelectedSalePlat=plat;
+}
+async function wsSaveSold(){
+  if(!wsSelectedSalePlat){ toast('Select the platform','err'); return; }
+  const price=parseFloat(($('#ws-sold-price')?.value||'').replace(/[$,]/g,''));
+  if(!price||isNaN(price)){ toast('Enter sale price','err'); return; }
+  const today=todayISO();
+  const listings=Object.values(LISTINGS_BY_ITEM[current.item.id]||{});
+  try{
+    await atPatch(CFG.items,current.item.id,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':wsSelectedSalePlat,'SOLD DATE':today});
+    if(CFG.listings&&listings.length) await Promise.all(listings.map(l=>atPatch(CFG.listings,l.id,{'LISTING STATUS':'SOLD'})));
+    const idx=ITEMS.findIndex(i=>i.id===current.item.id);
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':wsSelectedSalePlat,'SOLD DATE':today}); current.item=ITEMS[idx]; }
+    wsSelectedSalePlat=null; toast('Marked as sold ✓','ok'); renderWorkspace();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+async function wsSaveShipped(){
+  const carrier=($('#ws-carrier')?.value||'').trim();
+  const tracking=($('#ws-tracking')?.value||'').trim();
+  if(!tracking){ toast('Enter tracking number','err'); return; }
+  const today=todayISO();
+  try{
+    await atPatch(CFG.items,current.item.id,{'ITEM STATUS':'SHIPPED','CARRIER':carrier,'TRACKING NUMBER':tracking,'SHIPPED DATE':today});
+    const idx=ITEMS.findIndex(i=>i.id===current.item.id);
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SHIPPED','CARRIER':carrier,'TRACKING NUMBER':tracking,'SHIPPED DATE':today}); current.item=ITEMS[idx]; }
+    toast('Marked as shipped ✓','ok'); renderWorkspace();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+function wsCopyTracking(){
+  const inEl=$('#ws-tracking');
+  const val=inEl?inEl.value.trim():Fstr(current.item,'TRACKING NUMBER');
+  if(!val){ toast('No tracking number','err'); return; }
+  navigator.clipboard.writeText(val).then(()=>toast('Copied ✓','ok')).catch(()=>toast('Copy failed','err'));
+}
+function buildStatusPanel(item){
+  const f=item.fields||{};
+  const status=(f['ITEM STATUS']||'SOURCED').toUpperCase();
+  const today=todayISO();
+  const dotCls={SOURCED:'ready','IN PROGRESS':'amber',LISTED:'amber',SOLD:'green',SHIPPED:'green',ARCHIVED:'grey'}[status]||'grey';
+  const isSellable=['SOURCED','IN PROGRESS','LISTED'].includes(status);
+  const isSold=['SOLD','SHIPPED'].includes(status);
+  const isShippable=status==='SOLD';
+  const isShipped=status==='SHIPPED';
+  let html=`<div class="panel-head" style="gap:10px">
+    <span class="dot ${dotCls}" style="width:10px;height:10px"></span>
+    <span class="ph-title">Status</span>
+    <span style="font-family:'DM Mono';font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--silver);margin-left:2px">${status}</span>
+  </div>`;
+  if(isSold) html+=`<div class="sm-summary-box" style="margin:14px 17px 0">
+    <div class="label" style="margin-bottom:8px">Sale Record</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="sm-sum-lbl">Platform</div><div class="sm-sum-val">${esc(SM_LABELS[f['SOLD PLATFORM']]||f['SOLD PLATFORM']||'—')}</div></div>
+      <div><div class="sm-sum-lbl">Price</div><div class="sm-sum-val" style="color:var(--mauve)">${f['SOLD PRICE']!=null?money(f['SOLD PRICE']):'—'}</div></div>
+      <div><div class="sm-sum-lbl">Date</div><div class="sm-sum-val">${esc(f['SOLD DATE']||'—')}</div></div>
+    </div></div>`;
+  if(isSellable) html+=`<div style="padding:14px 17px">
+    <div class="label" style="margin-bottom:8px">Sold on</div>
+    <div id="ws-plat-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      ${SM_PLATS.map(p=>`<button class="sm-plat-btn" onclick="wsSelectSalePlat(this,'${p}')">${esc(SM_LABELS[p])}</button>`).join('')}
+    </div>
+    <div class="fld"><label><span class="lname">Sale Price</span></label><input id="ws-sold-price" type="number" inputmode="decimal" placeholder="0.00"></div>
+    <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 12px">Date: ${today}</div>
+    <button class="sm-confirm-btn" onclick="wsSaveSold()">Mark as Sold</button>
+  </div>`;
+  if(isShipped) html+=`<div class="sm-summary-box" style="margin:14px 17px">
+    <div class="label" style="margin-bottom:8px">Shipment Record</div>
+    <div style="margin-bottom:6px"><div class="sm-sum-lbl">Carrier</div><div class="sm-sum-val">${esc(f['CARRIER']||'—')}</div></div>
+    <div style="margin-bottom:6px">
+      <div class="sm-sum-lbl" style="display:flex;align-items:center;justify-content:space-between">Tracking<button class="sm-copy-btn" onclick="wsCopyTracking()">Copy</button></div>
+      <div class="sm-sum-val" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f['TRACKING NUMBER']||'—')}</div>
+    </div>
+    <div><div class="sm-sum-lbl">Shipped</div><div class="sm-sum-val">${esc(f['SHIPPED DATE']||'—')}</div></div>
+  </div>`;
+  if(isShippable) html+=`<div style="padding:0 17px 17px">
+    <div class="fld"><label><span class="lname">Carrier</span></label><input id="ws-carrier" type="text" placeholder="USPS · UPS · FedEx…" autocomplete="off"></div>
+    <div class="fld"><label><span class="lname" style="display:flex;align-items:center;justify-content:space-between">Tracking<button class="sm-copy-btn" onclick="wsCopyTracking()">Copy</button></span></label>
+      <input id="ws-tracking" type="text" placeholder="1Z000…" autocomplete="off"></div>
+    <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 12px">Date: ${today}</div>
+    <button class="sm-confirm-btn" onclick="wsSaveShipped()">Mark as Shipped</button>
+  </div>`;
+  return `<div class="panel">${html}</div>`;
+}
 
 function openStatusModal(barcodeId){
   const recId = barcodeId.replace('LLV-I-','');

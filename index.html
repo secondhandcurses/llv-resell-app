@@ -1396,6 +1396,30 @@ async function submitAddItem(){
 }
 
 /* ---------- generation ---------- */
+async function persistListingCopy(){
+  // Writes title/body/keywords to Airtable immediately — no Save click required.
+  // Called after generation so copy survives navigation.
+  if(!CFG.listings) return;
+  const it=current.item;
+  for(const p of PLATFORMS){
+    const d=current.draft[p.key];
+    if(!(d.title||d.body||d.keywords)) continue;
+    const fields={'TITLE':d.title,'PLATFORM':p.key,'LISTING BODY':d.body,'KEYWORDS':d.keywords,'ITEM':[it.id],'LISTING STATUS':d.published?LISTING_STATUS.live:LISTING_STATUS.draft};
+    try{
+      if(d.recId){ await atPatch(CFG.listings,d.recId,fields); }
+      else{ const created=await atCreate(CFG.listings,fields); d.recId=created.id; (LISTINGS_BY_ITEM[it.id]=LISTINGS_BY_ITEM[it.id]||{})[p.key]=created; }
+    }catch(e){ console.error('Listing persist error for',p.key,e); }
+  }
+  // Advance item to IN PROGRESS if still at SOURCED
+  if(Fstr(current.item,'ITEM STATUS')==='SOURCED'){
+    try{
+      await atPatch(CFG.items,current.item.id,{'ITEM STATUS':'IN PROGRESS'});
+      const idx=ITEMS.findIndex(i=>i.id===current.item.id);
+      if(idx>=0){ ITEMS[idx].fields['ITEM STATUS']='IN PROGRESS'; current.item=ITEMS[idx]; }
+    }catch(e){ console.error(e); }
+  }
+}
+
 async function generateAll(){
   if(!CFG.anthropic){ toast('Add your Anthropic key in settings','err'); return; }
   const it=current.item; const btn=$('#genBtn'); btn.disabled=true; btn.textContent='Generating…';
@@ -1416,6 +1440,7 @@ Rules: FACEBOOK & OFFERUP = short, casual, local-pickup friendly. EBAY title MUS
     const text=(j.content||[]).map(c=>c.type==='text'?c.text:'').join('').trim().replace(/^```json|^```|```$/g,'').trim();
     const data=JSON.parse(text);
     PLATFORMS.forEach(p=>{ const g=data[p.key]; if(g){ const d=current.draft[p.key]; d.title=g.title||d.title; d.body=g.body||d.body; d.keywords=g.keywords||d.keywords; } });
+    await persistListingCopy();
     toast('Listings generated','ok'); renderWorkspace();
   }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }
   finally{ btn.disabled=false; }

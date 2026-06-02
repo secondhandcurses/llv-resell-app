@@ -1834,6 +1834,7 @@ function airtableToSale(rec){
 }
 function saleToAirtable(s){
   const f={'SALE NAME':s.name,'ADDRESS':s.address,'NOTES':s.notes,'SALE TYPE':s.saleType,'PRIORITY':s.priority,'LEAD SOURCE':s.source};
+  if(s.link)    f['LINK']=s.link;
   if(s.date)    f['START DATE']=s.date;
   if(s.dateEnd) f['END DATE']=s.dateEnd;
   if(s.time)    f['START TIME']=s.time;
@@ -2076,7 +2077,7 @@ async function saveSale() {
   const source   = srcEl  ? srcEl.dataset.source    : 'IN PERSON';
   const link     = document.getElementById('as-link').value.trim();
 
-  const fields = saleToAirtable({ name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source });
+  const fields = saleToAirtable({ name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source, link });
   const key = get('airtable'), base = get('baseId'), sid = get('salesId');
   if (!key || !base || !sid) { showToast('Sales table ID not set — check credentials', 'error'); return; }
 

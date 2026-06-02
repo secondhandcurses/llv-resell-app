@@ -376,6 +376,7 @@
         <div style="padding:16px 17px 20px">
           <div class="plan-mf"><label>Sale Name</label><input id="pf-name" placeholder="Belmont Shore Estate Sale" autocomplete="off"></div>
           <div class="plan-mf"><label>Address</label><input id="pf-address" placeholder="123 Main St, Long Beach CA" autocomplete="off"></div>
+          <div class="plan-mf"><label>Listing Link <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label><input id="pf-link" type="url" placeholder="https://estatesales.net/…" autocomplete="off"></div>
           <div class="modal-2col">
             <div class="plan-mf"><label>Start Date</label><input id="pf-start-date" type="date"></div>
             <div class="plan-mf"><label>End Date</label><input id="pf-end-date" type="date"></div>
@@ -967,6 +968,7 @@ function renderPlanCards(){
             ${f['LEAD SOURCE']?`<span class="chip">${esc(f['LEAD SOURCE'])}</span>`:''}
           </div>
           ${f['NOTES']?`<div style="font-size:.82rem;color:var(--txt-mute);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f['NOTES'])}</div>`:''}
+          ${f['LINK']?`<a href="${esc(f['LINK'])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'DM Mono';font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--lav);text-decoration:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>View listing</a>`:''}
         </div>
         <button onclick="deletePlanSale('${rec.id}')" style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);background:none;border:1px solid var(--line);padding:6px 10px;border-radius:7px;cursor:pointer;flex:none;transition:.15s" onmouseover="this.style.color='var(--err)';this.style.borderColor='var(--err)'" onmouseout="this.style.color='var(--olive)';this.style.borderColor='var(--line)'">Remove</button>
       </div>
@@ -986,6 +988,7 @@ async function savePlanSale(){
   if(!name){ toast('Enter a sale name','err'); return; }
   if(!CFG.airtable||!CFG.base||!CFG.sales){ toast('Sales table ID not set — check credentials','err'); return; }
   const fields={'SALE NAME':name,'ADDRESS':$('#pf-address')?.value?.trim()||'','NOTES':$('#pf-notes')?.value?.trim()||'','SALE TYPE':planFormState.saleType,'LEAD SOURCE':planFormState.leadSource,'PRIORITY':planFormState.priority};
+  const lk=$('#pf-link')?.value?.trim(); if(lk) fields['LINK']=lk;
   const sd=$('#pf-start-date')?.value; if(sd) fields['START DATE']=sd;
   const ed=$('#pf-end-date')?.value; if(ed) fields['END DATE']=ed;
   const st=$('#pf-start-time')?.value; if(st) fields['START TIME']=st;
@@ -998,7 +1001,7 @@ async function savePlanSale(){
     });
     if(!r.ok) throw new Error('Save failed');
     toast('Sale added ✓','ok');
-    ['pf-name','pf-address','pf-start-date','pf-end-date','pf-start-time','pf-end-time','pf-notes'].forEach(id=>{const el=$('#'+id);if(el)el.value='';});
+    ['pf-name','pf-address','pf-link','pf-start-date','pf-end-date','pf-start-time','pf-end-time','pf-notes'].forEach(id=>{const el=$('#'+id);if(el)el.value='';});
     planFormState={saleType:'ESTATE SALE',leadSource:'IN PERSON',priority:'MEDIUM'};
     document.querySelectorAll('[data-chipgroup] .sm-plat-btn').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('[data-chipgroup]').forEach(grp=>{

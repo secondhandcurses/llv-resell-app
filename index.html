@@ -417,6 +417,7 @@
     </div>
   </div>
 </div>
+<div class="modal-bg" id="modal">
   <div class="modal">
     <div class="modal-head"><h3>Credentials</h3><button class="tb-btn" id="modalClose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button></div>
     <div class="modal-body">
@@ -552,7 +553,7 @@ function firstPhotoUrl(rec){ const p=F(rec,'PHOTOS'); if(Array.isArray(p)&&p.len
    Load
    ============================================================ */
 async function loadAll(){
-  if(!cfgReady()){ openModal(); $('#homeBody').innerHTML='<div class="empty">Add your credentials to begin.</div>'; return; }
+  if(!cfgReady()){ $('#homeBody').innerHTML='<div class="empty" style="padding:40px 0"><div style="font-family:\'DM Mono\';font-size:.8rem;color:var(--silver);margin-bottom:8px">Airtable key not configured.</div><div class="label">Open the ⚙ settings button in the top right to add your API key.</div></div>'; return; }
   $('#homeBody').innerHTML='<div class="loading"><div class="spinner"></div><span class="label">Loading inventory…</span></div>';
   try{
     const [items, listings, sessions] = await Promise.all([ atList(CFG.items), atList(CFG.listings), CFG.sessions?atList(CFG.sessions):[] ]);

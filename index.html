@@ -296,6 +296,16 @@
   .launch-btn:hover{color:var(--lav);border-color:var(--line-strong)}
   .launch-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
+  /* Plan view */
+  .plan-mf{margin-bottom:12px}
+  .plan-mf label{display:block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:5px}
+  .plan-mf input,.plan-mf textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.78rem;padding:9px 11px;border-radius:8px;outline:none}
+  .plan-mf input:focus,.plan-mf textarea:focus{border-color:var(--lav)}
+  .plan-mf input[type="date"],.plan-mf input[type="time"]{color-scheme:dark}
+  .plan-mf textarea{resize:vertical;min-height:72px;line-height:1.5}
+  .studio-sale-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:12px;transition:.15s}
+  .studio-sale-card:hover{border-color:var(--line-strong)}
+
   @media(max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -313,6 +323,7 @@
   </div>
   <div class="spacer"></div>
   <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
+  <button class="tb-btn" id="planBtn" title="Sourcing Plan"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4 M8 2v4 M3 10h18"/></svg></button>
   <button class="tb-btn" id="labelsBtn" title="Label Printer"><svg viewBox="0 0 24 24"><path d="M3 5v14 M7 5v14 M11 5v14 M15 5v14 M19 5v14"/></svg></button>
   <button class="tb-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></button>
 </div>
@@ -347,6 +358,64 @@
       <span class="chip" id="wsSession"></span>
     </div>
     <div class="cols" id="wsCols"></div>
+  </div>
+</div>
+
+<!-- PLAN VIEW -->
+<div id="view-plan" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="planBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <span class="chip">Sourcing Plan</span>
+    </div>
+    <div class="sec-head"><h2>Upcoming Sales</h2><span class="count" id="planCount">0 upcoming</span></div>
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+      <div id="planList"></div>
+      <div class="panel">
+        <div class="panel-head"><span class="ph-title">Add Sale</span></div>
+        <div style="padding:16px 17px 20px">
+          <div class="plan-mf"><label>Sale Name</label><input id="pf-name" placeholder="Belmont Shore Estate Sale" autocomplete="off"></div>
+          <div class="plan-mf"><label>Address</label><input id="pf-address" placeholder="123 Main St, Long Beach CA" autocomplete="off"></div>
+          <div class="modal-2col">
+            <div class="plan-mf"><label>Start Date</label><input id="pf-start-date" type="date"></div>
+            <div class="plan-mf"><label>End Date</label><input id="pf-end-date" type="date"></div>
+          </div>
+          <div class="modal-2col">
+            <div class="plan-mf"><label>Start Time</label><input id="pf-start-time" type="time"></div>
+            <div class="plan-mf"><label>End Time</label><input id="pf-end-time" type="time"></div>
+          </div>
+          <div class="plan-mf"><label>Sale Type</label>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px" data-chipgroup="saleType">
+              <button class="sm-plat-btn active" data-cv="ESTATE SALE" onclick="selectPlanChip(this,'saleType','ESTATE SALE')">Estate</button>
+              <button class="sm-plat-btn" data-cv="THRIFT" onclick="selectPlanChip(this,'saleType','THRIFT')">Thrift</button>
+              <button class="sm-plat-btn" data-cv="GARAGE" onclick="selectPlanChip(this,'saleType','GARAGE')">Garage</button>
+              <button class="sm-plat-btn" data-cv="YARD SALE" onclick="selectPlanChip(this,'saleType','YARD SALE')">Yard Sale</button>
+              <button class="sm-plat-btn" data-cv="OTHER" onclick="selectPlanChip(this,'saleType','OTHER')">Other</button>
+            </div>
+          </div>
+          <div class="plan-mf"><label>Lead Source</label>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px" data-chipgroup="leadSource">
+              <button class="sm-plat-btn active" data-cv="IN PERSON" onclick="selectPlanChip(this,'leadSource','IN PERSON')">In Person</button>
+              <button class="sm-plat-btn" data-cv="FACEBOOK" onclick="selectPlanChip(this,'leadSource','FACEBOOK')">Facebook</button>
+              <button class="sm-plat-btn" data-cv="NEWSLETTER" onclick="selectPlanChip(this,'leadSource','NEWSLETTER')">Newsletter</button>
+              <button class="sm-plat-btn" data-cv="AUCTION SITE" onclick="selectPlanChip(this,'leadSource','AUCTION SITE')">Auction Site</button>
+              <button class="sm-plat-btn" data-cv="OTHER" onclick="selectPlanChip(this,'leadSource','OTHER')">Other</button>
+            </div>
+          </div>
+          <div class="plan-mf"><label>Priority</label>
+            <div style="display:flex;gap:5px;margin-top:6px" data-chipgroup="priority">
+              <button class="sm-plat-btn" data-cv="HIGH" onclick="selectPlanChip(this,'priority','HIGH')">High</button>
+              <button class="sm-plat-btn active" data-cv="MEDIUM" onclick="selectPlanChip(this,'priority','MEDIUM')">Medium</button>
+              <button class="sm-plat-btn" data-cv="LOW" onclick="selectPlanChip(this,'priority','LOW')">Low</button>
+            </div>
+          </div>
+          <div class="plan-mf"><label>Notes <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label>
+            <textarea id="pf-notes" placeholder="Anything useful to know before going…"></textarea>
+          </div>
+          <button class="save-btn" id="savePlanBtn" onclick="savePlanSale()" style="margin-top:4px">Add Sale</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -427,6 +496,7 @@
       <div class="mf"><label>Items Table ID</label><input id="k_items" placeholder="tblFeToiIcEseekfH"></div>
       <div class="mf"><label>Listings Table ID</label><input id="k_listings" placeholder="tblW5u905moGRFsFw"></div>
       <div class="mf"><label>Sessions Table ID</label><input id="k_sessions" placeholder="tblGH4ziHZSneAtoI"></div>
+      <div class="mf"><label>Sales Table ID</label><input id="k_sales" placeholder="tblRfPldzPkqIlD7P"></div>
       <p class="modal-note">Stored locally in this browser only (localStorage). Keys never leave the device except in direct calls to Airtable / Anthropic.</p>
     </div>
     <div class="modal-foot"><button class="btn-ghost" id="modalCancel">Cancel</button><button class="btn-solid" id="modalSave">Save &amp; Load</button></div>
@@ -452,9 +522,10 @@
    ============================================================ */
 const LS = {
   anthropic:'llv_anthropic_key', airtable:'llv_airtable_key', base:'llv_base_id',
-  items:'llv_items_table_id', listings:'llv_listings_table_id', sessions:'llv_sessions_table_id'
+  items:'llv_items_table_id', listings:'llv_listings_table_id', sessions:'llv_sessions_table_id',
+  sales:'llv_sales_table_id'
 };
-const DEFAULTS = { base:'app3DqxIJ1SUBKylb', items:'tblFeToiIcEseekfH', listings:'tblW5u905moGRFsFw', sessions:'tblGH4ziHZSneAtoI' };
+const DEFAULTS = { base:'app3DqxIJ1SUBKylb', items:'tblFeToiIcEseekfH', listings:'tblW5u905moGRFsFw', sessions:'tblGH4ziHZSneAtoI', sales:'tblRfPldzPkqIlD7P' };
 const MODEL = 'claude-sonnet-4-5';
 
 // Platforms — FB & OfferUp are local (shared ask/floor); eBay/Etsy/Mercari national.
@@ -669,7 +740,7 @@ function openWorkspace(itemId){
             margin: Fnum(item,'FLOOR PRICE')!=null ? (Fnum(item,'FLOOR PRICE')-(Fnum(item,'COST OF GOODS')||0)) : DEFAULT_MARGIN,
             buffer: DEFAULT_BUFFER, listInput:(Fnum(item,'EBAY COMP LOW')||50) };
   renderWorkspace();
-  $('#view-home').classList.remove('active'); $('#view-ws').classList.add('active'); window.scrollTo(0,0);
+  $('#view-home').classList.remove('active'); $('#view-plan').classList.remove('active'); $('#view-ws').classList.add('active'); window.scrollTo(0,0);
 }
 
 function renderWorkspace(){
@@ -844,6 +915,113 @@ async function deletePhoto(attId){
 }
 
 /* ============================================================
+   Sourcing Plan — reads/writes SALES Airtable table
+   ============================================================ */
+const PLAN_PRIORITY_COLORS = {HIGH:'#cf7d7d',MEDIUM:'var(--grape)',LOW:'var(--grey)'};
+let SALES_DATA = [];
+let planFormState = {saleType:'ESTATE SALE',leadSource:'IN PERSON',priority:'MEDIUM'};
+
+async function openPlanView(){
+  ['view-home','view-ws','view-labels'].forEach(id=>{ const el=$('#'+id); if(el) el.classList.remove('active'); });
+  $('#view-plan').classList.add('active');
+  window.scrollTo(0,0);
+  await loadPlanSales();
+}
+
+async function loadPlanSales(){
+  if(!CFG.airtable||!CFG.base||!CFG.sales){ renderPlanCards(); return; }
+  try{
+    const today=todayISO();
+    const formula=encodeURIComponent(`AND(NOT({CONVERTED}),{START DATE}>='${today}')`);
+    const r=await fetch(
+      `https://api.airtable.com/v0/${CFG.base}/${CFG.sales}?filterByFormula=${formula}&sort[0][field]=START%20DATE&sort[0][direction]=asc`,
+      {headers:{Authorization:'Bearer '+CFG.airtable}}
+    );
+    if(!r.ok) throw new Error('Airtable '+r.status);
+    SALES_DATA=(await r.json()).records||[];
+    renderPlanCards();
+  }catch(e){ console.error(e); toast(e.message,'err'); renderPlanCards(); }
+}
+
+function renderPlanCards(){
+  const list=$('#planList'), ct=$('#planCount');
+  if(ct) ct.textContent=SALES_DATA.length+' upcoming';
+  if(!list) return;
+  if(!SALES_DATA.length){ list.innerHTML='<div class="empty" style="padding:40px 0">No upcoming sales — add one using the form.</div>'; return; }
+  list.innerHTML=SALES_DATA.map(rec=>{
+    const f=rec.fields||{};
+    const pri=(f['PRIORITY']||'MEDIUM').toUpperCase();
+    const borderColor=PLAN_PRIORITY_COLORS[pri]||'var(--grey)';
+    const dateRange=f['START DATE']?esc(f['START DATE'])+(f['END DATE']&&f['END DATE']!==f['START DATE']?' – '+esc(f['END DATE']):''):'—';
+    const timeRange=f['START TIME']?esc(f['START TIME'])+(f['END TIME']?' – '+esc(f['END TIME']):''):'';
+    return `<div class="studio-sale-card" style="border-left:3px solid ${borderColor}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Oswald';font-weight:500;font-size:1.05rem;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f['SALE NAME']||'—')}</div>
+          <div style="font-family:'DM Mono';font-size:.64rem;color:var(--olive);margin-bottom:8px">${esc(f['ADDRESS']||'—')}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span style="font-family:'DM Mono';font-size:.66rem;color:var(--lav)">${dateRange}</span>
+            ${timeRange?`<span style="font-family:'DM Mono';font-size:.64rem;color:var(--silver)">${timeRange}</span>`:''}
+            ${f['SALE TYPE']?`<span class="chip">${esc(f['SALE TYPE'])}</span>`:''}
+            ${f['PRIORITY']?`<span class="chip">${esc(f['PRIORITY'])}</span>`:''}
+            ${f['LEAD SOURCE']?`<span class="chip">${esc(f['LEAD SOURCE'])}</span>`:''}
+          </div>
+          ${f['NOTES']?`<div style="font-size:.82rem;color:var(--txt-mute);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f['NOTES'])}</div>`:''}
+        </div>
+        <button onclick="deletePlanSale('${rec.id}')" style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);background:none;border:1px solid var(--line);padding:6px 10px;border-radius:7px;cursor:pointer;flex:none;transition:.15s" onmouseover="this.style.color='var(--err)';this.style.borderColor='var(--err)'" onmouseout="this.style.color='var(--olive)';this.style.borderColor='var(--line)'">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPlanChip(el,group,value){
+  const parent=el.closest('[data-chipgroup="'+group+'"]');
+  if(parent) parent.querySelectorAll('.sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  planFormState[group]=value;
+}
+
+async function savePlanSale(){
+  const name=$('#pf-name')?.value?.trim();
+  if(!name){ toast('Enter a sale name','err'); return; }
+  if(!CFG.airtable||!CFG.base||!CFG.sales){ toast('Sales table ID not set — check credentials','err'); return; }
+  const fields={'SALE NAME':name,'ADDRESS':$('#pf-address')?.value?.trim()||'','NOTES':$('#pf-notes')?.value?.trim()||'','SALE TYPE':planFormState.saleType,'LEAD SOURCE':planFormState.leadSource,'PRIORITY':planFormState.priority};
+  const sd=$('#pf-start-date')?.value; if(sd) fields['START DATE']=sd;
+  const ed=$('#pf-end-date')?.value; if(ed) fields['END DATE']=ed;
+  const st=$('#pf-start-time')?.value; if(st) fields['START TIME']=st;
+  const et=$('#pf-end-time')?.value; if(et) fields['END TIME']=et;
+  const btn=$('#savePlanBtn'); if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${CFG.sales}`,{
+      method:'POST',headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
+      body:JSON.stringify({fields})
+    });
+    if(!r.ok) throw new Error('Save failed');
+    toast('Sale added ✓','ok');
+    ['pf-name','pf-address','pf-start-date','pf-end-date','pf-start-time','pf-end-time','pf-notes'].forEach(id=>{const el=$('#'+id);if(el)el.value='';});
+    planFormState={saleType:'ESTATE SALE',leadSource:'IN PERSON',priority:'MEDIUM'};
+    document.querySelectorAll('[data-chipgroup] .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('[data-chipgroup]').forEach(grp=>{
+      const defaults={saleType:'ESTATE SALE',leadSource:'IN PERSON',priority:'MEDIUM'};
+      const key=grp.dataset.chipgroup; const def=defaults[key];
+      const defBtn=grp.querySelector(`[data-cv="${def}"]`); if(defBtn) defBtn.classList.add('active');
+    });
+    await loadPlanSales();
+  }catch(e){console.error(e);toast(e.message,'err');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Add Sale';}}
+}
+
+async function deletePlanSale(recId){
+  if(!confirm('Remove this sale from the plan?')) return;
+  try{
+    await fetch(`https://api.airtable.com/v0/${CFG.base}/${CFG.sales}/${recId}`,{
+      method:'DELETE',headers:{Authorization:'Bearer '+CFG.airtable}
+    });
+    toast('Sale removed','ok'); await loadPlanSales();
+  }catch(e){console.error(e);toast(e.message,'err');}
+}
+
+/* ============================================================
    Label Printer — Code128 via JsBarcode, 2-up letter print
    ============================================================ */
 const SELECTED_LABELS = new Set();
@@ -851,6 +1029,7 @@ const SELECTED_LABELS = new Set();
 function openLabelsView(){
   $('#view-home').classList.remove('active');
   $('#view-ws').classList.remove('active');
+  $('#view-plan').classList.remove('active');
   $('#view-labels').classList.add('active');
   renderLabelsView();
   window.scrollTo(0,0);
@@ -1279,7 +1458,7 @@ async function saveAll(){
 function openModal(){ loadCfg();
   $('#k_anthropic').value=localStorage.getItem(LS.anthropic)||'';
   $('#k_airtable').value=localStorage.getItem(LS.airtable)||'';
-  $('#k_base').value=CFG.base; $('#k_items').value=CFG.items; $('#k_listings').value=CFG.listings; $('#k_sessions').value=CFG.sessions;
+  $('#k_base').value=CFG.base; $('#k_items').value=CFG.items; $('#k_listings').value=CFG.listings; $('#k_sessions').value=CFG.sessions; $('#k_sales').value=CFG.sales;
   $('#modal').classList.add('open'); }
 function closeModal(){ $('#modal').classList.remove('open'); }
 $('#settingsBtn').addEventListener('click',openModal);
@@ -1292,11 +1471,14 @@ $('#modalSave').addEventListener('click',()=>{
   localStorage.setItem(LS.items,$('#k_items').value.trim());
   localStorage.setItem(LS.listings,$('#k_listings').value.trim());
   localStorage.setItem(LS.sessions,$('#k_sessions').value.trim());
+  localStorage.setItem(LS.sales,$('#k_sales').value.trim());
   loadCfg(); closeModal(); loadAll();
 });
 $('#backBtn').addEventListener('click',()=>{ $('#view-ws').classList.remove('active'); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
 $('#refreshBtn').addEventListener('click',loadAll);
 $('#labelsBtn').addEventListener('click',openLabelsView);
+$('#planBtn').addEventListener('click',openPlanView);
+$('#planBackBtn').addEventListener('click',()=>{ $('#view-plan').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#labelsBackBtn').addEventListener('click',()=>{ $('#view-labels').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#lblSearch').addEventListener('input',renderLabelsView);
 $('#lblStatus').addEventListener('change',renderLabelsView);

@@ -1636,7 +1636,7 @@ Use plain text only — no HTML tags, no br tags.`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'x-api-key':CFG.anthropic,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'},
-      body:JSON.stringify({model:MODEL,max_tokens:2500,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:MODEL,max_tokens:4500,messages:[{role:'user',content:prompt}]})
     });
     if(!r.ok) throw new Error('Anthropic '+r.status);
     const j=await r.json();

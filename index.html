@@ -381,6 +381,7 @@
           <h2>Tape Inventory</h2>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="openNewLot()" style="font-family:'DM Mono';font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;background:none;border:1px solid #4a7a45;border-radius:7px;color:#6FB36A;cursor:pointer">+ New Lot</button>
           <select id="tFStatus" style="font-family:'DM Mono';font-size:.68rem;padding:5px 8px;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);border-radius:7px"><option value="">All statuses</option><option value="Unlisted">Unlisted</option><option value="Listed" selected>Listed</option><option value="Sold">Sold</option></select>
           <select id="tFType" style="font-family:'DM Mono';font-size:.68rem;padding:5px 8px;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);border-radius:7px"><option value="">Tapes &amp; lots</option><option value="tape">Individual tapes</option><option value="lot">Lots only</option></select>
           <span class="count" id="tapeCount"></span>
@@ -570,6 +571,7 @@
       <div style="display:flex;align-items:center;gap:8px">
         <span class="chip" id="vhsModeChip">VHS Mode</span>
         <button id="vhsNewTapeBtn" style="font-family:'DM Mono';font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;background:none;border:1px solid var(--line);border-radius:7px;color:var(--olive);cursor:pointer">+ New Tape</button>
+        <button id="vhsNewLotBtn" style="font-family:'DM Mono';font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;background:none;border:1px solid #4a7a45;border-radius:7px;color:#6FB36A;cursor:pointer">+ New Lot</button>
       </div>
     </div>
 
@@ -1069,6 +1071,8 @@ function renderTapeInventory(){
   if(sec) sec.style.display='';
   const statusF=$('#tFStatus')?.value||'';
   const typeF=$('#tFType')?.value||'';
+  // Sort tapes newest first
+  const sortedTapes=[...TAPES].sort((a,b)=>new Date(b.createdTime||0)-new Date(a.createdTime||0));
   const lotIds=new Set();
   TAPES.forEach(t=>{ const l=F(t,'LOT'); (Array.isArray(l)?l:[l]).forEach(id=>id&&lotIds.add(id)); });
 
@@ -1099,7 +1103,7 @@ function renderTapeInventory(){
   }
 
   if(typeF!=='lot'){
-    TAPES.filter(tape=>{
+    sortedTapes.filter(tape=>{
       if(statusF && (Fstr(tape,'STATUS')||'Unlisted')!==statusF) return false;
       return true;
     }).forEach(tape=>{
@@ -1650,6 +1654,15 @@ async function persistLotListings(){
 }
 
 // ── Save Lot ──────────────────────────────────────────────────
+function openNewLot(){
+  hideAllViews(); $('#view-lot').classList.add('active'); window.scrollTo(0,0);
+  lotActivePlat='EBAY';
+  lotCurrent={ recId:null, draft:{}, lotTapeIds:[] };
+  VHS_PLATFORMS.forEach(p=>{ lotCurrent.draft[p]={title:'',body:'',keywords:'',recId:null}; });
+  resetLotForm();
+  const statusChip=$('#lotStatusChip'); if(statusChip) statusChip.textContent='New Lot';
+}
+
 async function saveLotRecord(){
   const name = $('#lotName')?.value?.trim();
   if(!name){ toast('Lot name is required','err'); return; }
@@ -1663,15 +1676,21 @@ async function saveLotRecord(){
   };
   const ask=parseFloat($('#lotAsk')?.value); if(ask) fields['ASKING PRICE']=ask;
   try{
-    await atPatch(CFG.lots, lotCurrent.recId, fields);
+    let savedRec;
+    if(lotCurrent.recId){
+      savedRec=await atPatch(CFG.lots, lotCurrent.recId, fields);
+      toast('Lot saved ✓','ok');
+    } else {
+      savedRec=await atCreate(CFG.lots, fields);
+      lotCurrent.recId=savedRec.id;
+      toast('Lot created ✓','ok');
+    }
     const statusChip=$('#lotStatusChip'); if(statusChip) statusChip.textContent=fields['STATUS'];
     await persistLotListings();
-    // refresh LOTS cache
     const updatedLot=await atGet(CFG.lots,lotCurrent.recId);
     const li=LOTS.findIndex(l=>l.id===lotCurrent.recId);
     if(li>=0) LOTS[li]=updatedLot; else LOTS.push(updatedLot);
     renderTapeInventory();
-    toast('Lot saved ✓','ok');
   }catch(e){ console.error(e); toast(e.message,'err'); }
   finally{ if(btn){btn.disabled=false;btn.textContent='Save Lot';} }
 }
@@ -1736,12 +1755,26 @@ function renderVhsPhotos(photos){
   if(ct) ct.textContent=photos.length+' photo'+(photos.length!==1?'s':'');
   if(!grid) return;
   if(!photos.length){ grid.innerHTML=''; return; }
-  const first=photos[0];
-  if($('#vhsThumbWrap') && first.url) $('#vhsThumbWrap').innerHTML=`<img src="${esc(first.url)}" style="width:100%;height:100%;object-fit:cover" alt="">`;
-  grid.innerHTML=photos.map((p,i)=>`<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--line)">
-    <img src="${esc(p.url)}" style="width:100%;height:100%;object-fit:cover" alt="">
-    <button onclick="deleteVhsPhoto('${p.id}')" style="position:absolute;top:3px;right:3px;background:rgba(26,24,24,.7);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;color:#fff;font-size:10px;line-height:18px;text-align:center">×</button>
-  </div>`).join('');
+  grid.innerHTML=photos.map((p,i)=>`
+    <div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid ${i===0?'var(--lav)':'var(--line)'}">
+      <img src="${esc(p.url)}" style="width:100%;height:100%;object-fit:cover" alt="">
+      ${i===0?`<span style="position:absolute;bottom:3px;left:3px;font-family:'DM Mono';font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;background:var(--grape);color:var(--mauve);padding:2px 5px;border-radius:3px">Cover</span>`
+             :`<button onclick="setVhsCoverPhoto('${p.id}')" title="Set as cover" style="position:absolute;bottom:3px;left:3px;background:rgba(26,24,24,.75);border:none;border-radius:3px;padding:2px 5px;cursor:pointer;font-family:'DM Mono';font-size:.5rem;color:var(--silver);letter-spacing:.04em">Set cover</button>`}
+      <button onclick="deleteVhsPhoto('${p.id}')" title="Delete photo" style="position:absolute;top:3px;right:3px;background:rgba(26,24,24,.75);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;color:#fff;font-size:10px;line-height:18px;text-align:center">×</button>
+    </div>`).join('');
+}
+
+async function setVhsCoverPhoto(photoId){
+  if(!vhsCurrent?.recId){ toast('Save tape first','err'); return; }
+  try{
+    const tape=await atGet(CFG.tapes,vhsCurrent.recId);
+    const photos=F(tape,'PHOTOS')||[];
+    const idx=photos.findIndex(p=>p.id===photoId);
+    if(idx<=0) return;
+    const reordered=[photos[idx],...photos.filter((_,i)=>i!==idx)];
+    await atPatch(CFG.tapes,vhsCurrent.recId,{'PHOTOS':reordered.map(p=>({id:p.id}))});
+    renderVhsPhotos(reordered); toast('Cover photo updated ✓','ok');
+  }catch(e){ toast(e.message,'err'); }
 }
 
 async function uploadVhsPhotos(input){
@@ -2679,6 +2712,7 @@ $('#vhsBtn').addEventListener('click',()=>openVhsIntake(''));
 $('#vhsBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#lotBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#vhsNewTapeBtn').addEventListener('click',()=>openVhsIntake(''));
+$('#vhsNewLotBtn').addEventListener('click',openNewLot);
 $('#planBackBtn').addEventListener('click',()=>{ $('#view-plan').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#labelsBackBtn').addEventListener('click',()=>{ $('#view-labels').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#lblSearch').addEventListener('input',renderLabelsView);

@@ -520,7 +520,6 @@
           </div>
         </div>
 
-        <button class="save-btn" id="lotSaveBtn" onclick="saveLotRecord()" style="width:100%">Save Lot</button>
       </div>
 
       <!-- RIGHT: Tapes + add tape + listing copy -->
@@ -542,9 +541,12 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head">
+          <div class="panel-head" style="border-bottom:1px solid var(--line);padding-bottom:12px">
             <span class="ph-title">Listing Copy</span>
-            <button id="lotGenBtn" onclick="generateLotListings()" style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;background:var(--grape);color:var(--mauve);border:none;border-radius:7px;cursor:pointer">Generate All</button>
+            <button id="lotGenBtn" onclick="generateLotListings()" style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;background:var(--grape);color:var(--mauve);border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>Generate All</button>
+          </div>
+          <div style="padding:10px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-family:'DM Mono';font-size:.6rem;color:var(--olive);letter-spacing:.04em">draft — edit freely before publishing</span>
           </div>
           <div style="padding:12px 14px">
             <div class="plan-mf"><label>Context for AI <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label><textarea id="lotGenContext" style="min-height:54px;resize:vertical" placeholder="Describe what's in the lot, condition themes, any notable titles TMDB can't know about…"></textarea></div>
@@ -562,22 +564,45 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><span class="ph-title">Publish</span></div>
+          <div class="panel-head">
+            <span class="ph-title">Live Record</span>
+            <span class="chip" id="lotLiveStatus" style="font-size:.58rem">Draft</span>
+          </div>
           <div style="padding:12px 14px">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)">
-              <a href="https://www.ebay.com/sl/sell" target="_blank" rel="noopener" class="launch-btn" title="Create on eBay"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>eBay</a>
-              <a href="https://www.etsy.com/sell" target="_blank" rel="noopener" class="launch-btn" title="Create on Etsy"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Etsy</a>
-              <a href="https://www.facebook.com/marketplace/create/item" target="_blank" rel="noopener" class="launch-btn" title="Create on Facebook"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Facebook</a>
-              <a href="https://www.mercari.com/sell/" target="_blank" rel="noopener" class="launch-btn" title="Create on Mercari"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Mercari</a>
-              <a href="https://offerup.com/post" target="_blank" rel="noopener" class="launch-btn" title="Create on OfferUp"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>OfferUp</a>
+            <div style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:10px">Publish Checklist</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+              <div style="display:flex;align-items:center;gap:7px">
+                <a href="https://www.ebay.com/sl/sell" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;flex:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
+                <span style="font-family:'DM Mono';font-size:.62rem;width:56px;color:var(--olive)">eBay</span>
+                <input id="lotUrl-EBAY" type="url" placeholder="paste listing URL…" style="flex:1;font-family:'DM Mono';font-size:.64rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:6px;outline:none;min-width:0">
+                <span class="pub-check" data-lplat="EBAY"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <a href="https://www.etsy.com/sell" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;flex:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
+                <span style="font-family:'DM Mono';font-size:.62rem;width:56px;color:var(--olive)">Etsy</span>
+                <input id="lotUrl-ETSY" type="url" placeholder="paste listing URL…" style="flex:1;font-family:'DM Mono';font-size:.64rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:6px;outline:none;min-width:0">
+                <span class="pub-check" data-lplat="ETSY"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <a href="https://www.facebook.com/marketplace/create/item" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;flex:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
+                <span style="font-family:'DM Mono';font-size:.62rem;width:56px;color:var(--olive)">Facebook</span>
+                <input id="lotUrl-FACEBOOK" type="url" placeholder="paste listing URL…" style="flex:1;font-family:'DM Mono';font-size:.64rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:6px;outline:none;min-width:0">
+                <span class="pub-check" data-lplat="FACEBOOK"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <a href="https://www.mercari.com/sell/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;flex:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
+                <span style="font-family:'DM Mono';font-size:.62rem;width:56px;color:var(--olive)">Mercari</span>
+                <input id="lotUrl-MERCARI" type="url" placeholder="paste listing URL…" style="flex:1;font-family:'DM Mono';font-size:.64rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:6px;outline:none;min-width:0">
+                <span class="pub-check" data-lplat="MERCARI"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <a href="https://offerup.com/post" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;flex:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg></a>
+                <span style="font-family:'DM Mono';font-size:.62rem;width:56px;color:var(--olive)">OfferUp</span>
+                <input id="lotUrl-OFFERUP" type="url" placeholder="paste listing URL…" style="flex:1;font-family:'DM Mono';font-size:.64rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:6px;outline:none;min-width:0">
+                <span class="pub-check" data-lplat="OFFERUP"></span>
+              </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:7px">
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">eBay</span><input id="lotUrl-EBAY" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="EBAY"></span></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Etsy</span><input id="lotUrl-ETSY" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="ETSY"></span></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Facebook</span><input id="lotUrl-FACEBOOK" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="FACEBOOK"></span></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Mercari</span><input id="lotUrl-MERCARI" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="MERCARI"></span></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">OfferUp</span><input id="lotUrl-OFFERUP" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="OFFERUP"></span></div>
-            </div>
+            <button class="save-btn" id="lotSaveBtn" onclick="saveLotRecord()" style="width:100%">Save Lot</button>
           </div>
         </div>
 
@@ -1595,6 +1620,19 @@ async function deleteLotPhoto(attachId){
   }catch(e){ toast(e.message,'err'); }
 }
 
+function updateLotTabDots(){
+  document.querySelectorAll('#lotPlatTabs .plat-tab').forEach(b=>{
+    const p=b.dataset.lpt;
+    b.querySelectorAll('.dot').forEach(d=>d.remove());
+    const d=lotCurrent?.draft[p]; if(!d) return;
+    if(d.title||d.body||d.keywords){
+      const dot=document.createElement('span');
+      dot.className='dot '+(d.published?'dot-listed':'dot-sourced');
+      b.appendChild(dot);
+    }
+  });
+}
+
 // ── Platform tabs ─────────────────────────────────────────────
 function syncLotDraftTab(){
   const d=lotCurrent?.draft[lotActivePlat]; if(!d) return;
@@ -1614,12 +1652,18 @@ document.querySelectorAll('#lotPlatTabs .plat-tab').forEach(b=>b.addEventListene
 async function loadLotListings(lotId){
   if(!CFG.tapeListings) return;
   try{
-    const formula=encodeURIComponent(`FIND("${lotId}",ARRAYJOIN({LOT}))`);
-    const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${CFG.tapeListings}?filterByFormula=${formula}`,{
-      headers:{Authorization:'Bearer '+CFG.airtable}
-    });
-    const d=await r.json();
-    (d.records||[]).forEach(l=>{
+    // Fetch all tape listings — filter client-side by LOT field (ARRAYJOIN formula returns names not IDs)
+    let records=[], offset=null;
+    do {
+      const url=`https://api.airtable.com/v0/${CFG.base}/${CFG.tapeListings}`+(offset?'?offset='+offset:'');
+      const r=await fetch(url,{headers:{Authorization:'Bearer '+CFG.airtable}});
+      const d=await r.json();
+      records=records.concat((d.records||[]).filter(l=>{
+        const ll=l.fields['LOT']; return Array.isArray(ll)&&ll.includes(lotId);
+      }));
+      offset=d.offset||null;
+    }while(offset);
+    records.forEach(l=>{
       const plat=Fstr(l,'PLATFORM').toUpperCase();
       if(!VHS_PLATFORMS.includes(plat)||!lotCurrent?.draft[plat]) return;
       lotCurrent.draft[plat].title=Fstr(l,'LISTING TITLE')||'';
@@ -1629,13 +1673,18 @@ async function loadLotListings(lotId){
       lotCurrent.draft[plat].published=['Active','Sold'].includes(Fstr(l,'LISTING STATUS'));
       lotCurrent.draft[plat].recId=l.id;
     });
-    showLotPlatTab(lotActivePlat);
-    // fill URL inputs and checkboxes
+    // Populate current tab
+    const d=lotCurrent.draft[lotActivePlat]||{};
+    if($('#lotLTitle'))    $('#lotLTitle').value    = d.title||'';
+    if($('#lotLBody'))     $('#lotLBody').value     = d.body||'';
+    if($('#lotLKeywords')) $('#lotLKeywords').value = d.keywords||'';
+    // Fill URL inputs and checkboxes
     VHS_PLATFORMS.forEach(p=>{
       const u=$('#lotUrl-'+p); if(u) u.value=lotCurrent.draft[p]?.url||'';
       const c=document.querySelector(`.pub-check[data-lplat="${p}"]`);
       if(c) c.classList.toggle('checked',!!lotCurrent.draft[p]?.published);
     });
+    updateLotTabDots();
   }catch(e){ console.error('Lot listings load error:',e); }
 }
 
@@ -1677,6 +1726,7 @@ Use plain text only — no HTML tags, no br tags.`;
     if($('#lotLTitle'))    $('#lotLTitle').value    = _ld.title||'';
     if($('#lotLBody'))     $('#lotLBody').value     = _ld.body||'';
     if($('#lotLKeywords')) $('#lotLKeywords').value = _ld.keywords||'';
+    updateLotTabDots();
     toast('Lot listings generated ✓','ok');
     await persistLotListings();
   }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }

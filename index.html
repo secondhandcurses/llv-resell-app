@@ -386,7 +386,7 @@
           <span class="count" id="tapeCount"></span>
         </div>
       </div>
-      <div id="tapeBody" class="inv-grid"></div>
+      <div id="tapeBody"></div>
     </div>
   </div>
 </div>
@@ -456,6 +456,107 @@
           </div>
           <button class="save-btn" id="savePlanBtn" onclick="savePlanSale()" style="margin-top:4px">Add Sale</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOT WORKSPACE -->
+<div id="view-lot" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="lotBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="chip">Lot Workspace</span>
+        <span class="chip" id="lotStatusChip">Draft</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start">
+
+      <!-- LEFT: Lot details + pricing + photos -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="panel">
+          <div class="panel-head"><span class="ph-title">Lot Record</span></div>
+          <div style="padding:14px">
+            <div class="plan-mf"><label>Lot Name</label><input id="lotName" placeholder="e.g. Tom Cruise"></div>
+            <div class="plan-mf"><label>Theme</label><input id="lotTheme" placeholder="e.g. Actor, Genre, Studio"></div>
+            <div class="plan-mf"><label>Status</label>
+              <select id="lotStatus">
+                <option value="Draft">Draft</option>
+                <option value="Listed">Listed</option>
+                <option value="Sold">Sold</option>
+              </select>
+            </div>
+            <div class="plan-mf"><label>Asking Price</label><input id="lotAsk" type="number" step="0.01" placeholder="0.00" oninput="updateLotPricing()"></div>
+            <div class="plan-mf"><label>Notes</label><textarea id="lotNotes" placeholder="Condition summary, provenance, caveats…"></textarea></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><span class="ph-title">Pricing</span></div>
+          <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">Tape count</span><span style="font-family:'DM Mono';font-size:.72rem" id="lotTapeCount">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">Total COG</span><span style="font-family:'DM Mono';font-size:.72rem" id="lotTotalCog">—</span></div>
+            <div style="height:1px;background:var(--line);margin:2px 0"></div>
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">Asking price</span><span style="font-family:'Oswald';font-size:1.1rem;color:var(--lav)" id="lotPricingAsk">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">eBay net</span><span style="font-family:'DM Mono';font-size:.72rem" id="lotPricingNet">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">Margin</span><span style="font-family:'DM Mono';font-size:.72rem" id="lotPricingMargin">—</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><span class="ph-title">Photos</span><span id="lotPhotoCount" style="font-family:'DM Mono';font-size:.62rem;color:var(--olive)">0 photos</span></div>
+          <div style="padding:12px 14px">
+            <div id="lotPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:10px"></div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed var(--line);border-radius:8px;padding:12px;cursor:pointer;font-family:'DM Mono';font-size:.64rem;color:var(--olive)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload photos
+              <input type="file" accept="image/*" multiple onchange="uploadLotPhotos(this)" style="display:none">
+            </label>
+          </div>
+        </div>
+
+        <button class="save-btn" id="lotSaveBtn" onclick="saveLotRecord()" style="width:100%">Save Lot</button>
+      </div>
+
+      <!-- RIGHT: Tapes + add tape + listing copy -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="ph-title">Tapes in Lot</span>
+            <span class="count" id="lotTapesLabel">0 tapes</span>
+          </div>
+          <div style="padding:12px 14px">
+            <div id="lotTapesList" style="margin-bottom:14px"></div>
+            <div style="border-top:1px solid var(--line);padding-top:12px">
+              <div style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:6px">Add tape to lot</div>
+              <input id="lotTapeSearch" placeholder="Search by title…" oninput="searchTapesToAdd()" style="width:100%;font-family:'DM Mono';font-size:.72rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:8px 11px;border-radius:8px;outline:none;margin-bottom:6px">
+              <div id="lotTapeSearchResults"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="ph-title">Listing Copy</span>
+            <button id="lotGenBtn" onclick="generateLotListings()" style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;background:var(--grape);color:var(--mauve);border:none;border-radius:7px;cursor:pointer">Generate All</button>
+          </div>
+          <div style="padding:12px 14px">
+            <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap" id="lotPlatTabs">
+              <button class="plat-tab active" data-lpt="EBAY">eBay</button>
+              <button class="plat-tab" data-lpt="ETSY">Etsy</button>
+              <button class="plat-tab" data-lpt="FACEBOOK">Facebook</button>
+              <button class="plat-tab" data-lpt="MERCARI">Mercari</button>
+              <button class="plat-tab" data-lpt="OFFERUP">OfferUp</button>
+            </div>
+            <div class="plan-mf"><label>Title</label><input id="lotLTitle" placeholder="Listing title…"></div>
+            <div class="plan-mf"><label>Description</label><textarea id="lotLBody" style="min-height:140px" placeholder="Listing copy…"></textarea></div>
+            <div class="plan-mf"><label>Keywords</label><input id="lotLKeywords" placeholder="Keywords…"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -985,7 +1086,7 @@ function renderTapeInventory(){
   const lotIds=new Set();
   TAPES.forEach(t=>{ const l=F(t,'LOT'); (Array.isArray(l)?l:[l]).forEach(id=>id&&lotIds.add(id)); });
 
-  let html='<div class="inv-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">';
+  let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px">';
 
   if(typeF!=='tape'){
     LOTS.filter(lot=>{
@@ -1268,7 +1369,7 @@ const VHS_PLATFORMS = ['EBAY','ETSY','FACEBOOK','MERCARI','OFFERUP'];
 const VHS_FEES = { EBAY:{pct:0.1325,flat:0.40}, MERCARI:{pct:0.10,flat:0} };
 
 function hideAllViews(){
-  ['view-home','view-ws','view-labels','view-plan','view-vhs'].forEach(id=>{
+  ['view-home','view-ws','view-labels','view-plan','view-vhs','view-lot'].forEach(id=>{
     const el=$('#'+id); if(el) el.classList.remove('active');
   });
 }
@@ -1304,8 +1405,289 @@ async function openVhsWorkspace(tapeId){
   }
 }
 
-function openLotWorkspace(lotId){
-  toast('Lot workspace — coming soon','');
+/* ============================================================
+   Lot Workspace
+   ============================================================ */
+let lotCurrent = null; // { recId, draft:{}, lotTapeIds:[] }
+let lotActivePlat = 'EBAY';
+
+async function openLotWorkspace(lotId){
+  hideAllViews(); $('#view-lot').classList.add('active'); window.scrollTo(0,0);
+  lotActivePlat = 'EBAY';
+  lotCurrent = { recId:lotId, draft:{} };
+  VHS_PLATFORMS.forEach(p=>{ lotCurrent.draft[p]={title:'',body:'',keywords:'',recId:null}; });
+  resetLotForm();
+  if(CFG.lots){
+    try{
+      const lot = await atGet(CFG.lots, lotId);
+      fillLotForm(lot);
+      if(CFG.tapeListings) await loadLotListings(lotId);
+    }catch(e){ toast('Could not load lot: '+e.message,'err'); }
+  }
+}
+
+function resetLotForm(){
+  ['lotName','lotAsk','lotNotes','lotTheme','lotLTitle','lotLBody','lotLKeywords','lotTapeSearch'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  if($('#lotStatus')) $('#lotStatus').value='Draft';
+  $('#lotTapesList').innerHTML=''; $('#lotTapeSearchResults').innerHTML='';
+  $('#lotPhotoGrid').innerHTML=''; $('#lotPhotoCount').textContent='0 photos';
+  $('#lotTapeCount').textContent='—'; $('#lotTotalCog').textContent='—';
+  updateLotPricing();
+}
+
+function fillLotForm(lot){
+  const f = lot.fields||{};
+  if($('#lotName'))  $('#lotName').value  = f['LOT NAME']||'';
+  if($('#lotTheme')) $('#lotTheme').value = f['THEME']||'';
+  if($('#lotStatus'))$('#lotStatus').value= f['STATUS']||'Draft';
+  if($('#lotAsk'))   $('#lotAsk').value   = f['ASKING PRICE']||'';
+  if($('#lotNotes')) $('#lotNotes').value = f['NOTES']||'';
+  const statusChip = $('#lotStatusChip'); if(statusChip) statusChip.textContent = f['STATUS']||'Draft';
+  // Tape links
+  const tapeLinks = f['TAPES']||[];
+  lotCurrent.lotTapeIds = Array.isArray(tapeLinks) ? [...tapeLinks] : [];
+  renderLotTapes();
+  // Photos
+  renderLotPhotos(f['PHOTOS']||[]);
+  // Pricing
+  const cog = f['TOTAL COST']||0;
+  $('#lotTapeCount').textContent = (f['TAPE COUNT']||0)+' tapes';
+  $('#lotTotalCog').textContent  = money(cog);
+  updateLotPricing();
+}
+
+function updateLotPricing(){
+  const ask = parseFloat($('#lotAsk')?.value)||0;
+  const cogEl = $('#lotTotalCog');
+  const cog = cogEl ? parseFloat(cogEl.textContent.replace('$',''))||0 : 0;
+  const e = VHS_FEES.EBAY;
+  const net = ask - (ask*e.pct+e.flat);
+  const margin = cog>0 ? ((net-cog)/cog*100) : 0;
+  if($('#lotPricingAsk'))    $('#lotPricingAsk').textContent    = ask ? money(ask) : '—';
+  if($('#lotPricingNet'))    $('#lotPricingNet').textContent    = ask ? money(net) : '—';
+  if($('#lotPricingMargin')) $('#lotPricingMargin').textContent = ask&&cog ? margin.toFixed(0)+'%' : '—';
+}
+
+// ── Tape list ─────────────────────────────────────────────────
+function renderLotTapes(){
+  const list = $('#lotTapesList'), label = $('#lotTapesLabel');
+  if(!list) return;
+  const tapes = (lotCurrent?.lotTapeIds||[]).map(id=>TAPES.find(t=>t.id===id)).filter(Boolean);
+  if(label) label.textContent = tapes.length+' tape'+(tapes.length!==1?'s':'');
+  if(!tapes.length){ list.innerHTML='<div style="font-family:\'DM Mono\';font-size:.66rem;color:var(--olive);padding:8px 0">No tapes in this lot yet.</div>'; return; }
+  list.innerHTML = tapes.map(t=>{
+    const f = t.fields||{};
+    const meta = [Fnum(t,'YEAR')||'', Fstr(t,'CONDITION')||''].filter(Boolean).join(' · ');
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Oswald';font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(Fstr(t,'TITLE'))}</div>
+        <div style="font-family:'DM Mono';font-size:.6rem;color:var(--olive)">${esc(meta)}</div>
+      </div>
+      <div style="font-family:'DM Mono';font-size:.7rem;color:var(--silver);flex:none">${money(Fnum(t,'ASKING PRICE'))}</div>
+      <button onclick="removeTapeFromLot('${t.id}')" style="font-family:'DM Mono';font-size:.55rem;padding:4px 8px;background:none;border:1px solid var(--line);border-radius:5px;color:var(--olive);cursor:pointer;flex:none" onmouseover="this.style.color='var(--err)';this.style.borderColor='var(--err)'" onmouseout="this.style.color='var(--olive)';this.style.borderColor='var(--line)'">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Search tapes to add ───────────────────────────────────────
+function searchTapesToAdd(){
+  const q = ($('#lotTapeSearch')?.value||'').toLowerCase().trim();
+  const res = $('#lotTapeSearchResults'); if(!res) return;
+  if(!q){ res.innerHTML=''; return; }
+  const candidates = TAPES.filter(t=>{
+    if(lotCurrent?.lotTapeIds?.includes(t.id)) return false; // already in lot
+    return Fstr(t,'TITLE').toLowerCase().includes(q);
+  }).slice(0,6);
+  if(!candidates.length){ res.innerHTML='<div style="font-family:\'DM Mono\';font-size:.62rem;color:var(--olive);padding:4px 0">No matches.</div>'; return; }
+  res.innerHTML = candidates.map(t=>{
+    const f = t.fields||{};
+    return `<div onclick="addTapeToLot('${t.id}')" style="padding:7px 10px;border:1px solid var(--line);border-radius:7px;cursor:pointer;margin-bottom:5px;transition:.12s" onmouseover="this.style.borderColor='var(--lav)'" onmouseout="this.style.borderColor='var(--line)'">
+      <div style="font-family:'DM Mono';font-size:.7rem">${esc(Fstr(t,'TITLE'))}${f['YEAR']?' ('+f['YEAR']+')':''}</div>
+      <div style="font-family:'DM Mono';font-size:.6rem;color:var(--olive)">${esc(Fstr(t,'CONDITION')||'')} ${money(Fnum(t,'ASKING PRICE'))}</div>
+    </div>`;
+  }).join('');
+}
+
+async function addTapeToLot(tapeId){
+  if(!lotCurrent?.recId){ toast('Save lot first','err'); return; }
+  if(lotCurrent.lotTapeIds.includes(tapeId)) return;
+  try{
+    // Patch tape to link to this lot
+    await atPatch(CFG.tapes, tapeId, {'LOT':[lotCurrent.recId]});
+    lotCurrent.lotTapeIds.push(tapeId);
+    // Update TAPES cache
+    const updated = await atGet(CFG.tapes, tapeId);
+    const idx = TAPES.findIndex(t=>t.id===tapeId);
+    if(idx>=0) TAPES[idx]=updated; else TAPES.push(updated);
+    renderLotTapes(); renderTapeInventory();
+    $('#lotTapeSearch').value=''; $('#lotTapeSearchResults').innerHTML='';
+    toast('Tape added to lot ✓','ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function removeTapeFromLot(tapeId){
+  if(!lotCurrent?.recId) return;
+  try{
+    await atPatch(CFG.tapes, tapeId, {'LOT':[]});
+    lotCurrent.lotTapeIds = lotCurrent.lotTapeIds.filter(id=>id!==tapeId);
+    const idx = TAPES.findIndex(t=>t.id===tapeId);
+    if(idx>=0){ TAPES[idx]=await atGet(CFG.tapes,tapeId); }
+    renderLotTapes(); renderTapeInventory();
+    toast('Tape removed from lot','ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ── Photos ────────────────────────────────────────────────────
+function renderLotPhotos(photos){
+  const grid=$('#lotPhotoGrid'), ct=$('#lotPhotoCount');
+  if(ct) ct.textContent=photos.length+' photo'+(photos.length!==1?'s':'');
+  if(!grid) return;
+  grid.innerHTML=photos.map((p,i)=>`<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--line)">
+    <img src="${esc(p.url)}" style="width:100%;height:100%;object-fit:cover" alt="">
+    <button onclick="deleteLotPhoto('${p.id}')" style="position:absolute;top:3px;right:3px;background:rgba(26,24,24,.7);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;color:#fff;font-size:10px;line-height:18px;text-align:center">×</button>
+  </div>`).join('');
+}
+
+async function uploadLotPhotos(input){
+  if(!lotCurrent?.recId){ toast('Save the lot first, then upload photos','err'); return; }
+  for(const file of input.files){
+    const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+    try{
+      const r=await fetch(`https://content.airtable.com/v0/${CFG.base}/${lotCurrent.recId}/PHOTOS/uploadAttachment`,{
+        method:'POST',headers:{'Authorization':'Bearer '+CFG.airtable,'Content-Type':'application/json'},
+        body:JSON.stringify({contentType:file.type,filename:file.name,file:b64})
+      });
+      if(!r.ok) throw new Error('Upload failed');
+      toast('Photo uploaded ✓','ok');
+      const updated=await atGet(CFG.lots,lotCurrent.recId);
+      renderLotPhotos(F(updated,'PHOTOS')||[]);
+    }catch(e){ toast(e.message,'err'); }
+  }
+  input.value='';
+}
+
+async function deleteLotPhoto(attachId){
+  if(!lotCurrent?.recId) return;
+  try{
+    const lot=await atGet(CFG.lots,lotCurrent.recId);
+    const photos=(F(lot,'PHOTOS')||[]).filter(p=>p.id!==attachId);
+    await atPatch(CFG.lots,lotCurrent.recId,{'PHOTOS':photos.map(p=>({id:p.id}))});
+    renderLotPhotos(photos); toast('Photo removed','ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ── Platform tabs ─────────────────────────────────────────────
+function syncLotDraftTab(){
+  const d=lotCurrent?.draft[lotActivePlat]; if(!d) return;
+  d.title=$('#lotLTitle').value; d.body=$('#lotLBody').value; d.keywords=$('#lotLKeywords').value;
+}
+function showLotPlatTab(plat){
+  syncLotDraftTab(); lotActivePlat=plat;
+  document.querySelectorAll('#lotPlatTabs .plat-tab').forEach(b=>b.classList.toggle('active',b.dataset.lpt===plat));
+  const d=lotCurrent?.draft[plat]||{};
+  if($('#lotLTitle'))    $('#lotLTitle').value    = d.title||'';
+  if($('#lotLBody'))     $('#lotLBody').value     = d.body||'';
+  if($('#lotLKeywords')) $('#lotLKeywords').value = d.keywords||'';
+}
+document.querySelectorAll('#lotPlatTabs .plat-tab').forEach(b=>b.addEventListener('click',()=>showLotPlatTab(b.dataset.lpt)));
+
+// ── Load lot listings ─────────────────────────────────────────
+async function loadLotListings(lotId){
+  if(!CFG.tapeListings) return;
+  try{
+    const formula=encodeURIComponent(`FIND("${lotId}",ARRAYJOIN({LOT}))`);
+    const r=await fetch(`https://api.airtable.com/v0/${CFG.base}/${CFG.tapeListings}?filterByFormula=${formula}`,{
+      headers:{Authorization:'Bearer '+CFG.airtable}
+    });
+    const d=await r.json();
+    (d.records||[]).forEach(l=>{
+      const plat=Fstr(l,'PLATFORM').toUpperCase();
+      if(!VHS_PLATFORMS.includes(plat)||!lotCurrent?.draft[plat]) return;
+      lotCurrent.draft[plat].title=Fstr(l,'LISTING TITLE')||'';
+      lotCurrent.draft[plat].body=Fstr(l,'LISTING BODY')||'';
+      lotCurrent.draft[plat].keywords=Fstr(l,'KEYWORDS')||'';
+      lotCurrent.draft[plat].recId=l.id;
+    });
+    showLotPlatTab(lotActivePlat);
+  }catch(e){ console.error('Lot listings load error:',e); }
+}
+
+// ── Generate Listings ─────────────────────────────────────────
+async function generateLotListings(){
+  if(!CFG.anthropic){ toast('Add your Anthropic key in credentials','err'); return; }
+  syncLotDraftTab();
+  const btn=$('#lotGenBtn'); if(btn){btn.disabled=true;btn.textContent='Generating…';}
+  const lotName = $('#lotName').value||'Lot';
+  const theme   = $('#lotTheme').value||'';
+  const ask     = $('#lotAsk').value||'?';
+  const tapes   = (lotCurrent?.lotTapeIds||[]).map(id=>TAPES.find(t=>t.id===id)).filter(Boolean);
+  const tapeList = tapes.map(t=>`• ${Fstr(t,'TITLE')||'?'} (${Fnum(t,'YEAR')||'?'}) — ${Fstr(t,'CONDITION')||'?'} — ${Fstr(t,'SPECIAL FEATURES')||'none'}`).join('\n');
+  const prompt=`You are writing resale listings for a VHS lot.
+Lot name: "${lotName}"${theme?' | Theme: '+theme:''}
+Asking price: $${ask}
+Tapes included (${tapes.length} total):
+${tapeList||'No tapes listed yet'}
+Write optimized listings for eBay, Etsy, Facebook, Mercari, and OfferUp.
+Return ONLY valid JSON with keys: EBAY, ETSY, FACEBOOK, MERCARI, OFFERUP.
+Each has: title (platform-optimized, max 80 chars), body (full description listing each tape), keywords (comma-separated).
+eBay/Etsy: detailed, list every tape title, keyword-rich, emphasize lot value.
+Facebook/OfferUp: conversational, mention the lot theme and price.
+Mercari: balanced, list films included.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:2500,messages:[{role:'user',content:prompt}]})
+    });
+    if(!r.ok) throw new Error('Anthropic '+r.status);
+    const j=await r.json();
+    const text=(j.content||[]).map(c=>c.type==='text'?c.text:'').join('').trim().replace(/^```json|^```|```$/gm,'').trim();
+    const data=JSON.parse(text);
+    VHS_PLATFORMS.forEach(p=>{ const g=data[p]; if(g&&lotCurrent?.draft[p]){ const d=lotCurrent.draft[p]; d.title=g.title||d.title; d.body=g.body||d.body; d.keywords=g.keywords||d.keywords; } });
+    showLotPlatTab(lotActivePlat);
+    toast('Lot listings generated ✓','ok');
+    await persistLotListings();
+  }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }
+  finally{ if(btn){btn.disabled=false;btn.textContent='Generate All';} }
+}
+
+async function persistLotListings(){
+  if(!CFG.tapeListings||!lotCurrent?.recId) return;
+  syncLotDraftTab();
+  for(const p of VHS_PLATFORMS){
+    const d=lotCurrent.draft[p]; if(!(d.title||d.body||d.keywords)) continue;
+    const fields={'LISTING TITLE':d.title,'PLATFORM':p,'LISTING BODY':d.body,'KEYWORDS':d.keywords,'LISTING STATUS':'Draft','LOT':[lotCurrent.recId]};
+    try{
+      if(d.recId){ await atPatch(CFG.tapeListings,d.recId,fields); }
+      else{ const created=await atCreate(CFG.tapeListings,fields); d.recId=created.id; }
+    }catch(e){ console.error('Lot listing persist error',p,e); }
+  }
+}
+
+// ── Save Lot ──────────────────────────────────────────────────
+async function saveLotRecord(){
+  const name = $('#lotName')?.value?.trim();
+  if(!name){ toast('Lot name is required','err'); return; }
+  if(!CFG.lots){ toast('Lots table ID not set — add in credentials','err'); return; }
+  const btn=$('#lotSaveBtn'); if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  const fields={
+    'LOT NAME':    name,
+    'THEME':       $('#lotTheme')?.value?.trim()||'',
+    'STATUS':      $('#lotStatus')?.value||'Draft',
+    'NOTES':       $('#lotNotes')?.value?.trim()||'',
+  };
+  const ask=parseFloat($('#lotAsk')?.value); if(ask) fields['ASKING PRICE']=ask;
+  try{
+    await atPatch(CFG.lots, lotCurrent.recId, fields);
+    const statusChip=$('#lotStatusChip'); if(statusChip) statusChip.textContent=fields['STATUS'];
+    await persistLotListings();
+    // refresh LOTS cache
+    const updatedLot=await atGet(CFG.lots,lotCurrent.recId);
+    const li=LOTS.findIndex(l=>l.id===lotCurrent.recId);
+    if(li>=0) LOTS[li]=updatedLot; else LOTS.push(updatedLot);
+    renderTapeInventory();
+    toast('Lot saved ✓','ok');
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+  finally{ if(btn){btn.disabled=false;btn.textContent='Save Lot';} }
 }
 
 // ── Form helpers ─────────────────────────────────────────────
@@ -2273,6 +2655,7 @@ $('#labelsBtn').addEventListener('click',openLabelsView);
 $('#planBtn').addEventListener('click',openPlanView);
 $('#vhsBtn').addEventListener('click',()=>openVhsIntake(''));
 $('#vhsBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
+$('#lotBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#vhsNewTapeBtn').addEventListener('click',()=>openVhsIntake(''));
 $('#planBackBtn').addEventListener('click',()=>{ $('#view-plan').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#labelsBackBtn').addEventListener('click',()=>{ $('#view-labels').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });

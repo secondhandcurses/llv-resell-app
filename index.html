@@ -325,6 +325,8 @@
   /* VHS workspace */
   .sf-chip{font-family:'DM Mono';font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;background:none;border:1px solid var(--line);border-radius:6px;color:var(--olive);cursor:pointer;transition:.12s}
   .sf-chip.active{background:var(--grape);border-color:var(--grape);color:var(--mauve)}
+  .copy-btn{font-family:'DM Mono';font-size:.5rem;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;background:none;border:1px solid var(--line);border-radius:4px;color:var(--olive);cursor:pointer;transition:.12s;flex:none}
+  .copy-btn:hover{border-color:var(--lav);color:var(--lav)}
   .plat-tab{font-family:'DM Mono';font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;background:none;border:1px solid var(--line);border-radius:7px;color:var(--olive);cursor:pointer;transition:.12s}
   .plat-tab.active{background:var(--grape);border-color:var(--grape);color:var(--mauve)}
   .pub-check{display:inline-block;width:18px;height:18px;border:1px solid var(--line);border-radius:4px;flex:none;cursor:pointer;transition:.12s}
@@ -553,9 +555,29 @@
               <button class="plat-tab" data-lpt="MERCARI">Mercari</button>
               <button class="plat-tab" data-lpt="OFFERUP">OfferUp</button>
             </div>
-            <div class="plan-mf"><label>Title</label><input id="lotLTitle" placeholder="Listing title…"></div>
-            <div class="plan-mf"><label>Description</label><textarea id="lotLBody" style="min-height:140px" placeholder="Listing copy…"></textarea></div>
-            <div class="plan-mf"><label>Keywords</label><input id="lotLKeywords" placeholder="Keywords…"></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Title</label><button class="copy-btn" onclick="copyField('lotLTitle')">Copy</button></div><input id="lotLTitle" placeholder="Listing title…"></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Description</label><button class="copy-btn" onclick="copyField('lotLBody')">Copy</button></div><textarea id="lotLBody" style="min-height:140px" placeholder="Listing copy…"></textarea></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Keywords</label><button class="copy-btn" onclick="copyField('lotLKeywords')">Copy</button></div><input id="lotLKeywords" placeholder="Keywords…"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><span class="ph-title">Publish</span></div>
+          <div style="padding:12px 14px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+              <a href="https://www.ebay.com/sl/sell" target="_blank" rel="noopener" class="launch-btn" title="Create on eBay"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>eBay</a>
+              <a href="https://www.etsy.com/sell" target="_blank" rel="noopener" class="launch-btn" title="Create on Etsy"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Etsy</a>
+              <a href="https://www.facebook.com/marketplace/create/item" target="_blank" rel="noopener" class="launch-btn" title="Create on Facebook"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Facebook</a>
+              <a href="https://www.mercari.com/sell/" target="_blank" rel="noopener" class="launch-btn" title="Create on Mercari"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Mercari</a>
+              <a href="https://offerup.com/post" target="_blank" rel="noopener" class="launch-btn" title="Create on OfferUp"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>OfferUp</a>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">eBay</span><input id="lotUrl-EBAY" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="EBAY"></span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Etsy</span><input id="lotUrl-ETSY" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="ETSY"></span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Facebook</span><input id="lotUrl-FACEBOOK" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="FACEBOOK"></span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">Mercari</span><input id="lotUrl-MERCARI" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="MERCARI"></span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-family:'DM Mono';font-size:.62rem;width:58px;color:var(--olive)">OfferUp</span><input id="lotUrl-OFFERUP" type="url" placeholder="paste URL…" style="flex:1;font-size:.68rem;min-width:0"><span class="pub-check" data-lplat="OFFERUP"></span></div>
+            </div>
           </div>
         </div>
 
@@ -563,8 +585,6 @@
     </div>
   </div>
 </div>
-
-<!-- VHS WORKSPACE -->
 <div id="view-vhs" class="view">
   <div class="wrap">
     <div class="ws-top">
@@ -679,9 +699,9 @@
               <button class="plat-tab" data-pt="MERCARI">Mercari</button>
               <button class="plat-tab" data-pt="OFFERUP">OfferUp</button>
             </div>
-            <div class="plan-mf"><label>Title</label><input id="vhsLTitle" placeholder="Listing title…"></div>
-            <div class="plan-mf"><label>Description</label><textarea id="vhsLBody" style="min-height:120px" placeholder="Listing copy…"></textarea></div>
-            <div class="plan-mf"><label>Keywords / Item Specifics</label><input id="vhsLKeywords" placeholder="Keywords…"></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Title</label><button class="copy-btn" onclick="copyField('vhsLTitle')">Copy</button></div><input id="vhsLTitle" placeholder="Listing title…"></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Description</label><button class="copy-btn" onclick="copyField('vhsLBody')">Copy</button></div><textarea id="vhsLBody" style="min-height:120px" placeholder="Listing copy…"></textarea></div>
+            <div class="plan-mf"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><label style="margin:0">Keywords / Item Specifics</label><button class="copy-btn" onclick="copyField('vhsLKeywords')">Copy</button></div><input id="vhsLKeywords" placeholder="Keywords…"></div>
           </div>
         </div>
 
@@ -897,6 +917,7 @@ let vhsCurrent = null;    // active tape workspace state
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const stripHtml = s => (s||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').trim();
+function copyField(id){ const el=$('#'+id); if(!el) return; navigator.clipboard.writeText(el.value||'').then(()=>toast('Copied ✓','ok')).catch(()=>{ const ta=document.createElement('textarea'); ta.value=el.value; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('Copied ✓','ok'); }); }
 const money = n => (n==null||isNaN(n))?'—':'$'+Number(n).toFixed(2);
 function todayISO(){ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // explicit, not toLocaleDateString
 function toast(msg,type){ const t=$('#toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:''); clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',type==='err'?5000:2600); }
@@ -1233,9 +1254,9 @@ function renderWorkspace(){
         <button class="gen-btn" id="genBtn"><svg viewBox="0 0 24 24"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>Generate all platforms</button></div>
       <div style="padding:6px 14px 0"><label style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);display:block;margin-bottom:5px">Context for AI <span style="text-transform:none;letter-spacing:0;font-family:'Barlow';font-size:.76rem">(optional)</span></label><textarea id="genContext" style="width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);font-family:'DM Mono';font-size:.72rem;padding:8px 10px;border-radius:8px;outline:none;resize:vertical;min-height:54px;line-height:1.5" placeholder="Sealed in shrink, estate find, notable provenance, quirks to mention…"></textarea></div>
       <div class="copy-body">
-        <div class="fld"><label><span class="lname">Title</span>${titleCount}</label><input id="d_title" value="${esc(d.title)}"></div>
-        <div class="fld"><label><span class="lname">Listing Body</span></label><textarea id="d_body">${esc(d.body)}</textarea></div>
-        <div class="fld"><label><span class="lname">${ap&&ap.key==='ETSY'?'Tags':'Keywords'}</span></label><input id="d_keywords" value="${esc(d.keywords)}"></div>
+        <div class="fld"><label><span class="lname">Title</span>${titleCount}</label><div style="display:flex;gap:6px;align-items:center"><input id="d_title" value="${esc(d.title)}" style="flex:1"><button class="copy-btn" onclick="copyField('d_title')">Copy</button></div></div>
+        <div class="fld"><label><span class="lname">Listing Body</span><button class="copy-btn" onclick="copyField('d_body')" style="margin-left:8px">Copy</button></label><textarea id="d_body">${esc(d.body)}</textarea></div>
+        <div class="fld"><label><span class="lname">${ap&&ap.key==='ETSY'?'Tags':'Keywords'}</span><button class="copy-btn" onclick="copyField('d_keywords')" style="margin-left:8px">Copy</button></label><input id="d_keywords" value="${esc(d.keywords)}"></div>
       </div>
     </div>
     <div class="panel">
@@ -1604,9 +1625,17 @@ async function loadLotListings(lotId){
       lotCurrent.draft[plat].title=Fstr(l,'LISTING TITLE')||'';
       lotCurrent.draft[plat].body=Fstr(l,'LISTING BODY')||'';
       lotCurrent.draft[plat].keywords=Fstr(l,'KEYWORDS')||'';
+      lotCurrent.draft[plat].url=Fstr(l,'LISTING URL')||'';
+      lotCurrent.draft[plat].published=['Active','Sold'].includes(Fstr(l,'LISTING STATUS'));
       lotCurrent.draft[plat].recId=l.id;
     });
     showLotPlatTab(lotActivePlat);
+    // fill URL inputs and checkboxes
+    VHS_PLATFORMS.forEach(p=>{
+      const u=$('#lotUrl-'+p); if(u) u.value=lotCurrent.draft[p]?.url||'';
+      const c=document.querySelector(`.pub-check[data-lplat="${p}"]`);
+      if(c) c.classList.toggle('checked',!!lotCurrent.draft[p]?.published);
+    });
   }catch(e){ console.error('Lot listings load error:',e); }
 }
 
@@ -1643,7 +1672,11 @@ Use plain text only — no HTML tags, no br tags.`;
     const text=(j.content||[]).map(c=>c.type==='text'?c.text:'').join('').trim().replace(/^```json|^```|```$/gm,'').trim();
     const data=JSON.parse(text);
     VHS_PLATFORMS.forEach(p=>{ const g=data[p]; if(g&&lotCurrent?.draft[p]){ const d=lotCurrent.draft[p]; d.title=stripHtml(g.title)||d.title; d.body=stripHtml(g.body)||d.body; d.keywords=stripHtml(g.keywords)||d.keywords; } });
-    showLotPlatTab(lotActivePlat);
+    // Populate form directly — calling showLotPlatTab would sync (overwrite) the generated data first
+    const _ld=lotCurrent.draft[lotActivePlat]||{};
+    if($('#lotLTitle'))    $('#lotLTitle').value    = _ld.title||'';
+    if($('#lotLBody'))     $('#lotLBody').value     = _ld.body||'';
+    if($('#lotLKeywords')) $('#lotLKeywords').value = _ld.keywords||'';
     toast('Lot listings generated ✓','ok');
     await persistLotListings();
   }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }
@@ -1655,7 +1688,10 @@ async function persistLotListings(){
   syncLotDraftTab();
   for(const p of VHS_PLATFORMS){
     const d=lotCurrent.draft[p]; if(!(d.title||d.body||d.keywords)) continue;
-    const fields={'LISTING TITLE':d.title,'PLATFORM':p,'LISTING BODY':d.body,'KEYWORDS':d.keywords,'LISTING STATUS':'Draft','LOT':[lotCurrent.recId]};
+    const url=($('#lotUrl-'+p)?.value?.trim())||d.url||'';
+    const published=d.published||document.querySelector(`.pub-check[data-lplat="${p}"]`)?.classList.contains('checked')||false;
+    const fields={'LISTING TITLE':d.title,'PLATFORM':p,'LISTING BODY':d.body,'KEYWORDS':d.keywords,
+      'LISTING URL':url,'LISTING STATUS':published?'Active':'Draft','LOT':[lotCurrent.recId]};
     try{
       if(d.recId){ await atPatch(CFG.tapeListings,d.recId,fields); }
       else{ const created=await atCreate(CFG.tapeListings,fields); d.recId=created.id; }
@@ -1848,16 +1884,20 @@ function syncVhsDraftTab(){
 function showVhsPlatTab(plat){
   syncVhsDraftTab();
   vhsActivePlat=plat;
-  document.querySelectorAll('.plat-tab').forEach(b=>b.classList.toggle('active',b.dataset.pt===plat));
+  document.querySelectorAll('#vhsPlatTabs .plat-tab').forEach(b=>b.classList.toggle('active',b.dataset.pt===plat));
   const d=vhsCurrent?.draft[plat]||{};
   if($('#vhsLTitle')) $('#vhsLTitle').value=d.title||'';
   if($('#vhsLBody'))  $('#vhsLBody').value=d.body||'';
   if($('#vhsLKeywords')) $('#vhsLKeywords').value=d.keywords||'';
 }
-document.querySelectorAll('.plat-tab').forEach(b=>b.addEventListener('click',()=>showVhsPlatTab(b.dataset.pt)));
+document.querySelectorAll('#vhsPlatTabs .plat-tab').forEach(b=>b.addEventListener('click',()=>showVhsPlatTab(b.dataset.pt)));
 
 // ── Publish checklist ────────────────────────────────────────
-document.querySelectorAll('.pub-check').forEach(c=>c.addEventListener('click',()=>{
+document.querySelectorAll('.pub-check[data-lplat]').forEach(c=>c.addEventListener('click',()=>{
+  c.classList.toggle('checked');
+  const p=c.dataset.lplat; if(lotCurrent?.draft[p]) lotCurrent.draft[p].published=c.classList.contains('checked');
+}));
+document.querySelectorAll('.pub-check[data-vplat]').forEach(c=>c.addEventListener('click',()=>{
   c.classList.toggle('checked');
   const p=c.dataset.vplat; if(vhsCurrent?.draft[p]) vhsCurrent.draft[p].published=c.classList.contains('checked');
 }));
@@ -2040,7 +2080,11 @@ Mercari: balanced, include shipping note.`;
     const text=(j.content||[]).map(c=>c.type==='text'?c.text:'').join('').trim().replace(/^```json|^```|```$/gm,'').trim();
     const data=JSON.parse(text);
     VHS_PLATFORMS.forEach(p=>{ const g=data[p]; if(g&&vhsCurrent?.draft[p]){ const d=vhsCurrent.draft[p]; d.title=stripHtml(g.title)||d.title; d.body=stripHtml(g.body)||d.body; d.keywords=stripHtml(g.keywords)||d.keywords; } });
-    showVhsPlatTab(vhsActivePlat);
+    // Populate form directly — calling showVhsPlatTab would sync (overwrite) the generated data first
+    const _vd=vhsCurrent.draft[vhsActivePlat]||{};
+    if($('#vhsLTitle'))    $('#vhsLTitle').value    = _vd.title||'';
+    if($('#vhsLBody'))     $('#vhsLBody').value     = _vd.body||'';
+    if($('#vhsLKeywords')) $('#vhsLKeywords').value = _vd.keywords||'';
     toast('VHS listings generated ✓','ok');
     await persistVhsListings();
   }catch(e){ console.error(e); toast('Generate failed: '+e.message,'err'); }

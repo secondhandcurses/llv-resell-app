@@ -1291,6 +1291,8 @@ function renderWorkspace(){
 }
 
 function wireWorkspace(){
+  // populate listing context from item record
+  const ctxEl=$('#genContext'); if(ctxEl && current?.item) ctxEl.value=Fstr(current.item,'LISTING CONTEXT')||'';
   // tabs — persist current field edits before switching
   document.querySelectorAll('#ptabs button').forEach(b=>b.addEventListener('click',()=>{ syncDraftFields(); current.active=b.dataset.tab; renderWorkspace(); }));
   // copy field edits
@@ -1443,6 +1445,8 @@ function fillLotForm(lot){
   renderLotTapes();
   // Photos
   renderLotPhotos(f['PHOTOS']||[]);
+  // listing context
+  if($('#lotGenContext')) $('#lotGenContext').value=f['LISTING CONTEXT']||'';
   // Pricing
   const cog = f['TOTAL COST']||0;
   $('#lotTapeCount').textContent = (f['TAPE COUNT']||0)+' tapes';
@@ -1679,6 +1683,7 @@ async function saveLotRecord(){
     'THEME':       $('#lotTheme')?.value?.trim()||'',
     'STATUS':      $('#lotStatus')?.value||'Draft',
     'NOTES':       $('#lotNotes')?.value?.trim()||'',
+    'LISTING CONTEXT': $('#lotGenContext')?.value?.trim()||'',
   };
   const ask=parseFloat($('#lotAsk')?.value); if(ask) fields['ASKING PRICE']=ask;
   try{
@@ -1743,6 +1748,8 @@ function fillVhsForm(tape){
   // photos
   const photos=f['PHOTOS']||[];
   renderVhsPhotos(photos);
+  // listing context
+  if($('#vhsGenContext')) $('#vhsGenContext').value=f['LISTING CONTEXT']||'';
   updateVhsPricing();
 }
 
@@ -2073,6 +2080,7 @@ async function saveVhsTape(){
     'CONDITION':$('#vhsCondition').value,
     'SPECIAL FEATURES':getActiveSf(),
     'NOTES':$('#vhsNotes').value.trim(),
+    'LISTING CONTEXT':$('#vhsGenContext')?.value?.trim()||'',
     'COST OF GOODS':parseFloat($('#vhsCog').value)||null,
     'ASKING PRICE':parseFloat($('#vhsAsk').value)||null,
     'STORAGE LOCATION':$('#vhsStorage').value.trim(),
@@ -2656,8 +2664,8 @@ async function saveAll(){
   const it=current.item, btn=$('#saveBtn'); btn.disabled=true; btn.textContent='Saving…';
   const pr=pricing(it);
   try{
-    // 1) item-level pricing
-    await atPatch(CFG.items, it.id, { 'ASK PRICE':pr.ask, 'FLOOR PRICE':pr.floor });
+    // 1) item-level pricing + listing context
+    await atPatch(CFG.items, it.id, { 'ASK PRICE':pr.ask, 'FLOOR PRICE':pr.floor, 'LISTING CONTEXT':$('#genContext')?.value?.trim()||'' });
     // 2) per-platform listings (upsert only platforms that have content or a URL)
     for(const p of PLATFORMS){
       const d=current.draft[p.key];

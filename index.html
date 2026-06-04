@@ -76,7 +76,7 @@
   .item-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;transition:.18s;display:flex;flex-direction:column}
   .item-card:hover{border-color:var(--lav);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.35)}
   .item-card .thumb{aspect-ratio:4/3;background:linear-gradient(135deg,#2a2626,#201d1d);display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line);overflow:hidden}
-  .item-card .thumb img{width:100%;height:100%;object-fit:cover}
+  .item-card .thumb img{width:100%;height:100%;object-fit:contain;object-position:center}
   .item-card .thumb .ph{width:34px;height:34px;stroke:rgba(189,187,176,.28);fill:none;stroke-width:1.4}
   .item-card .status{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:6px;background:rgba(20,18,18,.78);padding:4px 9px;border-radius:20px;font-family:'DM Mono';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
   .item-card .body{padding:13px 14px 15px}
@@ -352,6 +352,7 @@
   <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
   <button class="tb-btn" id="planBtn" title="Sourcing Plan"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4 M8 2v4 M3 10h18"/></svg></button>
   <button class="tb-btn" id="labelsBtn" title="Label Printer"><svg viewBox="0 0 24 24"><path d="M3 5v14 M7 5v14 M11 5v14 M15 5v14 M19 5v14"/></svg></button>
+  <button class="tb-btn" id="lotsBtn" title="Lots"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
   <button class="tb-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></button>
 </div>
 
@@ -451,7 +452,7 @@
 <div id="view-lot" class="view">
   <div class="wrap">
     <div class="ws-top">
-      <button class="back" id="lotBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <button class="back" id="lotBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Lots</button>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="chip">Lot Workspace</span>
         <span class="chip" id="lotStatusChip">Draft</span>
@@ -771,6 +772,24 @@
 
 
 
+<!-- LOTS LIST -->
+<div id="view-lots" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="lotsBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <span class="chip">Lots</span>
+    </div>
+    <div class="sec-head">
+      <h2>All Lots</h2>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button id="lotsNewBtn" style="font-family:'DM Mono';font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:#1a1818;background:linear-gradient(150deg,#6FB36A,#9ed39a);border:none;padding:8px 14px;border-radius:8px;cursor:pointer">+ New Lot</button>
+        <span class="count" id="lotsCount"></span>
+      </div>
+    </div>
+    <div id="lotsGrid"></div>
+  </div>
+</div>
+
 <!-- LABELS -->
 <div id="view-labels" class="view">
   <div class="wrap">
@@ -823,7 +842,10 @@
       <div class="mf"><label>Session <span class="modal-note" style="display:inline;margin:0">optional</span></label>
         <select id="ai-session"><option value="">No session</option></select>
       </div>
-      <p class="modal-note" style="margin-bottom:8px">eBay comps — fill in if you've already researched</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <p class="modal-note" style="margin:0">eBay comps — fill in if you've already researched</p>
+        <button type="button" id="aiCompsBtn" onclick="openAddItemComps()" style="font-family:'DM Mono';font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--lav);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;flex:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Sold comps</button>
+      </div>
       <div class="modal-2col">
         <div class="mf"><label>Comp Low</label><input id="ai-comp-low" type="number" inputmode="decimal" placeholder="0.00"></div>
         <div class="mf"><label>Comp High</label><input id="ai-comp-high" type="number" inputmode="decimal" placeholder="0.00"></div>
@@ -1204,7 +1226,7 @@ function netCalc(listPrice){
 
 function openWorkspace(itemId){
   const item=ITEMS.find(i=>i.id===itemId); if(!item) return;
-  wsSelectedSalePlat=null;
+  wsSelectedSalePlat=null; wsSoldFulfillment='SHIPPING';
   const listings=LISTINGS_BY_ITEM[itemId]||{};
   // build editable draft from existing listings
   const draft={}; PLATFORMS.forEach(p=>{
@@ -1251,6 +1273,10 @@ function renderWorkspace(){
         <div style="display:flex;flex-wrap:wrap;gap:4px" id="wsSfChips">
           ${VHS_SF.map(sf=>`<button class="sf-chip${vhsSf.toUpperCase().includes(sf.toUpperCase())?' active':''}" data-sf="${sf}" onclick="this.classList.toggle('active')">${sf}</button>`).join('')}
         </div>
+      </div>
+      <div style="margin-top:10px">
+        <div style="font-family:'DM Mono';font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);margin-bottom:5px">Synopsis <span style="text-transform:none;letter-spacing:0;font-family:'Barlow';font-size:.72rem;color:var(--olive)">— from TMDB, plot summary</span></div>
+        <textarea class="ws-vf" data-f="SYNOPSIS" placeholder="Plot summary — auto-filled by TMDB, editable" style="width:100%;font-family:'DM Mono';font-size:.72rem;background:var(--panel-2);border:1px solid var(--line);color:var(--txt);padding:7px 9px;border-radius:6px;outline:none;resize:vertical;min-height:64px;line-height:1.5">${esc(Fstr(it,'SYNOPSIS'))}</textarea>
       </div>
     </div>`:'';
 
@@ -1351,7 +1377,7 @@ function renderWorkspace(){
   const right=`<div class="panel">
       <div class="panel-head"><span class="ph-title">Live Record</span></div>
       <div class="live-head"><span class="dot ${sd.cls}" style="width:12px;height:12px"></span>
-        <div><div class="lh-name">${esc(Fstr(it,'ITEM NAME'))}</div><div class="lh-status"><span>${esc(itemStatus)}</span> · ${pubCount} of ${PLATFORMS.length} published</div></div></div>
+        <div style="flex:1;min-width:0"><div class="lh-name">${esc(Fstr(it,'ITEM NAME'))}</div><div class="lh-status"><select onchange="wsChangeStatus(this.value)" style="font-family:'DM Mono';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:2px 6px;outline:none;cursor:pointer">${STATUS_OPTS.map(s=>`<option${s===itemStatus.toUpperCase()?' selected':''}>${s}</option>`).join('')}</select> · ${pubCount} of ${PLATFORMS.length} published</div></div></div>
       <div style="padding:0 17px"><span class="label">Publish Checklist</span></div>
       <div class="checklist">${pubRows}</div>
     </div>
@@ -1440,7 +1466,7 @@ const VHS_PLATFORMS = ['EBAY','ETSY','FACEBOOK','MERCARI','OFFERUP'];
 const VHS_FEES = { EBAY:{pct:0.1325,flat:0.40}, MERCARI:{pct:0.10,flat:0} };
 
 function hideAllViews(){
-  ['view-home','view-ws','view-labels','view-plan','view-vhs','view-lot'].forEach(id=>{
+  ['view-home','view-ws','view-labels','view-plan','view-vhs','view-lot','view-lots'].forEach(id=>{
     const el=$('#'+id); if(el) el.classList.remove('active');
   });
 }
@@ -1781,6 +1807,34 @@ async function persistLotListings(){
 }
 
 // ── Save Lot ──────────────────────────────────────────────────
+function openLotsView(){
+  hideAllViews(); $('#view-lots').classList.add('active'); window.scrollTo(0,0);
+  renderLotsList();
+}
+function renderLotsList(){
+  const grid=$('#lotsGrid'), ct=$('#lotsCount');
+  if(ct) ct.textContent=LOTS.length+' lot'+(LOTS.length!==1?'s':'');
+  if(!grid) return;
+  if(!CFG.lots){ grid.innerHTML='<div class="empty">Lots table ID not set — add it in ⚙ settings.</div>'; return; }
+  if(!LOTS.length){ grid.innerHTML='<div class="empty">No lots yet. Create one with + New Lot.</div>'; return; }
+  grid.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">'+LOTS.map(lot=>{
+    const tapeCount=Fnum(lot,'TAPE COUNT')||((F(lot,'ITEMS')||[]).length)||0;
+    const ask=Fnum(lot,'ASKING PRICE'); const cog=Fnum(lot,'TOTAL COST'); const status=Fstr(lot,'STATUS')||'Draft';
+    return `<div class="lot-card" onclick="openLotWorkspace('${lot.id}')">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6FB36A" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-family:'DM Mono';font-size:.55rem;letter-spacing:.06em;color:#6FB36A;text-transform:uppercase">Lot · ${tapeCount} item${tapeCount!==1?'s':''}</span>
+      </div>
+      <div class="tape-title" style="font-size:.92rem">${esc(Fstr(lot,'LOT NAME')||'—')}</div>
+      <div class="tape-meta">${esc(Fstr(lot,'THEME')||'')}${Fstr(lot,'THEME')?' · ':''}${esc(status)}</div>
+      <div class="tape-footer" style="margin-top:8px">
+        <span style="font-family:'DM Mono';font-size:.6rem;color:var(--olive)">COG ${money(cog)}</span>
+        <span class="tape-price">${money(ask)}</span>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
 function openNewLot(){
   hideAllViews(); $('#view-lot').classList.add('active'); window.scrollTo(0,0);
   lotActivePlat='EBAY';
@@ -1818,7 +1872,7 @@ async function saveLotRecord(){
     const updatedLot=await atGet(CFG.lots,lotCurrent.recId);
     const li=LOTS.findIndex(l=>l.id===lotCurrent.recId);
     if(li>=0) LOTS[li]=updatedLot; else LOTS.push(updatedLot);
-    renderTapeInventory();
+    renderTapeInventory(); renderLotsList();
   }catch(e){ console.error(e); toast(e.message,'err'); }
   finally{ if(btn){btn.disabled=false;btn.textContent='Save Lot';} }
 }
@@ -2308,8 +2362,7 @@ async function applyWsTmdb(tmdbId,mediaType){
     // Fill general workspace VHS fields
     const setVf=(f,v)=>{ const el=document.querySelector(`.ws-vf[data-f="${f}"]`); if(el&&v) el.value=v; };
     setVf('YEAR',year); setVf('GENRE',genres.join(', ')); setVf('DIRECTOR',director); setVf('CAST',cast); setVf('LABEL/STUDIO',studio);
-    // Store synopsis in context textarea if empty
-    const ctx=$('#genContext'); if(ctx&&!ctx.value.trim()&&overview) ctx.value=overview;
+    setVf('SYNOPSIS',overview); // synopsis → its own field, kept separate from the AI context box
     if(card){
       card.innerHTML=`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px">
         ${poster?`<img src="${poster}" style="width:60px;border-radius:5px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.4)" alt="">`:''}
@@ -2330,7 +2383,7 @@ let SALES_DATA = [];
 let planFormState = {saleType:'ESTATE SALE',leadSource:'IN PERSON',priority:'MEDIUM'};
 
 async function openPlanView(){
-  ['view-home','view-ws','view-labels'].forEach(id=>{ const el=$('#'+id); if(el) el.classList.remove('active'); });
+  hideAllViews();
   $('#view-plan').classList.add('active');
   window.scrollTo(0,0);
   await loadPlanSales();
@@ -2437,9 +2490,7 @@ async function deletePlanSale(recId){
 const SELECTED_LABELS = new Set();
 
 function openLabelsView(){
-  $('#view-home').classList.remove('active');
-  $('#view-ws').classList.remove('active');
-  $('#view-plan').classList.remove('active');
+  hideAllViews();
   $('#view-labels').classList.add('active');
   renderLabelsView();
   window.scrollTo(0,0);
@@ -2509,6 +2560,9 @@ function clearLabelSelection(){ SELECTED_LABELS.clear(); renderLabelsView(); }
    ============================================================ */
 const SM_PLATS = ['FACEBOOK','OFFERUP','EBAY','ETSY','MERCARI'];
 const SM_LABELS = {FACEBOOK:'Facebook',OFFERUP:'OfferUp',EBAY:'eBay',ETSY:'Etsy',MERCARI:'Mercari'};
+const LOCAL_PLATS = ['FACEBOOK','OFFERUP']; // default to local pickup when sold here
+// ITEM STATUS single-select options — must match the ITEM STATUS field in ITEMS.
+const STATUS_OPTS = ['SOURCED','IN PROGRESS','LISTED','SOLD','SHIPPED','ARCHIVED'];
 const PLATFORM_CREATE_URLS = {
   FACEBOOK:'https://www.facebook.com/marketplace/create/item',
   OFFERUP:'https://offerup.com/post',
@@ -2519,10 +2573,19 @@ const PLATFORM_CREATE_URLS = {
 let statusItemId  = null;
 let smSelectedPlat = null;
 let wsSelectedSalePlat = null;
+let wsSoldFulfillment = 'SHIPPING';
+let smSoldFulfillment = 'SHIPPING';
 
 function wsSelectSalePlat(el,plat){
   document.querySelectorAll('#ws-plat-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); wsSelectedSalePlat=plat;
+  // Local marketplaces (FB/OfferUp) default to local pickup; national platforms to shipping.
+  wsSoldFulfillment = LOCAL_PLATS.includes(plat) ? 'LOCAL PICKUP' : 'SHIPPING';
+  document.querySelectorAll('#ws-fulfill-row .sm-plat-btn').forEach(b=>b.classList.toggle('active', b.dataset.ff===wsSoldFulfillment));
+}
+function wsSelectFulfill(el,ff){
+  document.querySelectorAll('#ws-fulfill-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); wsSoldFulfillment=ff;
 }
 async function wsSaveSold(){
   if(!wsSelectedSalePlat){ toast('Select the platform','err'); return; }
@@ -2530,12 +2593,13 @@ async function wsSaveSold(){
   if(!price||isNaN(price)){ toast('Enter sale price','err'); return; }
   const today=todayISO();
   const listings=Object.values(LISTINGS_BY_ITEM[current.item.id]||{});
+  const patch={'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':wsSelectedSalePlat,'SOLD DATE':today,'FULFILLMENT':wsSoldFulfillment};
   try{
-    await atPatch(CFG.items,current.item.id,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':wsSelectedSalePlat,'SOLD DATE':today});
+    await atPatch(CFG.items,current.item.id,patch);
     if(CFG.listings&&listings.length) await Promise.all(listings.map(l=>atPatch(CFG.listings,l.id,{'LISTING STATUS':'SOLD'})));
     const idx=ITEMS.findIndex(i=>i.id===current.item.id);
-    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':wsSelectedSalePlat,'SOLD DATE':today}); current.item=ITEMS[idx]; }
-    wsSelectedSalePlat=null; toast('Marked as sold ✓','ok'); renderWorkspace();
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,patch); current.item=ITEMS[idx]; }
+    wsSelectedSalePlat=null; toast('Marked as sold ✓','ok'); renderWorkspace(); renderInventory();
   }catch(e){ console.error(e); toast(e.message,'err'); }
 }
 async function wsSaveShipped(){
@@ -2556,6 +2620,17 @@ function wsCopyTracking(){
   if(!val){ toast('No tracking number','err'); return; }
   navigator.clipboard.writeText(val).then(()=>toast('Copied ✓','ok')).catch(()=>toast('Copy failed','err'));
 }
+async function wsChangeStatus(newStatus){
+  if(!current?.item) return;
+  const it=current.item;
+  if(newStatus===(Fstr(it,'ITEM STATUS')||'SOURCED')) return;
+  try{
+    const u=await atPatch(CFG.items,it.id,{'ITEM STATUS':newStatus});
+    const idx=ITEMS.findIndex(i=>i.id===it.id);
+    if(idx>=0){ ITEMS[idx]=u; current.item=u; }
+    toast('Status → '+newStatus+' ✓','ok'); renderWorkspace(); renderInventory();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
 function buildStatusPanel(item){
   const f=item.fields||{};
   const status=(f['ITEM STATUS']||'SOURCED').toUpperCase();
@@ -2563,8 +2638,11 @@ function buildStatusPanel(item){
   const dotCls={SOURCED:'ready','IN PROGRESS':'amber',LISTED:'amber',SOLD:'green',SHIPPED:'green',ARCHIVED:'grey'}[status]||'grey';
   const isSellable=['SOURCED','IN PROGRESS','LISTED'].includes(status);
   const isSold=['SOLD','SHIPPED'].includes(status);
-  const isShippable=status==='SOLD';
+  const fulfillment=(f['FULFILLMENT']||'SHIPPING').toUpperCase();
+  const isPickup=fulfillment==='LOCAL PICKUP';
+  const isShippable=status==='SOLD' && !isPickup;
   const isShipped=status==='SHIPPED';
+  const pickupDone=status==='SOLD' && isPickup;
   let html=`<div class="panel-head" style="gap:10px">
     <span class="dot ${dotCls}" style="width:10px;height:10px"></span>
     <span class="ph-title">Status</span>
@@ -2575,6 +2653,7 @@ function buildStatusPanel(item){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div><div class="sm-sum-lbl">Platform</div><div class="sm-sum-val">${esc(SM_LABELS[f['SOLD PLATFORM']]||f['SOLD PLATFORM']||'—')}</div></div>
       <div><div class="sm-sum-lbl">Price</div><div class="sm-sum-val" style="color:var(--mauve)">${f['SOLD PRICE']!=null?money(f['SOLD PRICE']):'—'}</div></div>
+      <div><div class="sm-sum-lbl">Fulfillment</div><div class="sm-sum-val">${isPickup?'Local pickup':'Shipping'}</div></div>
       <div><div class="sm-sum-lbl">Date</div><div class="sm-sum-val">${esc(f['SOLD DATE']||'—')}</div></div>
     </div></div>`;
   if(isSellable) html+=`<div style="padding:14px 17px">
@@ -2582,9 +2661,20 @@ function buildStatusPanel(item){
     <div id="ws-plat-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
       ${SM_PLATS.map(p=>`<button class="sm-plat-btn" onclick="wsSelectSalePlat(this,'${p}')">${esc(SM_LABELS[p])}</button>`).join('')}
     </div>
+    <div class="label" style="margin-bottom:8px">Fulfillment</div>
+    <div id="ws-fulfill-row" style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="sm-plat-btn${wsSoldFulfillment!=='LOCAL PICKUP'?' active':''}" data-ff="SHIPPING" onclick="wsSelectFulfill(this,'SHIPPING')">Shipping</button>
+      <button class="sm-plat-btn${wsSoldFulfillment==='LOCAL PICKUP'?' active':''}" data-ff="LOCAL PICKUP" onclick="wsSelectFulfill(this,'LOCAL PICKUP')">Local pickup</button>
+    </div>
     <div class="fld"><label><span class="lname">Sale Price</span></label><input id="ws-sold-price" type="number" inputmode="decimal" placeholder="0.00"></div>
     <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 12px">Date: ${today}</div>
     <button class="sm-confirm-btn" onclick="wsSaveSold()">Mark as Sold</button>
+  </div>`;
+  if(pickupDone) html+=`<div style="padding:0 17px 17px">
+    <div class="sm-summary-box" style="display:flex;align-items:center;gap:9px">
+      <span class="dot green" style="width:9px;height:9px;flex:none"></span>
+      <span style="font-family:'DM Mono';font-size:.66rem;color:var(--silver)">Picked up in person — no shipping needed. Sale complete.</span>
+    </div>
   </div>`;
   if(isShipped) html+=`<div class="sm-summary-box" style="margin:14px 17px">
     <div class="label" style="margin-bottom:8px">Shipment Record</div>
@@ -2610,7 +2700,7 @@ function openStatusModal(barcodeId){
   if(!recId.startsWith('rec')){ toast('Not a valid LLV item barcode','err'); return; }
   const item = ITEMS.find(i=>i.id===recId);
   if(!item){ toast('Item not found — refresh to sync','err'); return; }
-  statusItemId = recId; smSelectedPlat = null;
+  statusItemId = recId; smSelectedPlat = null; smSoldFulfillment = 'SHIPPING';
   renderStatusModal(item, Object.values(LISTINGS_BY_ITEM[recId]||{}));
   $('#status-modal-bg').classList.add('open');
 }
@@ -2621,6 +2711,12 @@ function closeStatusModal(){
 function smSelectPlat(el, plat){
   document.querySelectorAll('#sm-plat-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); smSelectedPlat = plat;
+  smSoldFulfillment = LOCAL_PLATS.includes(plat) ? 'LOCAL PICKUP' : 'SHIPPING';
+  document.querySelectorAll('#sm-fulfill-row .sm-plat-btn').forEach(b=>b.classList.toggle('active', b.dataset.ff===smSoldFulfillment));
+}
+function smSelectFulfill(el, ff){
+  document.querySelectorAll('#sm-fulfill-row .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); smSoldFulfillment = ff;
 }
 function smCopyFromInput(){
   const val = $('#sm-tracking')?.value?.trim();
@@ -2642,8 +2738,11 @@ function renderStatusModal(item, listings){
   const dotCls = {SOURCED:'ready','IN PROGRESS':'amber',LISTED:'amber',SOLD:'green',SHIPPED:'green',ARCHIVED:'grey'}[status]||'grey';
   const isSellable  = ['SOURCED','IN PROGRESS','LISTED'].includes(status);
   const isSold      = ['SOLD','SHIPPED'].includes(status);
-  const isShippable = status==='SOLD';
+  const fulfillment = (f['FULFILLMENT']||'SHIPPING').toUpperCase();
+  const isPickup    = fulfillment==='LOCAL PICKUP';
+  const isShippable = status==='SOLD' && !isPickup;
   const isShipped   = status==='SHIPPED';
+  const pickupDone  = status==='SOLD' && isPickup;
   const livePlatforms = listings.filter(l=>['LIVE','PUBLISHED'].includes((l.fields['LISTING STATUS']||'').toUpperCase())).map(l=>l.fields['PLATFORM']||'').filter(Boolean);
 
   let html = `<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
@@ -2665,9 +2764,10 @@ function renderStatusModal(item, listings){
 
   if(isSold) html += `<div class="sm-summary-box">
     <div class="label" style="margin-bottom:10px">Sale Record</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div><div class="sm-sum-lbl">Platform</div><div class="sm-sum-val">${esc(SM_LABELS[f['SOLD PLATFORM']]||f['SOLD PLATFORM']||'—')}</div></div>
       <div><div class="sm-sum-lbl">Price</div><div class="sm-sum-val" style="color:var(--mauve)">${f['SOLD PRICE']!=null?money(f['SOLD PRICE']):'—'}</div></div>
+      <div><div class="sm-sum-lbl">Fulfillment</div><div class="sm-sum-val">${isPickup?'Local pickup':'Shipping'}</div></div>
       <div><div class="sm-sum-lbl">Date</div><div class="sm-sum-val">${esc(f['SOLD DATE']||'—')}</div></div>
     </div></div>`;
 
@@ -2676,9 +2776,18 @@ function renderStatusModal(item, listings){
     <div id="sm-plat-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
       ${SM_PLATS.map(p=>`<button class="sm-plat-btn" onclick="smSelectPlat(this,'${p}')">${esc(SM_LABELS[p])}</button>`).join('')}
     </div>
+    <div class="label" style="margin-bottom:8px">Fulfillment</div>
+    <div id="sm-fulfill-row" style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="sm-plat-btn${smSoldFulfillment!=='LOCAL PICKUP'?' active':''}" data-ff="SHIPPING" onclick="smSelectFulfill(this,'SHIPPING')">Shipping</button>
+      <button class="sm-plat-btn${smSoldFulfillment==='LOCAL PICKUP'?' active':''}" data-ff="LOCAL PICKUP" onclick="smSelectFulfill(this,'LOCAL PICKUP')">Local pickup</button>
+    </div>
     <div class="mf"><label>Sale Price</label><input id="sm-sold-price" type="number" inputmode="decimal" placeholder="0.00" style="font-size:.9rem"></div>
     <div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin:8px 0 14px">Date: ${today}</div>
     <button class="sm-confirm-btn" onclick="confirmStatusSale()">Mark as Sold</button></div>`;
+
+  if(pickupDone) html += `<div class="sm-summary-box" style="display:flex;align-items:center;gap:9px;margin-top:14px">
+    <span class="dot green" style="width:9px;height:9px;flex:none"></span>
+    <span style="font-family:'DM Mono';font-size:.66rem;color:var(--silver)">Picked up in person — no shipping needed. Sale complete.</span></div>`;
 
   if(isShipped) html += `<div class="sm-summary-box">
     <div class="label" style="margin-bottom:10px">Shipment Record</div>
@@ -2710,13 +2819,14 @@ async function confirmStatusSale(){
   if(!price || isNaN(price)){ toast('Enter sale price','err'); return; }
   const today = todayISO();
   const listings = Object.values(LISTINGS_BY_ITEM[statusItemId]||{});
+  const patch = {'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':smSelectedPlat,'SOLD DATE':today,'FULFILLMENT':smSoldFulfillment};
   try{
-    await atPatch(CFG.items, statusItemId, {'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':smSelectedPlat,'SOLD DATE':today});
+    await atPatch(CFG.items, statusItemId, patch);
     if(CFG.listings && listings.length)
       await Promise.all(listings.map(l=>atPatch(CFG.listings, l.id, {'LISTING STATUS':'SOLD'})));
     // update in-memory item
     const idx=ITEMS.findIndex(i=>i.id===statusItemId);
-    if(idx>=0){ Object.assign(ITEMS[idx].fields,{'ITEM STATUS':'SOLD','SOLD PRICE':price,'SOLD PLATFORM':smSelectedPlat,'SOLD DATE':today}); }
+    if(idx>=0){ Object.assign(ITEMS[idx].fields,patch); }
     // refresh workspace if it's open on this item
     if(current && current.item.id===statusItemId){ current.item=ITEMS[idx]; renderWorkspace(); }
     toast('Marked as sold ✓','ok'); closeStatusModal(); renderInventory();
@@ -2766,6 +2876,12 @@ function openAddItemModal(){
 
 function closeAddItemModal(){
   $('#add-item-modal').classList.remove('open');
+}
+function openAddItemComps(){
+  const name=($('#ai-name')?.value||'').trim();
+  if(!name){ toast('Type an item name first','err'); return; }
+  const url='https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(name)+'&LH_Sold=1&LH_Complete=1';
+  window.open(url,'_blank','noopener');
 }
 
 async function submitAddItem(){
@@ -2833,6 +2949,9 @@ async function generateAll(){
   const ctx={ name:Fstr(it,'ITEM NAME'), category:Fstr(it,'CATEGORY'), condition:Fstr(it,'CONDITION'),
     cog:Fnum(it,'COST OF GOODS'), comp_low:Fnum(it,'EBAY COMP LOW'), comp_high:Fnum(it,'EBAY COMP HIGH'),
     notes:Fstr(it,'AI IDENTIFICATION NOTES'), city:'Long Beach, CA' };
+  const synEl=document.querySelector('.ws-vf[data-f="SYNOPSIS"]');
+  const synopsis=(synEl?synEl.value.trim():Fstr(it,'SYNOPSIS'))||'';
+  if(synopsis) ctx.synopsis=synopsis;
   const extraCtx=($('#genContext')?.value?.trim())||'';
   const prompt=`You write reselling listings for a vintage/collectible reseller (Last Laugh Vintage, ${ctx.city}). 
 Item data: ${JSON.stringify(ctx)}${extraCtx?'\nAdditional context: '+extraCtx:''}
@@ -2931,8 +3050,11 @@ $('#modalSave').addEventListener('click',()=>{
 $('#backBtn').addEventListener('click',()=>{ $('#view-ws').classList.remove('active'); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
 $('#refreshBtn').addEventListener('click',loadAll);
 $('#labelsBtn').addEventListener('click',openLabelsView);
+$('#lotsBtn').addEventListener('click',openLotsView);
 $('#planBtn').addEventListener('click',openPlanView);
-$('#lotBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
+$('#lotBackBtn').addEventListener('click',()=>{ openLotsView(); });
+$('#lotsBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
+$('#lotsNewBtn').addEventListener('click',openNewLot);
 $('#planBackBtn').addEventListener('click',()=>{ $('#view-plan').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#labelsBackBtn').addEventListener('click',()=>{ $('#view-labels').classList.remove('active'); $('#view-home').classList.add('active'); window.scrollTo(0,0); });
 $('#lblSearch').addEventListener('input',renderLabelsView);

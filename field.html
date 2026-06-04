@@ -845,10 +845,16 @@ a      { color: inherit; text-decoration: none; }
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M12 19h4.5a3.5 3.5 0 0 0 0-7h-8a3.5 3.5 0 0 1 0-7H12"/></svg>
         Plan Route
       </button>
-      <button class="plan-fab" onclick="openAddSaleSheet()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Sale
-      </button>
+      <div style="display:flex;gap:8px;">
+        <button class="plan-fab" onclick="importSaleFromUrl()" style="flex:1;background:var(--grape-dim);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Import
+        </button>
+        <button class="plan-fab" onclick="openAddSaleSheet()" style="flex:1;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Sale
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1041,7 +1047,10 @@ a      { color: inherit; text-decoration: none; }
 
     <div class="sheet-field" id="source-link-field" style="display:none;">
       <div class="sheet-lbl">Listing Link</div>
-      <input class="sheet-input-sm" type="url" id="as-link" placeholder="https://..." />
+      <div style="display:flex;gap:6px;">
+        <input class="sheet-input-sm" type="url" id="as-link" placeholder="https://www.estatesales.net/..." style="flex:1;" />
+        <button type="button" onclick="fetchSaleListing()" style="font-family:var(--f-mono);font-size:11px;padding:6px 12px;background:var(--grape-dim);color:var(--silver);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;flex:none;" id="fetch-btn">Fetch</button>
+      </div>
     </div>
 
     <div class="sheet-field">
@@ -1874,6 +1883,63 @@ function renderRouteView(sorted) {
       </button>`;
     routeView.appendChild(stop);
   });
+}
+
+// ─── SCRAPE LISTING ───────────────────────────────────────────────────────────
+function importSaleFromUrl() {
+  openAddSaleSheet();
+  // Pre-select "Auction Site" source so the link field is visible
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  const aBtn = document.querySelector('[data-source="AUCTION SITE"]');
+  if (aBtn) aBtn.classList.add('active');
+  toggleSourceLink('AUCTION SITE');
+  // Focus the link input
+  setTimeout(() => document.getElementById('as-link')?.focus(), 200);
+}
+
+async function fetchSaleListing() {
+  const linkEl = document.getElementById('as-link');
+  const url = (linkEl?.value || '').trim();
+  if (!url) { showToast('Paste a listing URL first', 'error'); return; }
+
+  const btn = document.getElementById('fetch-btn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+
+  try {
+    const r = await fetch('/scrape?url=' + encodeURIComponent(url));
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'Fetch failed'); }
+    const data = await r.json();
+
+    // Fill form fields from scraped data
+    if (data.name)    document.getElementById('as-name').value    = data.name;
+    if (data.address) document.getElementById('as-address').value = data.address;
+    if (data.date)    document.getElementById('as-date').value    = data.date;
+    if (data.dateEnd) document.getElementById('as-date-end').value = data.dateEnd;
+    if (data.time)    document.getElementById('as-time').value    = data.time;
+    if (data.timeEnd) document.getElementById('as-time-end').value = data.timeEnd;
+    if (data.notes)   document.getElementById('as-notes').value   = data.notes;
+
+    // Set sale type chip
+    if (data.saleType) {
+      document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
+      const btn2 = document.querySelector(`[data-saletype="${data.saleType}"]`);
+      if (btn2) btn2.classList.add('active');
+    }
+    // Set source chip
+    if (data.source) {
+      document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+      const btn2 = document.querySelector(`[data-source="${data.source}"]`);
+      if (btn2) btn2.classList.add('active');
+    }
+
+    showToast('Listing imported ✓', 'success');
+  } catch (e) {
+    console.error('fetchSaleListing:', e);
+    showToast(e.message || 'Could not fetch listing', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
 }
 
 // ─── ADD / EDIT SALE ──────────────────────────────────────────────────────────

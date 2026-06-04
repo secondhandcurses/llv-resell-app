@@ -746,14 +746,16 @@ a      { color: inherit; text-decoration: none; }
   <!-- HEADER -->
   <div id="header">
     <div style="display:flex;align-items:center;gap:10px;">
-      <span class="wordmark">Last Laugh</span>
-      <span class="field-badge">Field</span>
+      <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+        <span class="wordmark">Last Laugh</span>
+        <span class="field-badge">Field</span>
+      </a>
     </div>
     <div class="header-right">
       <button class="icon-btn" onclick="toggleSettings()" title="Settings">
         <i class="ti ti-settings"></i>
       </button>
-      <a href="index.html" class="icon-btn" title="Studio">
+      <a href="/" class="icon-btn" title="Home">
         <i class="ti ti-layout-columns"></i>
       </a>
     </div>
@@ -913,6 +915,10 @@ a      { color: inherit; text-decoration: none; }
         <div class="settings-lbl">ITEMS Table ID</div>
         <input class="settings-input" type="text" id="s-items" placeholder="tbl…" />
       </div>
+      <div class="settings-field">
+        <div class="settings-lbl">SALES Table ID</div>
+        <input class="settings-input" type="text" id="s-sales" placeholder="tbl…" />
+      </div>
     </div>
 
     <div class="settings-group">
@@ -1070,6 +1076,7 @@ const K = {
   baseId:     'llv_base_id',
   sessionsId: 'llv_sessions_table_id',
   itemsId:    'llv_items_table_id',
+  salesId:    'llv_sales_table_id',
   homeBase:   'llv_home_base',
 };
 const get = k => localStorage.getItem(K[k]) || '';
@@ -1081,6 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!get('baseId'))     set('baseId',     'app3DqxIJ1SUBKylb');
   if (!get('sessionsId')) set('sessionsId', 'tblGH4ziHZSneAtoI');
   if (!get('itemsId'))    set('itemsId',    'tblFeToiIcEseekfH');
+  if (!get('salesId'))    set('salesId',    'tblRfPldzPkqIlD7P');
   if (!get('homeBase'))   set('homeBase',   'Long Beach, CA');
 
   // Restore active session label if exists
@@ -1093,8 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Debug: log current session state
   console.log('Session on load:', savedId, savedName);
-  // Start on Plan tab
+  // Start on Plan tab and load sales from Airtable
   switchTab('plan');
+  loadSales();
 
   // Barcode scanner input listener
   const barcodeInput = document.getElementById('barcode-input');
@@ -1117,6 +1126,7 @@ function toggleSettings() {
     document.getElementById('s-base').value       = get('baseId');
     document.getElementById('s-sessions').value   = get('sessionsId');
     document.getElementById('s-items').value      = get('itemsId');
+    document.getElementById('s-sales').value      = get('salesId');
     document.getElementById('s-home').value       = get('homeBase');
   }
 }
@@ -1129,6 +1139,7 @@ function saveSettings() {
   set('baseId',     document.getElementById('s-base').value.trim());
   set('sessionsId', document.getElementById('s-sessions').value.trim());
   set('itemsId',    document.getElementById('s-items').value.trim());
+  set('salesId',    document.getElementById('s-sales').value.trim());
   set('homeBase',   document.getElementById('s-home').value.trim());
   const s = document.getElementById('settings-status');
   s.textContent = 'Saved ✓';
@@ -1674,13 +1685,54 @@ function switchTab(tab) {
   if (activeBtn) activeBtn.classList.add('active');
 }
 
-// ─── SALES DATA ───────────────────────────────────────────────────────────────
-let salesData = JSON.parse(localStorage.getItem('llv_sales') || '[]');
+// ─── SALES DATA (Airtable-backed — shared with Studio) ───────────────────────
+let salesData = [];
 let editingSaleId = null;
 let inRouteView = false;
 
-function saveSalesData() {
-  localStorage.setItem('llv_sales', JSON.stringify(salesData));
+function atSaleToLocal(rec) {
+  const f = rec.fields || {};
+  return {
+    id: rec.id,
+    name: f['SALE NAME'] || '',
+    address: f['ADDRESS'] || '',
+    date: f['START DATE'] || '',
+    dateEnd: f['END DATE'] || '',
+    time: f['START TIME'] || '',
+    timeEnd: f['END TIME'] || '',
+    notes: f['NOTES'] || '',
+    saleType: f['SALE TYPE'] || 'ESTATE SALE',
+    priority: f['PRIORITY'] || 'MEDIUM',
+    source: f['LEAD SOURCE'] || 'IN PERSON',
+    link: f['LINK'] || '',
+    converted: !!f['CONVERTED'],
+  };
+}
+
+async function loadSales() {
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (!airtableKey || !baseId || !salesId) { salesData = []; renderPlanList(); return; }
+  try {
+    let all = [], offset = null;
+    do {
+      const url = new URL(`https://api.airtable.com/v0/${baseId}/${salesId}`);
+      url.searchParams.set('pageSize', '100');
+      if (offset) url.searchParams.set('offset', offset);
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + airtableKey } });
+      if (!r.ok) throw new Error('Failed to load sales');
+      const j = await r.json();
+      all = all.concat(j.records || []);
+      offset = j.offset;
+    } while (offset);
+    salesData = all.map(atSaleToLocal);
+    renderPlanList();
+  } catch (e) {
+    console.error('loadSales:', e);
+    salesData = [];
+    renderPlanList();
+  }
 }
 
 // ─── PLAN LIST ────────────────────────────────────────────────────────────────
@@ -1881,9 +1933,15 @@ function closeAddSaleSheet() {
   editingSaleId = null;
 }
 
-function saveSale() {
+async function saveSale() {
   const name = document.getElementById('as-name').value.trim();
   if (!name) { showToast('Enter a sale name', 'error'); return; }
+
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (!airtableKey || !baseId || !salesId) { showToast('Sales table not configured — check settings', 'error'); return; }
+
   const address  = document.getElementById('as-address').value.trim();
   const date     = document.getElementById('as-date').value;
   const time     = document.getElementById('as-time').value;
@@ -1898,32 +1956,65 @@ function saveSale() {
   const source   = srcEl  ? srcEl.dataset.source    : 'IN PERSON';
   const link     = document.getElementById('as-link').value.trim();
 
-  if (editingSaleId) {
-    const idx = salesData.findIndex(s => s.id === editingSaleId);
-    if (idx > -1) {
-      salesData[idx] = { ...salesData[idx], name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source, link };
-    }
-    showToast('Sale updated ✓', 'success');
-  } else {
-    salesData.push({
-      id: 'sale-' + Date.now(),
-      name, address, date, dateEnd, time, timeEnd, notes, saleType, priority, source, link,
-      converted: false,
-      createdAt: new Date().toISOString()
-    });
-    showToast('Sale saved ✓', 'success');
-  }
+  const fields = { 'SALE NAME': name, 'SALE TYPE': saleType, 'LEAD SOURCE': source, 'PRIORITY': priority };
+  if (address) fields['ADDRESS'] = address;
+  if (date)    fields['START DATE'] = date;
+  if (dateEnd) fields['END DATE'] = dateEnd;
+  if (time)    fields['START TIME'] = time;
+  if (timeEnd) fields['END TIME'] = timeEnd;
+  if (notes)   fields['NOTES'] = notes;
+  if (link)    fields['LINK'] = link;
 
-  saveSalesData();
-  closeAddSaleSheet();
-  renderPlanList();
+  try {
+    if (editingSaleId) {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${editingSaleId}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, typecast: true })
+      });
+      if (!r.ok) throw new Error('Update failed');
+      const rec = await r.json();
+      const idx = salesData.findIndex(s => s.id === editingSaleId);
+      if (idx > -1) salesData[idx] = atSaleToLocal(rec);
+      showToast('Sale updated ✓', 'success');
+    } else {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, typecast: true })
+      });
+      if (!r.ok) throw new Error('Save failed');
+      const rec = await r.json();
+      salesData.push(atSaleToLocal(rec));
+      showToast('Sale saved ✓', 'success');
+    }
+    closeAddSaleSheet();
+    renderPlanList();
+  } catch (e) {
+    console.error(e);
+    showToast(e.message, 'error');
+  }
 }
 
-function deleteSale(id) {
-  salesData = salesData.filter(s => s.id !== id);
-  saveSalesData();
-  renderPlanList();
-  showToast('Sale removed', '');
+async function deleteSale(id) {
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  try {
+    if (airtableKey && baseId && salesId) {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + airtableKey }
+      });
+      if (!r.ok) throw new Error('Delete failed');
+    }
+    salesData = salesData.filter(s => s.id !== id);
+    renderPlanList();
+    showToast('Sale removed', '');
+  } catch (e) {
+    console.error(e);
+    showToast(e.message, 'error');
+  }
 }
 
 // ─── START SOURCING FROM SALE ────────────────────────────────────────────────
@@ -1947,10 +2038,22 @@ async function startSourcingFromSale(id) {
     document.getElementById('session-label').textContent = activeSessionName;
   }
 
-  // Mark sale as converted in local data
+  // Mark sale as converted in Airtable
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (airtableKey && baseId && salesId) {
+    try {
+      await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { 'CONVERTED': true } })
+      });
+    } catch (e) { console.error('Mark converted:', e); }
+  }
+
   const idx = salesData.findIndex(s => s.id === id);
   if (idx > -1) salesData[idx].converted = true;
-  saveSalesData();
 
   // Update session bar
   document.getElementById('session-label').textContent = activeSessionName;

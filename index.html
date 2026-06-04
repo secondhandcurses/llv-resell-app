@@ -371,7 +371,7 @@
     <div class="filterbar">
       <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="fSearch" placeholder="Search items by name…"></div>
       <select id="fCat"><option value="">All Categories</option><option>POSTER</option><option>VHS</option><option>CASSETTE</option><option>TOY</option><option>VINTAGE ELECTRONICS</option><option>MEMORABILIA</option><option>HOME DECOR</option><option>OTHER</option></select>
-      <select id="fStatus"><option value="">All Statuses</option><option>SOURCED</option><option>IN PROGRESS</option><option>LISTED</option><option>SOLD</option><option>ARCHIVED</option></select>
+      <select id="fStatus"><option value="">All Statuses</option><option>SOURCED</option><option>IN PROGRESS</option><option>LISTED</option><option>SOLD</option><option>SHIPPED</option><option>ARCHIVED</option></select>
       <select id="fPlatform"><option value="">All Platforms</option><option>FACEBOOK</option><option>OFFERUP</option><option>EBAY</option><option>ETSY</option><option>MERCARI</option></select>
     </div>
     <div id="homeBody"></div>
@@ -1049,6 +1049,7 @@ function statusDot(status){
   if(status==='IN PROGRESS') return {cls:'amber',label:'In Progress'};
   if(status==='LISTED') return {cls:'green',label:'Published'};
   if(status==='SOLD') return {cls:'green',label:'Sold'};
+  if(status==='SHIPPED') return {cls:'green',label:'Shipped'};
   if(status==='ARCHIVED') return {cls:'grey',label:'Archived'};
   return {cls:'ready',label:'Ready'}; // SOURCED / blank
 }
@@ -3006,15 +3007,22 @@ async function saveAll(){
       if(d.recId){ await atPatch(CFG.listings,d.recId,fields); }
       else { const created=await atCreate(CFG.listings,fields); d.recId=created.id; (LISTINGS_BY_ITEM[it.id]=LISTINGS_BY_ITEM[it.id]||{})[p.key]=created; }
     }
-    // 3) roll up ITEM STATUS
+    // 3) roll up ITEM STATUS — only auto-advance within the listing pipeline.
+    // Never downgrade, and never override a manual SOLD / SHIPPED / ARCHIVED.
     const pubCount=PLATFORMS.filter(p=>current.draft[p.key].published).length;
     const anyCopy=PLATFORMS.some(p=>current.draft[p.key].title||current.draft[p.key].body);
-    let newStatus=Fstr(it,'ITEM STATUS')||'SOURCED';
-    if(pubCount===PLATFORMS.length) newStatus='LISTED';
-    else if(anyCopy||pubCount>0) newStatus='IN PROGRESS';
-    if(newStatus!==Fstr(it,'ITEM STATUS')){ const u=await atPatch(CFG.items,it.id,{'ITEM STATUS':newStatus}); const idx=ITEMS.findIndex(i=>i.id===it.id); if(idx>=0){ITEMS[idx]=u; current.item=u;} }
+    const cur=Fstr(it,'ITEM STATUS')||'SOURCED';
+    const RANK={'SOURCED':0,'IN PROGRESS':1,'LISTED':2};
+    let newStatus=cur;
+    if(cur in RANK){ // only touch pipeline stages; leave SOLD/SHIPPED/ARCHIVED alone
+      let computed=cur;
+      if(pubCount===PLATFORMS.length) computed='LISTED';
+      else if(anyCopy||pubCount>0) computed='IN PROGRESS';
+      if(RANK[computed]>RANK[cur]) newStatus=computed; // forward only
+    }
+    if(newStatus!==cur){ const u=await atPatch(CFG.items,it.id,{'ITEM STATUS':newStatus}); const idx=ITEMS.findIndex(i=>i.id===it.id); if(idx>=0){ITEMS[idx]=u; current.item=u;} }
     else { const idx=ITEMS.findIndex(i=>i.id===it.id); if(idx>=0){ ITEMS[idx].fields['ASK PRICE']=pr.ask; ITEMS[idx].fields['FLOOR PRICE']=pr.floor; } }
-    toast('Saved to Airtable','ok'); renderWorkspace();
+    toast('Saved to Airtable','ok'); renderWorkspace(); renderInventory();
   }catch(e){ console.error(e); toast(e.message,'err'); }
   finally{ btn.disabled=false; btn.textContent='Save to Airtable'; }
 }

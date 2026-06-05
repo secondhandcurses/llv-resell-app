@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111010">
+<title>LLV Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+
+/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #111010;
+  --surface:   #1a1818;
+  --raised:    #211f1f;
+  --border:    #2e2c2c;
+  --borderlit: #3a3636;
+
+  --grape:     #654597;
+  --grape-dim: #4a3370;
+  --grape-bg:  #2a1f35;
+  --lavender:  #AB81CD;
+  --mauve:     #E2ADF2;
+  --silver:    #BDBBB0;
+  --olive:     #8A897C;
+  --dim:       #4a4846;
+  --ghost:     #2a2828;
+
+  --green:     #4a8a4a;
+  --green-bg:  #1a2a1a;
+  --red:       #8a3a3a;
+
+  --f-display: 'Oswald', sans-serif;
+  --f-mono:    'DM Mono', monospace;
+  --r:         10px;
+  --r-lg:      14px;
+  --r-xl:      20px;
+}
+
+/* ─── RESET ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; background: var(--bg); }
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  /* Safe area for notch / home indicator */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input  { font-family: inherit; }
+a      { color: inherit; text-decoration: none; }
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── APP SHELL ──────────────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────────────────────── */
+#header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.wordmark {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lavender);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.field-badge {
+  font-size: 10px;
+  color: var(--grape);
+  background: var(--grape-bg);
+  border: 1px solid var(--grape-dim);
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.header-right { display: flex; gap: 8px; align-items: center; }
+.icon-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r);
+  color: var(--dim);
+  font-size: 18px;
+  transition: color 0.15s;
+}
+.icon-btn:hover, .icon-btn.active { color: var(--lavender); }
+
+/* ─── SESSION BAR ────────────────────────────────────────────────────────── */
+#session-bar {
+  flex-shrink: 0;
+  padding: 8px 18px;
+  background: var(--ghost);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.session-info { display: flex; align-items: center; gap: 7px; }
+.session-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.session-name {
+  font-size: 11px;
+  color: var(--olive);
+  letter-spacing: 0.03em;
+}
+.session-name span { color: var(--silver); }
+.session-change {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* ─── SCROLL BODY ────────────────────────────────────────────────────────── */
+#scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── QUEUE HEADER ───────────────────────────────────────────────────────── */
+.queue-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.queue-label {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.queue-pill {
+  font-size: 10px;
+  background: var(--grape);
+  color: var(--mauve);
+  padding: 2px 9px;
+  border-radius: 12px;
+}
+
+/* ─── QUEUE CARD ─────────────────────────────────────────────────────────── */
+.q-card {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.q-card.processing { opacity: 0.7; border-color: var(--grape-dim); }
+
+.card-body {
+  display: flex;
+  gap: 12px;
+  padding: 13px;
+  align-items: flex-start;
+}
+.card-thumb {
+  width: 62px; height: 62px;
+  border-radius: var(--r);
+  background: var(--grape-bg);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--grape);
+  overflow: hidden;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-info { flex: 1; min-width: 0; }
+.card-name {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--silver);
+  line-height: 1.25;
+  margin-bottom: 3px;
+}
+.card-cat {
+  font-size: 10px;
+  color: var(--grape);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.comp-range {
+  font-size: 14px;
+  color: var(--lavender);
+  font-weight: 500;
+}
+.comp-sold { font-size: 11px; color: var(--dim); }
+.comp-link {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 10px;
+  color: var(--grape);
+  border: 1px solid var(--grape-dim);
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--grape-bg);
+  margin-left: auto;
+}
+.comp-link i { font-size: 12px; }
+
+.card-divider { height: 1px; background: var(--border); }
+
+.card-actions { display: flex; }
+.act-btn {
+  flex: 1;
+  padding: 13px 0;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+.act-pass { color: var(--dim); border-right: 1px solid var(--border); }
+.act-pass:active { background: var(--ghost); }
+.act-buy  { color: var(--lavender); }
+.act-buy:active  { background: var(--grape-bg); }
+
+/* Processing state */
+.proc-bar {
+  padding: 8px 13px 11px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 10px; color: var(--grape); letter-spacing: 0.07em; text-transform: uppercase;
+}
+.dots { display: flex; gap: 4px; }
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--grape);
+  animation: blink 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+/* ─── EMPTY STATE ────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 0 16px;
+  gap: 8px; color: var(--dim);
+}
+.empty-state i { font-size: 40px; color: var(--ghost); }
+.empty-state p { font-size: 12px; letter-spacing: 0.03em; }
+
+/* ─── SNAP FAB ───────────────────────────────────────────────────────────── */
+#fab-area {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+  max-width: 540px;
+  margin: 0 auto;
+}
+.fab-alts {
+  width: 100%;
+  margin-bottom: 4px;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.fab-alt {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--olive);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.fab-alt:active { background: var(--grape-bg); border-color: var(--grape-dim); color: var(--lavender); }
+.fab-alt i { font-size: 15px; }
+
+.fab-snap {
+  width: 100%;
+  padding: 16px 0;
+  background: var(--grape);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mauve);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab-snap:active { background: var(--grape-dim); transform: scale(0.98); }
+.fab-snap i { font-size: 22px; }
+
+/* ─── BUY SHEET ──────────────────────────────────────────────────────────── */
+#sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,7,7,0.85);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+#sheet-overlay.open { display: flex; }
+
+.sheet {
+  background: var(--raised);
+  border-top: 1px solid var(--borderlit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  width: 100%;
+  max-width: 540px;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.sheet-handle {
+  width: 38px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.sheet-title {
+  font-family: var(--f-display);
+  font-size: 18px; font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+.sheet-sub {
+  font-size: 11px; color: var(--grape);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 20px;
+}
+.sheet-field { margin-bottom: 16px; }
+.sheet-lbl {
+  font-size: 10px; color: var(--olive);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sheet-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 18px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.sheet-input:focus { border-color: var(--grape); }
+
+.cond-row { display: flex; gap: 6px; }
+.cond-btn {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.15s;
+}
+.cond-btn.active {
+  background: var(--grape-bg);
+  border-color: var(--grape);
+  color: var(--lavender);
+}
+
+.sheet-confirm {
+  width: 100%;
+  padding: 15px 0;
+  background: var(--grape);
+  border-radius: var(--r);
+  color: var(--mauve);
+  font-family: var(--f-display);
+  font-size: 15px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+.sheet-confirm:active { background: var(--grape-dim); }
+.sheet-cancel {
+  width: 100%;
+  padding: 12px 0;
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ─── SETTINGS SHEET ─────────────────────────────────────────────────────── */
+#settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,7,7,0.85);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+#settings-overlay.open { display: flex; }
+
+.settings-sheet {
+  background: var(--raised);
+  border-top: 1px solid var(--borderlit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.settings-title {
+  font-family: var(--f-display);
+  font-size: 16px; font-weight: 500;
+  color: var(--silver);
+  margin-bottom: 16px;
+}
+.settings-group { margin-bottom: 18px; }
+.settings-group-lbl {
+  font-size: 9px; color: var(--olive);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-field { margin-bottom: 10px; }
+.settings-lbl { font-size: 10px; color: var(--dim); margin-bottom: 4px; }
+.settings-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.settings-input:focus { border-color: var(--grape); }
+.settings-save {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--grape);
+  border-radius: var(--r);
+  color: var(--mauve);
+  font-family: var(--f-display);
+  font-size: 14px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-top: 4px;
+}
+.settings-save:active { background: var(--grape-dim); }
+.settings-status {
+  text-align: center; font-size: 11px;
+  color: var(--green); min-height: 18px; margin-top: 8px;
+}
+.settings-close {
+  width: 100%; padding: 10px 0;
+  color: var(--dim); font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* Modal open state */
+#session-modal-overlay.open,
+#manual-modal-overlay.open { display: flex !important; align-items: flex-end; justify-content: center; }
+
+
+/* ─── TAB SWITCHER ───────────────────────────────────────────────────────── */
+#tab-bar {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0;
+  background: var(--bg-deep, #111010);
+  border-bottom: 1px solid var(--border);
+  padding: 0 14px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+.tab-btn i { font-size: 15px; }
+.tab-btn.active { color: var(--lavender); border-bottom-color: var(--grape); }
+
+/* ─── PLAN VIEW ──────────────────────────────────────────────────────────── */
+#plan-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px 120px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+#plan-body.active { display: flex; }
+
+.plan-section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2px;
+}
+.plan-section-label {
+  font-size: 10px; color: var(--dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.plan-empty {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 0 16px; gap: 8px; color: var(--dim);
+}
+.plan-empty i { font-size: 40px; color: var(--ghost); }
+.plan-empty p { font-size: 12px; letter-spacing: 0.03em; }
+
+/* Sale card */
+.sale-card {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.sale-card.priority-high  { border-left: 3px solid #c84a4a; }
+.sale-card.priority-medium { border-left: 3px solid var(--grape); }
+.sale-card.priority-low   { border-left: 3px solid var(--dim); }
+.sale-card.converted      { opacity: 0.5; }
+
+.sale-card-top {
+  padding: 12px 13px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.sale-card-info { flex: 1; min-width: 0; }
+.sale-card-name {
+  font-family: var(--f-display);
+  font-size: 15px; font-weight: 500;
+  color: var(--silver); line-height: 1.25;
+  margin-bottom: 2px;
+}
+.sale-card-type {
+  font-size: 10px; color: var(--grape);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.sale-card-meta {
+  font-size: 11px; color: var(--olive);
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.sale-meta-item { display: flex; align-items: center; gap: 3px; }
+.sale-meta-item i { font-size: 12px; }
+
+.sale-card-actions {
+  border-top: 1px solid var(--border);
+  display: flex;
+}
+.sale-act-btn {
+  flex: 1; padding: 10px 0;
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  transition: background 0.15s;
+}
+.sale-act-maps { color: var(--lavender); border-right: 1px solid var(--border); }
+.sale-act-maps:active { background: var(--grape-bg); }
+.sale-act-route { color: var(--olive); border-right: 1px solid var(--border); }
+.sale-act-route:active { background: var(--bg-hover, #262323); }
+.sale-act-delete { color: var(--dim); }
+.sale-act-delete:active { background: #2a1010; color: #ca7a7a; }
+
+/* Priority badge */
+.priority-badge {
+  font-size: 9px; padding: 2px 7px; border-radius: 10px;
+  letter-spacing: 0.05em; text-transform: uppercase; flex-shrink: 0;
+}
+.priority-badge.HIGH   { background: #2a1010; color: #ca7a7a; border: 1px solid #8a3a3a; }
+.priority-badge.MEDIUM { background: var(--grape-bg); color: var(--lavender); border: 1px solid var(--grape-dim); }
+.priority-badge.LOW    { background: var(--ghost); color: var(--dim); border: 1px solid var(--border); }
+
+/* Route view */
+#route-view {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+#route-view.active { display: flex; }
+.route-stop {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 12px 13px;
+  display: flex; align-items: center; gap: 12px;
+}
+.route-stop-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--grape); color: var(--mauve);
+  font-family: var(--f-display); font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.route-stop-info { flex: 1; min-width: 0; }
+.route-stop-name {
+  font-family: var(--f-display); font-size: 14px; font-weight: 500;
+  color: var(--silver); margin-bottom: 2px;
+}
+.route-stop-addr { font-size: 11px; color: var(--olive); }
+.route-stop-time { font-size: 10px; color: var(--dim); margin-top: 2px; }
+.route-maps-btn {
+  padding: 7px 12px;
+  background: var(--grape-bg); border: 1px solid var(--grape-dim);
+  border-radius: var(--r); color: var(--lavender);
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 4px;
+}
+.route-maps-btn i { font-size: 13px; }
+
+/* Add sale FAB in plan view */
+.plan-fab {
+  width: 100%;
+  padding: 16px 0;
+  background: var(--grape);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--f-display); font-size: 16px; font-weight: 500;
+  color: var(--mauve); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+}
+.plan-fab:active { background: var(--grape-dim); transform: scale(0.98); }
+.plan-fab i { font-size: 22px; }
+
+.plan-route-btn {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--f-display); font-size: 14px; font-weight: 500;
+  color: var(--olive); letter-spacing: 0.06em; text-transform: uppercase;
+  transition: all 0.15s;
+}
+.plan-route-btn:active { border-color: var(--grape-dim); color: var(--lavender); }
+.plan-route-btn.active-route { background: var(--grape-bg); border-color: var(--grape-dim); color: var(--lavender); }
+
+/* Add sale sheet - smaller input size for form fields */
+.sheet-input-sm {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--silver);
+  font-family: var(--f-mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.sheet-input-sm:focus { border-color: var(--grape); }
+.sheet-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: calc(110px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%) translateY(30px);
+  background: var(--raised);
+  border: 1px solid var(--borderlit);
+  border-radius: var(--r-lg);
+  padding: 10px 20px;
+  font-size: 12px; color: var(--silver);
+  z-index: 500;
+  transition: transform 0.25s ease, opacity 0.25s;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast.success { border-color: var(--green); color: #7acc7a; }
+#toast.error   { border-color: var(--red);   color: #ca7a7a; }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+        <span class="wordmark">Last Laugh</span>
+        <span class="field-badge">Field</span>
+      </a>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="toggleSettings()" title="Settings">
+        <i class="ti ti-settings"></i>
+      </button>
+      <a href="/" class="icon-btn" title="Home">
+        <i class="ti ti-layout-columns"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- SESSION BAR -->
+  <div id="session-bar">
+    <div class="session-info">
+      <div class="session-dot"></div>
+      <span class="session-name">Session: <span id="session-label">No active session</span></span>
+    </div>
+    <button class="session-change" onclick="promptNewSession()">Change</button>
+  </div>
+
+
+  <!-- TAB BAR -->
+  <div id="tab-bar">
+    <button class="tab-btn active" id="tab-plan" onclick="switchTab('plan')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Plan
+    </button>
+    <button class="tab-btn" id="tab-queue" onclick="switchTab('queue')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Queue
+    </button>
+  </div>
+
+  <!-- SCROLL BODY -->
+  <div id="scroll-body">
+
+    <div class="queue-hdr">
+      <span class="queue-label">Queue</span>
+      <span class="queue-pill" id="queue-count">0 pending</span>
+    </div>
+
+    <div id="queue-list">
+      <div class="empty-state">
+        <i class="ti ti-camera"></i>
+        <p>Snap an item to start</p>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- PLAN BODY -->
+  <div id="plan-body">
+
+    <div class="plan-section-hdr">
+      <span class="plan-section-label">Upcoming Sales</span>
+      <span class="plan-section-label" id="plan-count">0 saved</span>
+    </div>
+
+    <div id="plan-list">
+      <div class="plan-empty" id="plan-empty">
+        <i class="ti ti-map-pin"></i>
+        <p>No sales logged yet — tap Add to start</p>
+      </div>
+    </div>
+
+    <div id="route-view"></div>
+
+  </div>
+
+  <!-- FAB -->
+  <div id="fab-area">
+    <!-- Queue FABs -->
+    <div id="queue-fabs" style="width:100%;display:flex;flex-direction:column;gap:8px;">
+      <div class="fab-alts">
+        <button class="fab-alt" onclick="handleBarcode()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3M5 8v8M8 8v8M11 8v8M14 8v8M17 8v2M19 8v2M17 14v2M19 14v2"/></svg>
+          Barcode
+        </button>
+        <button class="fab-alt" onclick="handleManual()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg>
+          Manual
+        </button>
+      </div>
+      <button class="fab-snap" onclick="handleSnap()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Snap
+      </button>
+    </div>
+    <!-- Plan FABs -->
+    <div id="plan-fabs" style="display:none;width:100%;flex-direction:column;gap:8px;">
+      <button class="plan-route-btn" id="route-btn" onclick="toggleRouteView()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M12 19h4.5a3.5 3.5 0 0 0 0-7h-8a3.5 3.5 0 0 1 0-7H12"/></svg>
+        Plan Route
+      </button>
+      <div style="display:flex;gap:8px;">
+        <button class="plan-fab" onclick="importSaleFromUrl()" style="flex:1;background:var(--grape-dim);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Import
+        </button>
+        <button class="plan-fab" onclick="openAddSaleSheet()" style="flex:1;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Sale
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- BUY SHEET -->
+<div id="sheet-overlay" onclick="handleSheetOverlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-name">—</div>
+    <div class="sheet-sub"   id="sheet-cat">—</div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Cost of goods</div>
+      <input class="sheet-input" type="text" id="sheet-cog"
+             placeholder="$0.00" inputmode="decimal" />
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Condition</div>
+      <div class="cond-row">
+        <button class="cond-btn"        onclick="selCond(this)">Sealed</button>
+        <button class="cond-btn"        onclick="selCond(this)">Mint</button>
+        <button class="cond-btn active" onclick="selCond(this)">V. Good</button>
+        <button class="cond-btn"        onclick="selCond(this)">Good</button>
+        <button class="cond-btn"        onclick="selCond(this)">Fair</button>
+      </div>
+    </div>
+
+    <button class="sheet-confirm" onclick="confirmBuy()">Confirm Buy — Start Record</button>
+    <button class="sheet-cancel"  onclick="closeSheet()">Cancel</button>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div id="settings-overlay" onclick="handleSettingsOverlayClick(event)">
+  <div class="settings-sheet">
+    <div class="sheet-handle"></div>
+    <div class="settings-title">Settings</div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">API Keys</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Anthropic API Key</div>
+        <input class="settings-input" type="password" id="s-anthropic" placeholder="sk-ant-…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">Airtable API Key</div>
+        <input class="settings-input" type="password" id="s-airtable" placeholder="pat…" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">Airtable IDs</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Base ID</div>
+        <input class="settings-input" type="text" id="s-base" placeholder="app…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">SESSIONS Table ID</div>
+        <input class="settings-input" type="text" id="s-sessions" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">ITEMS Table ID</div>
+        <input class="settings-input" type="text" id="s-items" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">SALES Table ID</div>
+        <input class="settings-input" type="text" id="s-sales" placeholder="tbl…" />
+      </div>
+      <div class="settings-field">
+        <div class="settings-lbl">Scraper Worker URL</div>
+        <input class="settings-input" type="text" id="s-scraper" placeholder="https://llv-scraper.xxxxx.workers.dev" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-lbl">Location</div>
+      <div class="settings-field">
+        <div class="settings-lbl">Home base</div>
+        <input class="settings-input" type="text" id="s-home" placeholder="Long Beach, CA" />
+      </div>
+    </div>
+
+    <button class="settings-save" onclick="saveSettings()">Save</button>
+    <div class="settings-status" id="settings-status"></div>
+    <button class="settings-save" onclick="testAirtable()" style="background:var(--grape-dim);margin-top:6px;">Test Airtable connection</button>
+    <button class="settings-close" onclick="toggleSettings()">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+
+<!-- SESSION MODAL -->
+<div id="session-modal-overlay" style="position:fixed;inset:0;background:rgba(8,7,7,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--raised);border-top:1px solid var(--borderlit);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:540px;padding:16px 20px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--silver);margin-bottom:4px;">Where are you sourcing?</div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:18px;">Sets location for all items this session</div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--olive);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Location</div>
+      <input id="sm-location" class="sheet-input" type="text" placeholder="Belmont Shore Estate Sale" />
+    </div>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:10px;color:var(--olive);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Sale type</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="type-btn cond-btn active" data-type="ESTATE SALE" onclick="selectType(this)">Estate Sale</button>
+        <button class="type-btn cond-btn" data-type="THRIFT STORE" onclick="selectType(this)">Thrift Store</button>
+        <button class="type-btn cond-btn" data-type="GARAGE SALE" onclick="selectType(this)">Garage Sale</button>
+        <button class="type-btn cond-btn" data-type="YARD SALE" onclick="selectType(this)">Yard Sale</button>
+        <button class="type-btn cond-btn" data-type="OTHER" onclick="selectType(this)">Other</button>
+      </div>
+    </div>
+    <button class="sheet-confirm" onclick="confirmSession()">Start Session</button>
+    <button class="sheet-cancel" onclick="skipSession()">Skip — no session</button>
+  </div>
+</div>
+
+<!-- MANUAL MODAL -->
+<div id="manual-modal-overlay" style="position:fixed;inset:0;background:rgba(8,7,7,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--raised);border-top:1px solid var(--borderlit);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:540px;padding:16px 20px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--silver);margin-bottom:4px;">Describe the item</div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:18px;">Claude will identify it and pull eBay sold comps</div>
+    <div style="margin-bottom:14px;">
+      <textarea id="mm-description" class="sheet-input" rows="3" placeholder="e.g. Vintage Budweiser lighted bottle sign, bar decor, works..." style="font-size:15px;resize:none;"></textarea>
+    </div>
+    <button class="sheet-confirm" onclick="confirmManual()">Identify &amp; Research</button>
+    <button class="sheet-cancel" onclick="closeManualModal()">Cancel</button>
+  </div>
+</div>
+
+
+<!-- ADD SALE SHEET -->
+<div id="add-sale-overlay" style="position:fixed;inset:0;background:rgba(8,7,7,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--raised);border-top:1px solid var(--borderlit);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:16px 20px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--silver);margin-bottom:16px;" id="add-sale-title">Add Sale</div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Sale Name</div>
+      <input class="sheet-input-sm" type="text" id="as-name" placeholder="Belmont Shore Estate Sale" />
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Address</div>
+      <input class="sheet-input-sm" type="text" id="as-address" placeholder="123 Main St, Long Beach, CA" />
+    </div>
+
+    <div class="sheet-row-2" style="margin-bottom:10px;">
+      <div>
+        <div class="sheet-lbl">Start Date</div>
+        <input class="sheet-input-sm" type="date" id="as-date" />
+      </div>
+      <div>
+        <div class="sheet-lbl">End Date</div>
+        <input class="sheet-input-sm" type="date" id="as-date-end" />
+      </div>
+    </div>
+    <div class="sheet-row-2" style="margin-bottom:14px;">
+      <div>
+        <div class="sheet-lbl">Start Time</div>
+        <input class="sheet-input-sm" type="time" id="as-time" />
+      </div>
+      <div>
+        <div class="sheet-lbl">End Time</div>
+        <input class="sheet-input-sm" type="time" id="as-time-end" />
+      </div>
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Sale Type</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="type-btn cond-btn active" data-saletype="ESTATE SALE" onclick="selectSaleType(this)">Estate</button>
+        <button class="type-btn cond-btn" data-saletype="THRIFT STORE" onclick="selectSaleType(this)">Thrift</button>
+        <button class="type-btn cond-btn" data-saletype="GARAGE SALE" onclick="selectSaleType(this)">Garage</button>
+        <button class="type-btn cond-btn" data-saletype="YARD SALE" onclick="selectSaleType(this)">Yard Sale</button>
+        <button class="type-btn cond-btn" data-saletype="OTHER" onclick="selectSaleType(this)">Other</button>
+      </div>
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Lead Source</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="type-btn cond-btn active" data-source="IN PERSON" onclick="selectSource(this)">In Person</button>
+        <button class="type-btn cond-btn" data-source="FACEBOOK" onclick="selectSource(this)">Facebook</button>
+        <button class="type-btn cond-btn" data-source="NEWSLETTER" onclick="selectSource(this)">Newsletter</button>
+        <button class="type-btn cond-btn" data-source="AUCTION SITE" onclick="selectSource(this)">Auction Site</button>
+        <button class="type-btn cond-btn" data-source="OTHER" onclick="selectSource(this)">Other</button>
+      </div>
+    </div>
+
+    <div class="sheet-field" id="source-link-field" style="display:none;">
+      <div class="sheet-lbl">Listing Link</div>
+      <div style="display:flex;gap:6px;">
+        <input class="sheet-input-sm" type="text" inputmode="url" id="as-link" placeholder="https://www.estatesales.net/..." style="flex:1;" />
+        <button type="button" onclick="fetchSaleListing()" style="font-family:var(--f-mono);font-size:11px;padding:6px 12px;background:var(--grape-dim);color:var(--silver);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;flex:none;" id="fetch-btn">Fetch</button>
+      </div>
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Priority</div>
+      <div style="display:flex;gap:6px;">
+        <button class="type-btn cond-btn" data-priority="HIGH" onclick="selectPriority(this)" style="flex:1;">High</button>
+        <button class="type-btn cond-btn active" data-priority="MEDIUM" onclick="selectPriority(this)" style="flex:1;">Medium</button>
+        <button class="type-btn cond-btn" data-priority="LOW" onclick="selectPriority(this)" style="flex:1;">Low</button>
+      </div>
+    </div>
+
+    <div class="sheet-field">
+      <div class="sheet-lbl">Notes <span style="color:var(--dim);font-size:9px;">(optional)</span></div>
+      <textarea class="sheet-input-sm" id="as-notes" rows="2" placeholder="Mid-century furniture, lots of records listed..." style="resize:none;"></textarea>
+    </div>
+
+    <button class="sheet-confirm" onclick="saveSale()" style="font-size:13px;">Save Sale</button>
+    <button class="sheet-cancel" onclick="closeAddSaleSheet()">Cancel</button>
+  </div>
+</div>
+
+<!-- HIDDEN BARCODE INPUT -->
+<input id="barcode-input" type="text" style="position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;" />
+
+<script>
+'use strict';
+
+// ─── KEYS ─────────────────────────────────────────────────────────────────────
+const K = {
+  anthropic:  'llv_anthropic_key',
+  airtable:   'llv_airtable_key',
+  baseId:     'llv_base_id',
+  sessionsId: 'llv_sessions_table_id',
+  itemsId:    'llv_items_table_id',
+  salesId:    'llv_sales_table_id',
+  homeBase:   'llv_home_base',
+  scraperUrl: 'llv_scraper_url',
+};
+const get = k => localStorage.getItem(K[k]) || '';
+const set = (k, v) => localStorage.setItem(K[k], v);
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-populate Airtable IDs
+  if (!get('baseId'))     set('baseId',     'app3DqxIJ1SUBKylb');
+  if (!get('sessionsId')) set('sessionsId', 'tblGH4ziHZSneAtoI');
+  if (!get('itemsId'))    set('itemsId',    'tblFeToiIcEseekfH');
+  if (!get('salesId'))    set('salesId',    'tblRfPldzPkqIlD7P');
+  if (!get('homeBase'))   set('homeBase',   'Long Beach, CA');
+
+  // Restore active session label if exists
+  const savedName = localStorage.getItem('llv_active_session_name');
+  const savedId   = localStorage.getItem('llv_active_session_id');
+  if (savedName && savedId) {
+    activeSessionId   = savedId;
+    activeSessionName = savedName;
+    document.getElementById('session-label').textContent = savedName;
+  }
+  // Debug: log current session state
+  console.log('Session on load:', savedId, savedName);
+  // Start on Plan tab and load sales from Airtable
+  switchTab('plan');
+  loadSales();
+
+  // Barcode scanner input listener
+  const barcodeInput = document.getElementById('barcode-input');
+  barcodeInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const raw = barcodeInput.value.trim().replace(/[^0-9a-zA-Z]/g, '');
+      barcodeInput.value = '';
+      if (raw.length >= 6) processBarcode(raw);
+    }
+  });
+});
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function toggleSettings() {
+  const el = document.getElementById('settings-overlay');
+  const isOpen = el.classList.toggle('open');
+  if (isOpen) {
+    document.getElementById('s-anthropic').value = get('anthropic');
+    document.getElementById('s-airtable').value  = get('airtable');
+    document.getElementById('s-base').value       = get('baseId');
+    document.getElementById('s-sessions').value   = get('sessionsId');
+    document.getElementById('s-items').value      = get('itemsId');
+    document.getElementById('s-sales').value      = get('salesId');
+    document.getElementById('s-scraper').value    = get('scraperUrl');
+    document.getElementById('s-home').value       = get('homeBase');
+  }
+}
+function handleSettingsOverlayClick(e) {
+  if (e.target === document.getElementById('settings-overlay')) toggleSettings();
+}
+function saveSettings() {
+  set('anthropic',  document.getElementById('s-anthropic').value.trim());
+  set('airtable',   document.getElementById('s-airtable').value.trim());
+  set('baseId',     document.getElementById('s-base').value.trim());
+  set('sessionsId', document.getElementById('s-sessions').value.trim());
+  set('itemsId',    document.getElementById('s-items').value.trim());
+  set('salesId',    document.getElementById('s-sales').value.trim());
+  set('scraperUrl', document.getElementById('s-scraper').value.trim());
+  set('homeBase',   document.getElementById('s-home').value.trim());
+  const s = document.getElementById('settings-status');
+  s.textContent = 'Saved ✓';
+  setTimeout(() => s.textContent = '', 2000);
+}
+
+// ─── SESSION ──────────────────────────────────────────────────────────────────
+let activeSessionId   = localStorage.getItem('llv_active_session_id')   || null;
+let activeSessionName = localStorage.getItem('llv_active_session_name') || null;
+let sessionResolve    = null;
+
+async function getOrCreateSession() {
+  if (activeSessionId) return activeSessionId;
+  return await showSessionModal();
+}
+
+async function promptNewSession() {
+  activeSessionId   = null;
+  activeSessionName = null;
+  localStorage.removeItem('llv_active_session_id');
+  localStorage.removeItem('llv_active_session_name');
+  return await showSessionModal();
+}
+
+function showSessionModal() {
+  return new Promise(resolve => {
+    sessionResolve = resolve;
+    document.getElementById('sm-location').value = get('homeBase') || 'Long Beach, CA';
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.type-btn[data-type="ESTATE SALE"]').classList.add('active');
+    document.getElementById('session-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('sm-location').focus(), 300);
+  });
+}
+
+async function confirmSession() {
+  const location = document.getElementById('sm-location').value.trim() || get('homeBase') || 'Long Beach, CA';
+  const typeEl = document.querySelector('.type-btn.active');
+  const sessionType = typeEl ? typeEl.dataset.type : 'ESTATE SALE';
+  document.getElementById('session-modal-overlay').classList.remove('open');
+  const id = await createSession(location, sessionType);
+  if (sessionResolve) { sessionResolve(id); sessionResolve = null; }
+}
+
+function skipSession() {
+  document.getElementById('session-modal-overlay').classList.remove('open');
+  if (sessionResolve) { sessionResolve(null); sessionResolve = null; }
+}
+
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function createSession(location, sessionType) {
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const sessionsId  = get('sessionsId');
+  if (!airtableKey || !baseId || !sessionsId) {
+    showToast('Add Airtable credentials in Settings', 'error');
+    return null;
+  }
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${sessionsId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: {
+        'LOCATION':       location,
+        'SESSION TYPE':   sessionType,
+        'SESSION STATUS': 'ACTIVE',
+        'DATE':           (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })()
+      }})
+    });
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error('Session create error:', errData);
+      const msg = errData?.error?.message || errData?.error?.type || JSON.stringify(errData);
+      showToast('Session error: ' + msg.substring(0, 45), 'error');
+      return null;
+    }
+    const data = await res.json();
+    activeSessionId   = data.id;
+    activeSessionName = location;
+    localStorage.setItem('llv_active_session_id',   activeSessionId);
+    localStorage.setItem('llv_active_session_name', activeSessionName);
+    document.getElementById('session-label').textContent = activeSessionName;
+    showToast(`Session: ${activeSessionName}`, 'success');
+    return activeSessionId;
+  } catch (err) { console.error(err); showToast('Network error', 'error'); return null; }
+}
+
+// ─── CARD STATE ───────────────────────────────────────────────────────────────
+let cardCounter  = 0;
+let pendingCardId = null;
+const cardStore  = {};
+
+function updateQueueCount() {
+  const n = document.querySelectorAll('#queue-list .q-card').length;
+  document.getElementById('queue-count').textContent = n === 0 ? '0 pending' : n + ' pending';
+  // Show/hide empty state
+  let empty = document.querySelector('.empty-state');
+  if (n === 0 && !empty) {
+    empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = '<i class="ti ti-camera"></i><p>Snap an item to start</p>';
+    document.getElementById('queue-list').appendChild(empty);
+  } else if (n > 0 && empty) {
+    empty.remove();
+  }
+}
+
+// ─── CAPTURE METHODS ──────────────────────────────────────────────────────────
+function handleSnap() {
+  if (!get('anthropic')) { showToast('Add API key in Settings', 'error'); return; }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => processImage(ev.target.result, file.type);
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function handleBarcode() {
+  showToast('Trigger your scanner now', '');
+  document.getElementById('barcode-input').focus();
+}
+
+function handleManual() {
+  showManualModal();
+}
+
+function showManualModal() {
+  document.getElementById('manual-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('mm-description').focus(), 300);
+}
+
+function confirmManual() {
+  const term = document.getElementById('mm-description').value.trim();
+  document.getElementById('manual-modal-overlay').classList.remove('open');
+  document.getElementById('mm-description').value = '';
+  if (term) processManual(term);
+}
+
+function closeManualModal() {
+  document.getElementById('manual-modal-overlay').classList.remove('open');
+  document.getElementById('mm-description').value = '';
+}
+
+// ─── PROCESS FLOWS ────────────────────────────────────────────────────────────
+async function processImage(dataUrl, mimeType) {
+  const id = 'card-' + (++cardCounter);
+  const base64 = dataUrl.split(',')[1];
+  addProcessingCard(id, dataUrl);
+  const result = await claudeIdentify([{
+    type: 'image',
+    source: { type: 'base64', media_type: mimeType, data: base64 }
+  }]);
+  result ? populateCard(id, result, dataUrl) : removeCard(id);
+}
+
+async function processBarcode(barcode) {
+  const id = 'card-' + (++cardCounter);
+  addProcessingCard(id, null);
+  const result = await claudeIdentify([{
+    type: 'text',
+    text: `Barcode: ${barcode}. Identify this product and find eBay sold comps.`
+  }]);
+  result ? populateCard(id, result, null) : removeCard(id);
+}
+
+async function processManual(description) {
+  const id = 'card-' + (++cardCounter);
+  addProcessingCard(id, null);
+  const result = await claudeIdentify([{
+    type: 'text',
+    text: `Item: ${description}. Identify and find eBay sold comps.`
+  }]);
+  result ? populateCard(id, result, null) : removeCard(id);
+}
+
+// ─── CLAUDE IDENTIFY + COMP ───────────────────────────────────────────────────
+async function claudeIdentify(contentBlocks) {
+  const apiKey = get('anthropic');
+  if (!apiKey) { showToast('Add API key in Settings', 'error'); return null; }
+
+  const system = `You are an expert vintage and collectible reseller assistant for Last Laugh Vintage, Long Beach CA.
+Identify items and research eBay SOLD listing prices.
+
+Categories: POSTER, VHS, CASSETTE, TOY, VINTAGE ELECTRONICS, MEMORABILIA, HOME DECOR, OTHER
+
+Steps:
+1. Identify the item from the photo/description
+2. Form the best eBay sold search query (experienced reseller style — not too specific, not too broad)
+3. Use web_search to fetch: https://www.ebay.com/sch/i.html?_nkw=QUERY&LH_Sold=1&LH_Complete=1
+4. Parse sold prices from the results page
+
+Return ONLY valid JSON, no markdown fences, no preamble:
+{
+  "name": "Brand + model/title + key descriptor",
+  "category": "POSTER|VHS|CASSETTE|TOY|VINTAGE ELECTRONICS|MEMORABILIA|HOME DECOR|OTHER",
+  "ebay_search_query": "the search term used",
+  "comp_low": 0,
+  "comp_high": 0,
+  "comp_median": 0,
+  "comp_sold_count": 0,
+  "ebay_search_url": "full eBay sold URL",
+  "ai_notes": "Brief ID notes and condition observations"
+}
+Use 0 for any price/count fields if data unavailable.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        system,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+        messages: [{ role: 'user', content: contentBlocks }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      console.error('Claude error:', e);
+      const msg = e?.error?.message || e?.error?.type || 'Unknown error';
+      showToast('Claude: ' + msg.substring(0, 45), 'error');
+      return null;
+    }
+
+    const data = await res.json();
+    const text = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    if (!text) { showToast('No response from Claude', 'error'); return null; }
+
+    // Strip any accidental markdown fences
+    const clean = text.replace(/```json|```/gi, '').trim();
+
+    // Find the JSON object
+    const jsonStart = clean.indexOf('{');
+    const jsonEnd   = clean.lastIndexOf('}');
+    if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found in response');
+
+    return JSON.parse(clean.substring(jsonStart, jsonEnd + 1));
+
+  } catch (err) {
+    console.error('claudeIdentify error:', err);
+    showToast('Identification failed', 'error');
+    return null;
+  }
+}
+
+// ─── CARD DOM ─────────────────────────────────────────────────────────────────
+function addProcessingCard(id, imageDataUrl) {
+  removeEmptyState();
+  const list = document.getElementById('queue-list');
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" alt="item">`
+    : `<i class="ti ti-loader"></i>`;
+
+  const card = document.createElement('div');
+  card.className = 'q-card processing';
+  card.id = id;
+  card.innerHTML = `
+    <div class="card-body">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0' : 'color:var(--dim)'}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name" style="color:var(--dim)">Identifying item...</div>
+        <div class="card-cat"  style="color:var(--ghost)">Searching eBay sold comps</div>
+        <div class="comp-row"><span style="font-size:11px;color:var(--ghost)">Pulling sold data</span></div>
+      </div>
+    </div>
+    <div class="proc-bar">
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      Processing
+    </div>`;
+  list.appendChild(card);
+  updateQueueCount();
+}
+
+function populateCard(id, result, imageDataUrl) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  cardStore[id] = { ...result, imageDataUrl };
+
+  const thumbHtml = imageDataUrl
+    ? `<img src="${imageDataUrl}" alt="item">`
+    : `<i class="ti ti-package"></i>`;
+
+  const hasComps = result.comp_low || result.comp_high;
+  const compRange = hasComps
+    ? `$${result.comp_low} – $${result.comp_high}`
+    : 'No sold comps found';
+  const soldTxt = result.comp_sold_count ? `${result.comp_sold_count} sold` : '';
+  const ebayUrl = result.ebay_search_url ||
+    `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(result.ebay_search_query||result.name)}&LH_Sold=1&LH_Complete=1`;
+
+  card.className = 'q-card';
+  card.innerHTML = `
+    <div class="card-body">
+      <div class="card-thumb" style="${imageDataUrl ? 'padding:0' : ''}">${thumbHtml}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(result.name)}</div>
+        <div class="card-cat">${esc(result.category)}</div>
+        <div class="comp-row">
+          <span class="comp-range">${compRange}</span>
+          ${soldTxt ? `<span class="comp-sold">${soldTxt}</span>` : ''}
+          <a class="comp-link" href="${ebayUrl}" target="_blank">eBay <i class="ti ti-external-link"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="card-divider"></div>
+    <div class="card-actions">
+      <button class="act-btn act-pass" onclick="passCard('${id}')">Pass</button>
+      <button class="act-btn act-buy"  onclick="openSheet('${id}')">Buy →</button>
+    </div>`;
+  updateQueueCount();
+}
+
+function removeCard(id) {
+  const card = document.getElementById(id);
+  if (card) card.remove();
+  delete cardStore[id];
+  updateQueueCount();
+}
+
+function removeEmptyState() {
+  const e = document.querySelector('.empty-state');
+  if (e) e.remove();
+}
+
+function passCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.style.transition = 'opacity 0.2s, transform 0.2s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(24px)';
+  setTimeout(() => { card.remove(); delete cardStore[id]; updateQueueCount(); }, 210);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── BUY SHEET ────────────────────────────────────────────────────────────────
+function openSheet(cardId) {
+  pendingCardId = cardId;
+  const d = cardStore[cardId] || {};
+  document.getElementById('sheet-name').textContent = d.name || '—';
+  document.getElementById('sheet-cat').textContent  = d.category || '—';
+  document.getElementById('sheet-cog').value = '';
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.cond-btn:nth-child(3)').classList.add('active');
+  document.getElementById('sheet-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('sheet-cog').focus(), 320);
+}
+
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open');
+  pendingCardId = null;
+}
+
+function handleSheetOverlayClick(e) {
+  if (e.target === document.getElementById('sheet-overlay')) closeSheet();
+}
+
+function selCond(el) {
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── CONFIRM BUY → AIRTABLE ───────────────────────────────────────────────────
+async function confirmBuy() {
+  const cogRaw = document.getElementById('sheet-cog').value.trim().replace(/[$,]/g,'');
+  if (!cogRaw || isNaN(parseFloat(cogRaw))) { showToast('Enter cost of goods', 'error'); return; }
+  const cog = parseFloat(cogRaw);
+
+  const condEl  = document.querySelector('.cond-btn.active');
+  // Map display label to Airtable value
+  const condMap = { 'Sealed':'SEALED', 'Mint':'MINT', 'V. Good':'VERY GOOD', 'Good':'GOOD', 'Fair':'FAIR' };
+  const condition = condMap[condEl ? condEl.textContent.trim() : 'Good'] || 'GOOD';
+
+  const d = cardStore[pendingCardId] || {};
+  const today = new Date().toISOString().split('T')[0];
+
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const itemsId     = get('itemsId');
+  if (!airtableKey || !baseId || !itemsId) {
+    showToast('Add Airtable credentials in Settings', 'error');
+    return;
+  }
+
+  // Get or create session
+  const sessionId = await getOrCreateSession();
+
+  const fields = {
+    'ITEM NAME':               d.name || 'Unknown Item',
+    'CATEGORY':                d.category || 'OTHER',
+    'CONDITION':               condition,
+    'COST OF GOODS':           cog,
+    'AI IDENTIFICATION NOTES': d.ai_notes || '',
+    'EBAY COMP LOW':           d.comp_low  || 0,
+    'EBAY COMP HIGH':          d.comp_high || 0,
+    'EBAY COMP SOLD COUNT':    d.comp_sold_count || 0,
+    'ITEM STATUS':             'SOURCED',
+  };
+  if (sessionId && sessionId.startsWith('rec')) fields['SESSION'] = [sessionId];
+
+  showToast('Creating record...', '');
+
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${itemsId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${airtableKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error('Airtable error:', errData);
+      const errMsg = errData?.error?.message || errData?.error?.type || 'Unknown error';
+      showToast('AT error: ' + errMsg.substring(0, 40), 'error');
+      return;
+    }
+
+    const record = await res.json();
+    console.log('Record created:', record.id);
+
+    // Dismiss card
+    const card = document.getElementById(pendingCardId);
+    if (card) {
+      card.style.transition = 'opacity 0.2s, transform 0.2s';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-24px)';
+      setTimeout(() => { card.remove(); delete cardStore[pendingCardId]; updateQueueCount(); }, 210);
+    }
+    closeSheet();
+    showToast('Record created ✓', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showToast('Network error', 'error');
+  }
+}
+
+// ─── TEST AIRTABLE ───────────────────────────────────────────────────────────
+async function testAirtable() {
+  const airtableKey = get('airtable');
+  const baseId      = get('baseId');
+  const sessionsId  = get('sessionsId');
+  if (!airtableKey || !baseId || !sessionsId) {
+    showToast('Fill in all Airtable fields first', 'error');
+    return;
+  }
+  // Test read first
+  showToast('Testing read...', '');
+  try {
+    const readRes = await fetch(
+      `https://api.airtable.com/v0/${baseId}/${sessionsId}?maxRecords=1`,
+      { headers: { 'Authorization': `Bearer ${airtableKey}` } }
+    );
+    const readData = await readRes.json();
+    if (!readRes.ok) {
+      const msg = readData?.error?.message || JSON.stringify(readData);
+      showToast('Read failed: ' + msg.substring(0, 50), 'error');
+      return;
+    }
+    // Test write with minimal record
+    showToast('Testing write...', '');
+    const writeRes = await fetch(
+      `https://api.airtable.com/v0/${baseId}/${sessionsId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${airtableKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fields: {
+          'LOCATION': 'TEST - DELETE ME'
+        } })
+      }
+    );
+    const writeData = await writeRes.json();
+    if (writeRes.ok) {
+      showToast('Write OK ✓ — record: ' + writeData.id.substring(0,10), 'success');
+    } else {
+      // Show full error
+      const fullErr = JSON.stringify(writeData);
+      showToast('Write failed: ' + fullErr.substring(0, 60), 'error');
+      console.error('Full write error:', writeData);
+    }
+  } catch (err) {
+    showToast('Network error: ' + err.message.substring(0, 40), 'error');
+    console.error(err);
+  }
+}
+
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+let currentTab = 'plan';
+
+function switchTab(tab) {
+  currentTab = tab;
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  // Show/hide bodies
+  const scrollBody = document.getElementById('scroll-body');
+  const planBody   = document.getElementById('plan-body');
+  const queueFabs  = document.getElementById('queue-fabs');
+  const planFabs   = document.getElementById('plan-fabs');
+  if (tab === 'queue') {
+    scrollBody.style.display = 'flex';
+    planBody.classList.remove('active');
+    queueFabs.style.display = 'block';
+    planFabs.style.display  = 'none';
+  } else {
+    scrollBody.style.display = 'none';
+    planBody.classList.add('active');
+    queueFabs.style.display = 'none';
+    planFabs.style.display  = 'flex';
+    renderPlanList();
+  }
+  // Sync tab button states
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('tab-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// ─── SALES DATA (Airtable-backed — shared with Studio) ───────────────────────
+let salesData = [];
+let editingSaleId = null;
+let inRouteView = false;
+
+function atSaleToLocal(rec) {
+  const f = rec.fields || {};
+  return {
+    id: rec.id,
+    name: f['SALE NAME'] || '',
+    address: f['ADDRESS'] || '',
+    date: f['START DATE'] || '',
+    dateEnd: f['END DATE'] || '',
+    time: f['START TIME'] || '',
+    timeEnd: f['END TIME'] || '',
+    notes: f['NOTES'] || '',
+    saleType: f['SALE TYPE'] || 'ESTATE SALE',
+    priority: f['PRIORITY'] || 'MEDIUM',
+    source: f['LEAD SOURCE'] || 'IN PERSON',
+    link: f['LINK'] || '',
+    converted: !!f['CONVERTED'],
+  };
+}
+
+async function loadSales() {
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (!airtableKey || !baseId || !salesId) { salesData = []; renderPlanList(); return; }
+  try {
+    let all = [], offset = null;
+    do {
+      const url = new URL(`https://api.airtable.com/v0/${baseId}/${salesId}`);
+      url.searchParams.set('pageSize', '100');
+      if (offset) url.searchParams.set('offset', offset);
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + airtableKey } });
+      if (!r.ok) throw new Error('Failed to load sales');
+      const j = await r.json();
+      all = all.concat(j.records || []);
+      offset = j.offset;
+    } while (offset);
+    salesData = all.map(atSaleToLocal);
+    renderPlanList();
+  } catch (e) {
+    console.error('loadSales:', e);
+    salesData = [];
+    renderPlanList();
+  }
+}
+
+// ─── PLAN LIST ────────────────────────────────────────────────────────────────
+function renderPlanList() {
+  const list = document.getElementById('plan-list');
+  const empty = document.getElementById('plan-empty');
+  const routeView = document.getElementById('route-view');
+
+  // Sort by date then priority
+  const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  const sorted = [...salesData].sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1);
+  });
+
+  // Update count
+  const upcoming = salesData.filter(s => !s.converted).length;
+  document.getElementById('plan-count').textContent = upcoming + ' upcoming';
+
+  if (salesData.length === 0) {
+    list.innerHTML = '';
+    if (!document.getElementById('plan-empty')) {
+      const e = document.createElement('div');
+      e.className = 'plan-empty'; e.id = 'plan-empty';
+      e.innerHTML = '<i class="ti ti-map-pin"></i><p>No sales logged yet — tap Add to start</p>';
+      list.appendChild(e);
+    }
+    routeView.innerHTML = '';
+    routeView.classList.remove('active');
+    return;
+  }
+
+  // Remove empty state
+  const emp = document.getElementById('plan-empty');
+  if (emp) emp.remove();
+
+  if (inRouteView) {
+    renderRouteView(sorted);
+  } else {
+    list.innerHTML = '';
+    routeView.innerHTML = '';
+    routeView.classList.remove('active');
+    sorted.forEach(sale => {
+      list.appendChild(buildSaleCard(sale));
+    });
+  }
+}
+
+function buildSaleCard(sale) {
+  const card = document.createElement('div');
+  card.className = 'sale-card priority-' + sale.priority.toLowerCase() + (sale.converted ? ' converted' : '');
+  card.id = 'sale-' + sale.id;
+
+  const timeStr = sale.time ? formatTime(sale.time) : '';
+  const dateStr = sale.date ? formatDate(sale.date) : '';
+
+  card.innerHTML = `
+    <div class="sale-card-top">
+      <div class="sale-card-info">
+        <div class="sale-card-name">${esc(sale.name)}</div>
+        <div class="sale-card-type">${esc(sale.saleType)}</div>
+        <div class="sale-card-meta">
+          ${dateStr ? `<span class="sale-meta-item"><i class="ti ti-calendar"></i>${dateStr}${sale.dateEnd && sale.dateEnd !== sale.date ? ' – ' + formatDate(sale.dateEnd) : ''}</span>` : ''}
+          ${timeStr ? `<span class="sale-meta-item"><i class="ti ti-clock"></i>${timeStr}${sale.timeEnd ? ' – ' + formatTime(sale.timeEnd) : ''}</span>` : ''}
+          ${sale.address ? `<span class="sale-meta-item"><i class="ti ti-map-pin"></i>${esc(sale.address.split(',')[0])}</span>` : ''}
+          ${sale.source && sale.source !== 'IN PERSON' ? `<span class="sale-meta-item"><i class="ti ti-link"></i>${esc(sale.source)}</span>` : ''}
+        </div>
+        ${sale.notes ? `<div style="font-size:10px;color:var(--dim);margin-top:5px;">${esc(sale.notes)}</div>` : ''}
+      </div>
+      <span class="priority-badge ${sale.priority}">${sale.priority}</span>
+    </div>
+    <div class="card-divider"></div>
+    <div class="sale-card-actions">
+      <button class="sale-act-btn" style="color:var(--lavender);border-right:1px solid var(--border);" onclick="startSourcingFromSale('${sale.id}')">
+        <i class="ti ti-camera" style="font-size:13px;margin-right:3px;"></i> Source
+      </button>
+      <button class="sale-act-btn sale-act-maps" onclick="openInMaps('${sale.id}')">
+        <i class="ti ti-map" style="font-size:13px;margin-right:3px;"></i> Maps
+      </button>
+      <button class="sale-act-btn sale-act-route" onclick="editSale('${sale.id}')">
+        <i class="ti ti-pencil" style="font-size:13px;margin-right:3px;"></i> Edit
+      </button>
+      <button class="sale-act-btn sale-act-delete" onclick="deleteSale('${sale.id}')">
+        <i class="ti ti-trash" style="font-size:13px;"></i>
+      </button>
+    </div>`;
+  return card;
+}
+
+// ─── ROUTE VIEW ───────────────────────────────────────────────────────────────
+function toggleRouteView() {
+  inRouteView = !inRouteView;
+  const btn = document.getElementById('route-btn');
+  if (inRouteView) {
+    btn.classList.add('active-route');
+    btn.innerHTML = '<i class="ti ti-list"></i> Back to List';
+  } else {
+    btn.classList.remove('active-route');
+    btn.innerHTML = '<i class="ti ti-route"></i> Plan Route';
+  }
+  renderPlanList();
+}
+
+function renderRouteView(sorted) {
+  const list = document.getElementById('plan-list');
+  const routeView = document.getElementById('route-view');
+  list.innerHTML = '';
+  routeView.innerHTML = '';
+  routeView.classList.add('active');
+
+  // Sort: HIGH first, then by date
+  const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  const routeSorted = [...sorted].sort((a, b) => {
+    const pa = priorityOrder[a.priority] || 1;
+    const pb = priorityOrder[b.priority] || 1;
+    if (pa !== pb) return pa - pb;
+    return a.date < b.date ? -1 : 1;
+  });
+
+  if (routeSorted.length === 0) {
+    routeView.innerHTML = '<div class="plan-empty"><i class="ti ti-route"></i><p>No sales to route</p></div>';
+    return;
+  }
+
+  routeSorted.forEach((sale, i) => {
+    const stop = document.createElement('div');
+    stop.className = 'route-stop';
+    const timeStr = sale.time ? formatTime(sale.time) : '';
+    const dateStr = sale.date ? formatDate(sale.date) : '';
+    stop.innerHTML = `
+      <div class="route-stop-num">${i + 1}</div>
+      <div class="route-stop-info">
+        <div class="route-stop-name">${esc(sale.name)}</div>
+        <div class="route-stop-addr">${esc(sale.address || '—')}</div>
+        ${(dateStr || timeStr) ? `<div class="route-stop-time">${dateStr}${dateStr && timeStr ? ' · ' : ''}${timeStr}</div>` : ''}
+      </div>
+      <button class="route-maps-btn" onclick="openInMaps('${sale.id}')">
+        <i class="ti ti-map-pin"></i> Go
+      </button>`;
+    routeView.appendChild(stop);
+  });
+}
+
+// ─── SCRAPE LISTING ───────────────────────────────────────────────────────────
+function importSaleFromUrl() {
+  openAddSaleSheet();
+  // Pre-select "Auction Site" source so the link field is visible
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  const aBtn = document.querySelector('[data-source="AUCTION SITE"]');
+  if (aBtn) aBtn.classList.add('active');
+  toggleSourceLink('AUCTION SITE');
+  // Focus the link input
+  setTimeout(() => document.getElementById('as-link')?.focus(), 200);
+}
+
+async function fetchSaleListing() {
+  const linkEl = document.getElementById('as-link');
+  const url = (linkEl?.value || '').trim();
+  if (!url) { showToast('Paste a listing URL first', 'error'); return; }
+
+  const scraperBase = get('scraperUrl');
+  if (!scraperBase) { showToast('Set Scraper Worker URL in settings ⚙', 'error'); return; }
+
+  const btn = document.getElementById('fetch-btn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+
+  try {
+    const r = await fetch(scraperBase.replace(/\/+$/, '') + '/scrape?url=' + encodeURIComponent(url));
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'Fetch failed'); }
+    const data = await r.json();
+
+    // Fill form fields from scraped data
+    if (data.name)    document.getElementById('as-name').value    = data.name;
+    if (data.address) document.getElementById('as-address').value = data.address;
+    if (data.date)    document.getElementById('as-date').value    = data.date;
+    if (data.dateEnd) document.getElementById('as-date-end').value = data.dateEnd;
+    if (data.time)    document.getElementById('as-time').value    = data.time;
+    if (data.timeEnd) document.getElementById('as-time-end').value = data.timeEnd;
+    if (data.notes)   document.getElementById('as-notes').value   = data.notes;
+
+    // Set sale type chip
+    if (data.saleType) {
+      document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
+      const btn2 = document.querySelector(`[data-saletype="${data.saleType}"]`);
+      if (btn2) btn2.classList.add('active');
+    }
+    // Set source chip
+    if (data.source) {
+      document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+      const btn2 = document.querySelector(`[data-source="${data.source}"]`);
+      if (btn2) btn2.classList.add('active');
+    }
+
+    showToast('Listing imported ✓', 'success');
+  } catch (e) {
+    console.error('fetchSaleListing:', e);
+    showToast(e.message || 'Could not fetch listing', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+// ─── ADD / EDIT SALE ──────────────────────────────────────────────────────────
+function openAddSaleSheet() {
+  editingSaleId = null;
+  document.getElementById('add-sale-title').textContent = 'Add Sale';
+  document.getElementById('as-name').value    = '';
+  document.getElementById('as-address').value = '';
+  document.getElementById('as-notes').value   = '';
+  // Default date to today
+  const today = new Date();
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  document.getElementById('as-date').value     = todayStr;
+  document.getElementById('as-date-end').value = todayStr;
+  document.getElementById('as-time').value     = '08:00';
+  document.getElementById('as-time-end').value = '14:00';
+  // Reset selects
+  document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-saletype="ESTATE SALE"]').classList.add('active');
+  document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-priority="MEDIUM"]').classList.add('active');
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-source="IN PERSON"]').classList.add('active');
+  document.getElementById('as-link').value = '';
+  document.getElementById('source-link-field').style.display = 'none';
+  document.getElementById('add-sale-overlay').style.display = 'flex';
+}
+
+function editSale(id) {
+  const sale = salesData.find(s => s.id === id);
+  if (!sale) return;
+  editingSaleId = id;
+  document.getElementById('add-sale-title').textContent = 'Edit Sale';
+  document.getElementById('as-name').value    = sale.name || '';
+  document.getElementById('as-address').value = sale.address || '';
+  document.getElementById('as-notes').value   = sale.notes || '';
+  document.getElementById('as-date').value     = sale.date    || '';
+  document.getElementById('as-date-end').value = sale.dateEnd || '';
+  document.getElementById('as-time').value     = sale.time    || '';
+  document.getElementById('as-time-end').value = sale.timeEnd || '';
+  document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
+  const typeBtn = document.querySelector(`[data-saletype="${sale.saleType}"]`);
+  if (typeBtn) typeBtn.classList.add('active');
+  document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));
+  const priBtn = document.querySelector(`[data-priority="${sale.priority}"]`);
+  if (priBtn) priBtn.classList.add('active');
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  const srcBtn = document.querySelector(`[data-source="${sale.source || 'IN PERSON'}"]`);
+  if (srcBtn) srcBtn.classList.add('active');
+  document.getElementById('as-link').value = sale.link || '';
+  toggleSourceLink(sale.source || 'IN PERSON');
+  document.getElementById('add-sale-overlay').style.display = 'flex';
+}
+
+function closeAddSaleSheet() {
+  document.getElementById('add-sale-overlay').style.display = 'none';
+  editingSaleId = null;
+}
+
+async function saveSale() {
+  const name = document.getElementById('as-name').value.trim();
+  if (!name) { showToast('Enter a sale name', 'error'); return; }
+
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (!airtableKey || !baseId || !salesId) { showToast('Sales table not configured — check settings', 'error'); return; }
+
+  const address  = document.getElementById('as-address').value.trim();
+  const date     = document.getElementById('as-date').value;
+  const time     = document.getElementById('as-time').value;
+  const notes    = document.getElementById('as-notes').value.trim();
+  const dateEnd  = document.getElementById('as-date-end').value;
+  const timeEnd  = document.getElementById('as-time-end').value;
+  const typeEl   = document.querySelector('[data-saletype].active');
+  const priEl    = document.querySelector('[data-priority].active');
+  const srcEl    = document.querySelector('[data-source].active');
+  const saleType = typeEl ? typeEl.dataset.saletype : 'ESTATE SALE';
+  const priority = priEl  ? priEl.dataset.priority  : 'MEDIUM';
+  const source   = srcEl  ? srcEl.dataset.source    : 'IN PERSON';
+  const link     = document.getElementById('as-link').value.trim();
+
+  const fields = { 'SALE NAME': name, 'SALE TYPE': saleType, 'LEAD SOURCE': source, 'PRIORITY': priority };
+  if (address) fields['ADDRESS'] = address;
+  if (date)    fields['START DATE'] = date;
+  if (dateEnd) fields['END DATE'] = dateEnd;
+  if (time)    fields['START TIME'] = time;
+  if (timeEnd) fields['END TIME'] = timeEnd;
+  if (notes)   fields['NOTES'] = notes;
+  if (link)    fields['LINK'] = link;
+
+  try {
+    if (editingSaleId) {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${editingSaleId}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, typecast: true })
+      });
+      if (!r.ok) throw new Error('Update failed');
+      const rec = await r.json();
+      const idx = salesData.findIndex(s => s.id === editingSaleId);
+      if (idx > -1) salesData[idx] = atSaleToLocal(rec);
+      showToast('Sale updated ✓', 'success');
+    } else {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, typecast: true })
+      });
+      if (!r.ok) throw new Error('Save failed');
+      const rec = await r.json();
+      salesData.push(atSaleToLocal(rec));
+      showToast('Sale saved ✓', 'success');
+    }
+    closeAddSaleSheet();
+    renderPlanList();
+  } catch (e) {
+    console.error(e);
+    showToast(e.message, 'error');
+  }
+}
+
+async function deleteSale(id) {
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  try {
+    if (airtableKey && baseId && salesId) {
+      const r = await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + airtableKey }
+      });
+      if (!r.ok) throw new Error('Delete failed');
+    }
+    salesData = salesData.filter(s => s.id !== id);
+    renderPlanList();
+    showToast('Sale removed', '');
+  } catch (e) {
+    console.error(e);
+    showToast(e.message, 'error');
+  }
+}
+
+// ─── START SOURCING FROM SALE ────────────────────────────────────────────────
+async function startSourcingFromSale(id) {
+  const sale = salesData.find(s => s.id === id);
+  if (!sale) return;
+
+  showToast('Starting session...', '');
+
+  // Use the proven createSession function directly
+  const sessionType = mapSaleTypeToSessionType(sale.saleType);
+  const sessionId   = await createSession(sale.name, sessionType);
+
+  // createSession sets activeSessionId and activeSessionName internally
+  // If it returned null, set a local fallback so confirmBuy doesn't re-prompt
+  if (!sessionId) {
+    activeSessionId   = activeSessionId || 'local-' + Date.now();
+    activeSessionName = sale.name;
+    localStorage.setItem('llv_active_session_id',   activeSessionId);
+    localStorage.setItem('llv_active_session_name', activeSessionName);
+    document.getElementById('session-label').textContent = activeSessionName;
+  }
+
+  // Mark sale as converted in Airtable
+  const airtableKey = get('airtable');
+  const baseId = get('baseId');
+  const salesId = get('salesId');
+  if (airtableKey && baseId && salesId) {
+    try {
+      await fetch(`https://api.airtable.com/v0/${baseId}/${salesId}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + airtableKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { 'CONVERTED': true } })
+      });
+    } catch (e) { console.error('Mark converted:', e); }
+  }
+
+  const idx = salesData.findIndex(s => s.id === id);
+  if (idx > -1) salesData[idx].converted = true;
+
+  // Update session bar
+  document.getElementById('session-label').textContent = activeSessionName;
+
+  // Switch to Queue tab
+  switchTab('queue');
+}
+
+function mapSaleTypeToSessionType(saleType) {
+  const map = {
+    'ESTATE SALE':  'ESTATE SALE',
+    'THRIFT STORE': 'THRIFT STORE',
+    'GARAGE SALE':  'GARAGE SALE',
+    'YARD SALE':    'GARAGE SALE',
+    'OTHER':        'OTHER'
+  };
+  return map[saleType] || 'ESTATE SALE';
+}
+
+// ─── MAPS ─────────────────────────────────────────────────────────────────────
+function openInMaps(id) {
+  const sale = salesData.find(s => s.id === id);
+  if (!sale || !sale.address) { showToast('No address saved', 'error'); return; }
+  const encoded = encodeURIComponent(sale.address);
+  // Apple Maps deeplink — falls back to Google Maps on Android/desktop
+  window.open(`maps://maps.apple.com/?q=${encoded}&dirflg=d`, '_blank') ||
+  window.open(`https://maps.apple.com/?q=${encoded}&dirflg=d`, '_blank');
+}
+
+// ─── SELECTORS ────────────────────────────────────────────────────────────────
+function selectSaleType(el) {
+  document.querySelectorAll('[data-saletype]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function selectSource(el) {
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  toggleSourceLink(el.dataset.source);
+}
+function toggleSourceLink(source) {
+  const linkSources = ['FACEBOOK', 'NEWSLETTER', 'AUCTION SITE'];
+  const field = document.getElementById('source-link-field');
+  if (field) field.style.display = linkSources.includes(source) ? 'block' : 'none';
+}
+function selectPriority(el) {
+  document.querySelectorAll('[data-priority]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── FORMATTERS ───────────────────────────────────────────────────────────────
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m)-1]} ${parseInt(d)}`;
+}
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hr = parseInt(h);
+  const ampm = hr >= 12 ? 'PM' : 'AM';
+  const hr12 = hr % 12 || 12;
+  return `${hr12}:${m} ${ampm}`;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 5000);
+}
+
+</script>
+</body>
+</html>

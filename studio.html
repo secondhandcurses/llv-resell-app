@@ -308,6 +308,27 @@
   .studio-sale-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:12px;transition:.15s}
   .studio-sale-card:hover{border-color:var(--line-strong)}
 
+  /* Auction module */
+  .au-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  .au-card:hover{border-color:var(--line-strong)}
+  .au-pill{display:inline-block;font-family:'DM Mono';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid}
+  .au-pill.WATCHING{color:#9ab0d8;background:rgba(120,150,210,.1);border-color:rgba(120,150,210,.4)}
+  .au-pill.BIDDING{color:#e0b15a;background:rgba(224,177,90,.1);border-color:rgba(224,177,90,.45)}
+  .au-pill.WON{color:#6fc06f;background:rgba(90,180,90,.12);border-color:rgba(90,180,90,.5)}
+  .au-pill.LOST{color:#c97d7d;background:rgba(190,100,100,.1);border-color:rgba(190,100,100,.4)}
+  .au-pill.PICKED-UP{color:var(--lav);background:rgba(101,69,151,.16);border-color:var(--grape)}
+  .au-pill.ARCHIVED{color:var(--olive);background:rgba(150,150,140,.08);border-color:var(--line)}
+  .au-stat{display:flex;flex-direction:column;gap:2px}
+  .au-stat .k{font-family:'DM Mono';font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive)}
+  .au-stat .v{font-family:'Oswald';font-size:1.05rem;font-weight:500;color:var(--txt)}
+  .au-statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0}
+  .au-landed{background:linear-gradient(150deg,rgba(101,69,151,.18),rgba(171,129,205,.08));border:1px solid var(--grape);border-radius:10px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;margin:14px 0}
+  .au-landed .k{font-family:'DM Mono';font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--lav)}
+  .au-landed .v{font-family:'Oswald';font-size:1.5rem;font-weight:600;color:#fff}
+  .au-statusbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .au-statusbtn{padding:7px 13px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--txt-mute);font-family:'DM Mono';font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.15s}
+  .au-statusbtn.active{background:var(--grape);border-color:var(--grape);color:#fff}
+
   /* Tape / Lot cards */
   .tape-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;overflow:hidden;cursor:pointer;transition:.15s}
   .tape-card:hover{border-color:var(--lav)}
@@ -354,6 +375,7 @@
   <a href="/field.html" class="tb-btn" id="fieldBtn" title="Field Scanner" style="text-decoration:none"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2 M17 3h2a2 2 0 0 1 2 2v2 M21 17v2a2 2 0 0 1-2 2h-2 M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></a>
   <button class="tb-btn" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8 M21 4v4h-4"/></svg></button>
   <button class="tb-btn" id="planBtn" title="Sourcing Plan"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4 M8 2v4 M3 10h18"/></svg></button>
+  <button class="tb-btn" id="auctionsBtn" title="Auctions"><svg viewBox="0 0 24 24"><path d="M14 13l-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10 M16 16l4-4 M9 9l4-4 M5.5 6.5l3 3 M14.5 15.5l3 3 M13 7l4 4"/></svg></button>
   <button class="tb-btn" id="labelsBtn" title="Label Printer"><svg viewBox="0 0 24 24"><path d="M3 5v14 M7 5v14 M11 5v14 M15 5v14 M19 5v14"/></svg></button>
   <button class="tb-btn" id="lotsBtn" title="Lots"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
   <button class="tb-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></button>
@@ -448,6 +470,64 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- AUCTIONS INDEX -->
+<div id="view-auctions" class="view">
+  <div class="wrap">
+    <div class="ws-top">
+      <button class="back" id="auctionsBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Inventory</button>
+      <span class="chip">Auctions</span>
+    </div>
+    <div class="sec-head"><h2>Auction Pipeline</h2><span class="count" id="auctionCount">0 active</span></div>
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+      <div id="auctionList"></div>
+      <div class="panel">
+        <div class="panel-head"><span class="ph-title">Add Auction</span></div>
+        <div style="padding:16px 17px 20px">
+          <div class="plan-mf"><label>Item Description</label><input id="af-desc" placeholder="Box lot of vintage cameras" autocomplete="off"></div>
+          <div class="plan-mf"><label>Source URL <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label><input id="af-url" type="url" placeholder="https://hibid.com/…" autocomplete="off"></div>
+          <div class="plan-mf"><label>Source Platform</label>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px" data-auchip="platform">
+              <button class="sm-plat-btn active" data-cv="HIBID" onclick="selectAuctionChip(this,'platform','HIBID')">HiBid</button>
+              <button class="sm-plat-btn" data-cv="EBAY" onclick="selectAuctionChip(this,'platform','EBAY')">eBay</button>
+              <button class="sm-plat-btn" data-cv="LIVEAUCTIONEERS" onclick="selectAuctionChip(this,'platform','LIVEAUCTIONEERS')">LiveAuctioneers</button>
+              <button class="sm-plat-btn" data-cv="ESTATESALES.NET" onclick="selectAuctionChip(this,'platform','ESTATESALES.NET')">EstateSales</button>
+              <button class="sm-plat-btn" data-cv="LOCAL" onclick="selectAuctionChip(this,'platform','LOCAL')">Local</button>
+              <button class="sm-plat-btn" data-cv="OTHER" onclick="selectAuctionChip(this,'platform','OTHER')">Other</button>
+            </div>
+          </div>
+          <div class="plan-mf"><label>Ends</label><input id="af-end" type="datetime-local"></div>
+          <div class="plan-mf"><label>Item Location <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label><input id="af-location" placeholder="Anaheim, CA" autocomplete="off"></div>
+          <div class="modal-2col">
+            <div class="plan-mf"><label>Est. Resale ($)</label><input id="af-resale" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="plan-mf"><label>My Max Bid ($)</label><input id="af-maxbid" type="number" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="plan-mf"><label>Is this a lot?</label>
+            <div style="display:flex;gap:5px;margin-top:6px" data-auchip="isLot">
+              <button class="sm-plat-btn" data-cv="yes" onclick="selectAuctionChip(this,'isLot','yes')">Lot</button>
+              <button class="sm-plat-btn active" data-cv="no" onclick="selectAuctionChip(this,'isLot','no')">Single</button>
+            </div>
+          </div>
+          <div class="plan-mf"><label>Notes <span style="font-family:'Barlow';font-size:.78rem;color:var(--olive);text-transform:none;letter-spacing:0">optional</span></label>
+            <textarea id="af-notes" placeholder="Condition concerns, what's in the lot, pickup window…"></textarea>
+          </div>
+          <button class="save-btn" id="saveAuctionBtn" onclick="saveAuction()" style="margin-top:4px">Add to Watchlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUCTION DETAIL -->
+<div id="view-auction" class="view">
+  <div class="wrap" style="max-width:760px">
+    <div class="ws-top">
+      <button class="back" id="auctionBackBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Auctions</button>
+      <span class="chip" id="auctionModeChip">Auction</span>
+    </div>
+    <div id="auctionDetailBody"></div>
   </div>
 </div>
 
@@ -874,6 +954,7 @@
       <div class="mf"><label>Listings Table ID</label><input id="k_listings" placeholder="tblW5u905moGRFsFw"></div>
       <div class="mf"><label>Sessions Table ID</label><input id="k_sessions" placeholder="tblGH4ziHZSneAtoI"></div>
       <div class="mf"><label>Sales Table ID</label><input id="k_sales" placeholder="tblRfPldzPkqIlD7P"></div>
+      <div class="mf"><label>Auctions Table ID</label><input id="k_auctions" placeholder="tblEAuV3zoq8OauBg"></div>
       <div class="mf" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><label style="color:var(--lav);font-size:.62rem;letter-spacing:.12em">VHS TABLES</label></div>
       <div class="mf"><label>Tapes Table ID</label><input id="k_tapes" placeholder="tblLdTYKcXGp8fJ0f"></div>
       <div class="mf"><label>Lots Table ID</label><input id="k_lots" placeholder="tbl7Eo8rBFcXR7JiM"></div>
@@ -907,11 +988,12 @@ const LS = {
   anthropic:'llv_anthropic_key', airtable:'llv_airtable_key', base:'llv_base_id',
   items:'llv_items_table_id', listings:'llv_listings_table_id', sessions:'llv_sessions_table_id',
   sales:'llv_sales_table_id',
+  auctions:'llv_auctions_table_id',
   tapes:'llv_tapes_table_id', lots:'llv_lots_table_id',
   tapeListings:'llv_tape_listings_table_id', tapeSales:'llv_tape_sales_table_id',
   tmdb:'llv_tmdb_key'
 };
-const DEFAULTS = { base:'app3DqxIJ1SUBKylb', items:'tblFeToiIcEseekfH', listings:'tblW5u905moGRFsFw', sessions:'tblGH4ziHZSneAtoI', sales:'tblRfPldzPkqIlD7P', tapes:'tblLdTYKcXGp8fJ0f', lots:'tbl7Eo8rBFcXR7JiM', tapeListings:'tblg8e73Xoi7QJ4kB', tapeSales:'tblOlh3OJ4KooTra3' };
+const DEFAULTS = { base:'app3DqxIJ1SUBKylb', items:'tblFeToiIcEseekfH', listings:'tblW5u905moGRFsFw', sessions:'tblGH4ziHZSneAtoI', sales:'tblRfPldzPkqIlD7P', auctions:'tblEAuV3zoq8OauBg', tapes:'tblLdTYKcXGp8fJ0f', lots:'tbl7Eo8rBFcXR7JiM', tapeListings:'tblg8e73Xoi7QJ4kB', tapeSales:'tblOlh3OJ4KooTra3' };
 const MODEL = 'claude-sonnet-4-5';
 
 // Platforms — FB & OfferUp are local (shared ask/floor); eBay/Etsy/Mercari national.
@@ -1470,7 +1552,7 @@ const VHS_PLATFORMS = ['EBAY','ETSY','FACEBOOK','MERCARI','OFFERUP'];
 const VHS_FEES = { EBAY:{pct:0.1325,flat:0.40}, MERCARI:{pct:0.10,flat:0} };
 
 function hideAllViews(){
-  ['view-home','view-ws','view-labels','view-plan','view-vhs','view-lot','view-lots'].forEach(id=>{
+  ['view-home','view-ws','view-labels','view-plan','view-vhs','view-lot','view-lots','view-auctions','view-auction'].forEach(id=>{
     const el=$('#'+id); if(el) el.classList.remove('active');
   });
 }
@@ -2489,6 +2571,297 @@ async function deletePlanSale(recId){
 }
 
 /* ============================================================
+   Auctions — watchlist → bid tracking → win/loss → pickup → inventory
+   ============================================================ */
+const AU_STATUSES = ['WATCHING','BIDDING','WON','LOST','PICKED UP','ARCHIVED'];
+const AU_STATUS_RANK = {WATCHING:0,BIDDING:1,WON:2,'PICKED UP':3,LOST:4,ARCHIVED:5};
+let AUCTIONS_DATA = [];
+let currentAuction = null;
+let auctionFormState = {platform:'HIBID',isLot:false};
+
+// datetime-local <-> Airtable helpers
+function toLocalDtInput(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; const p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+function fmtDt(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return esc(iso); return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+// Live preview of LANDED COST. Airtable's formula is authoritative; this mirrors
+// hammer + hammer*(premium%) + shipping. If the stored LANDED COST exists we show that instead.
+function landedPreview(hammer,premiumPct,shipping){ const h=Number(hammer)||0,p=Number(premiumPct)||0,s=Number(shipping)||0; return h + h*(p/100) + s; }
+
+async function openAuctionsView(){
+  hideAllViews(); $('#view-auctions').classList.add('active'); window.scrollTo(0,0);
+  await loadAuctions();
+}
+
+async function loadAuctions(){
+  if(!CFG.airtable||!CFG.base||!CFG.auctions){ AUCTIONS_DATA=[]; renderAuctionCards(); return; }
+  try{
+    const formula=encodeURIComponent('NOT({ARCHIVED})');
+    const sort='&sort%5B0%5D%5Bfield%5D='+encodeURIComponent('END DATE/TIME')+'&sort%5B0%5D%5Bdirection%5D=asc';
+    let out=[], offset=null;
+    do{
+      const url=`https://api.airtable.com/v0/${CFG.base}/${CFG.auctions}?pageSize=100&filterByFormula=${formula}${sort}${offset?'&offset='+offset:''}`;
+      const r=await fetch(url,{headers:{Authorization:'Bearer '+CFG.airtable}});
+      if(!r.ok) throw new Error('Airtable '+r.status+': '+(await r.text()).slice(0,160));
+      const j=await r.json(); out=out.concat(j.records||[]); offset=j.offset;
+    }while(offset);
+    // stable secondary sort by pipeline status
+    out.sort((a,b)=>(AU_STATUS_RANK[Fstr(a,'STATUS')]??9)-(AU_STATUS_RANK[Fstr(b,'STATUS')]??9));
+    AUCTIONS_DATA=out;
+    renderAuctionCards();
+  }catch(e){ console.error(e); toast(e.message,'err'); renderAuctionCards(); }
+}
+
+function renderAuctionCards(){
+  const list=$('#auctionList'), ct=$('#auctionCount');
+  const active=AUCTIONS_DATA.filter(r=>['WATCHING','BIDDING','WON'].includes(Fstr(r,'STATUS')));
+  if(ct) ct.textContent=active.length+' active';
+  if(!list) return;
+  if(!CFG.auctions){ list.innerHTML='<div class="empty" style="padding:40px 0">Add the Auctions table ID in ⚙ settings to start tracking.</div>'; return; }
+  if(!AUCTIONS_DATA.length){ list.innerHTML='<div class="empty" style="padding:40px 0">No auctions tracked — add one using the form.</div>'; return; }
+  list.innerHTML=AUCTIONS_DATA.map(rec=>{
+    const st=(Fstr(rec,'STATUS')||'WATCHING').toUpperCase();
+    const pillCls=st.replace(/\s+/g,'-');
+    const desc=Fstr(rec,'ITEM DESCRIPTION')||'—';
+    const ends=Fstr(rec,'END DATE/TIME');
+    const cur=Fnum(rec,'CURRENT BID'), max=Fnum(rec,'MY MAX BID'), resale=Fnum(rec,'EST. RESALE VALUE');
+    const landed=Fnum(rec,'LANDED COST');
+    const isLot=!!F(rec,'IS LOT?');
+    const inv=F(rec,'INVENTORY'); const linked=Array.isArray(inv)&&inv.length;
+    const over=(cur!=null&&max!=null&&cur>max);
+    return `<div class="au-card" onclick="openAuctionDetail('${rec.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+            <span class="au-pill ${pillCls}">${esc(st)}</span>
+            ${isLot?`<span class="chip">LOT</span>`:''}
+            ${linked?`<span class="chip" style="color:var(--lav);border-color:var(--grape)">IN INVENTORY</span>`:''}
+          </div>
+          <div style="font-family:'Oswald';font-weight:500;font-size:1.05rem;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(desc)}</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-family:'DM Mono';font-size:.66rem">
+            ${ends?`<span style="color:var(--lav)">⏱ ${fmtDt(ends)}</span>`:''}
+            ${cur!=null?`<span style="color:${over?'#c97d7d':'var(--silver)'}">Bid ${money(cur).replace('.00','')}${over?' › over max':''}</span>`:''}
+            ${max!=null?`<span style="color:var(--olive)">Max ${money(max).replace('.00','')}</span>`:''}
+            ${resale!=null?`<span style="color:var(--olive)">Est ${money(resale).replace('.00','')}</span>`:''}
+            ${landed!=null?`<span style="color:#6fc06f">Landed ${money(landed).replace('.00','')}</span>`:''}
+          </div>
+          ${Fstr(rec,'ITEM LOCATION')?`<div style="font-family:'DM Mono';font-size:.62rem;color:var(--olive);margin-top:6px">${esc(Fstr(rec,'ITEM LOCATION'))}</div>`:''}
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2" style="flex:none;margin-top:3px"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectAuctionChip(el,group,value){
+  const parent=el.closest('[data-auchip="'+group+'"]');
+  if(parent) parent.querySelectorAll('.sm-plat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  auctionFormState[group]=(group==='isLot')?(value==='yes'):value;
+}
+
+async function saveAuction(){
+  const desc=$('#af-desc')?.value?.trim();
+  if(!desc){ toast('Enter an item description','err'); return; }
+  if(!CFG.auctions){ toast('Auctions table ID not set — check ⚙ settings','err'); return; }
+  const fields={'ITEM DESCRIPTION':desc,'STATUS':'WATCHING','SOURCE PLATFORM':auctionFormState.platform,'IS LOT?':!!auctionFormState.isLot};
+  const url=$('#af-url')?.value?.trim(); if(url) fields['SOURCE URL']=url;
+  const end=$('#af-end')?.value; if(end) fields['END DATE/TIME']=end;
+  const loc=$('#af-location')?.value?.trim(); if(loc) fields['ITEM LOCATION']=loc;
+  const resale=parseFloat($('#af-resale')?.value); if(!isNaN(resale)) fields['EST. RESALE VALUE']=resale;
+  const max=parseFloat($('#af-maxbid')?.value); if(!isNaN(max)) fields['MY MAX BID']=max;
+  const notes=$('#af-notes')?.value?.trim(); if(notes) fields['NOTES']=notes;
+  const btn=$('#saveAuctionBtn'); if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    await atCreate(CFG.auctions,fields);
+    toast('Auction added ✓','ok');
+    ['af-desc','af-url','af-end','af-location','af-resale','af-maxbid','af-notes'].forEach(id=>{const el=$('#'+id);if(el)el.value='';});
+    auctionFormState={platform:'HIBID',isLot:false};
+    document.querySelectorAll('[data-auchip] .sm-plat-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector('[data-auchip="platform"] [data-cv="HIBID"]')?.classList.add('active');
+    document.querySelector('[data-auchip="isLot"] [data-cv="no"]')?.classList.add('active');
+    await loadAuctions();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+  finally{ if(btn){btn.disabled=false;btn.textContent='Add to Watchlist';} }
+}
+
+async function openAuctionDetail(recId){
+  hideAllViews(); $('#view-auction').classList.add('active'); window.scrollTo(0,0);
+  $('#auctionDetailBody').innerHTML='<div class="empty" style="padding:40px 0">Loading…</div>';
+  try{
+    const rec=await atGet(CFG.auctions,recId);
+    currentAuction=rec;
+    renderAuctionDetail();
+  }catch(e){ toast('Could not load auction: '+e.message,'err'); }
+}
+
+function renderAuctionDetail(){
+  const rec=currentAuction; if(!rec) return;
+  const st=(Fstr(rec,'STATUS')||'WATCHING').toUpperCase();
+  $('#auctionModeChip').textContent=esc(Fstr(rec,'SOURCE PLATFORM')||'Auction');
+  const hammer=Fnum(rec,'HAMMER PRICE'), prem=Fnum(rec,"BUYER'S PREMIUM (%)"), ship=Fnum(rec,'SHIPPING/PICKUP COST');
+  const storedLanded=Fnum(rec,'LANDED COST');
+  const landed=storedLanded!=null?storedLanded:landedPreview(hammer,prem,ship);
+  const resale=Fnum(rec,'EST. RESALE VALUE');
+  const margin=(resale!=null&&landed!=null&&landed>0)?(resale-landed):null;
+  const inv=F(rec,'INVENTORY'); const linked=Array.isArray(inv)&&inv.length;
+  const srcUrl=Fstr(rec,'SOURCE URL');
+  const won=['WON','PICKED UP'].includes(st);
+
+  $('#auctionDetailBody').innerHTML=`
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-head"><span class="ph-title">${esc(Fstr(rec,'ITEM DESCRIPTION')||'Auction')}</span>
+        <span class="au-pill ${st.replace(/\s+/g,'-')}">${esc(st)}</span></div>
+      <div style="padding:16px 18px 20px">
+
+        <label style="display:block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:6px">Pipeline</label>
+        <div class="au-statusbtns" style="margin-bottom:6px">
+          ${AU_STATUSES.map(s=>`<button class="au-statusbtn ${s===st?'active':''}" onclick="setAuctionStatus('${s}')">${s}</button>`).join('')}
+        </div>
+
+        <div class="au-statgrid">
+          <div class="au-stat"><span class="k">Current Bid</span><span class="v">${money(Fnum(rec,'CURRENT BID')).replace('.00','')}</span></div>
+          <div class="au-stat"><span class="k">My Max</span><span class="v">${money(Fnum(rec,'MY MAX BID')).replace('.00','')}</span></div>
+          <div class="au-stat"><span class="k">Est. Resale</span><span class="v">${money(resale).replace('.00','')}</span></div>
+          <div class="au-stat"><span class="k">Margin</span><span class="v" style="color:${margin==null?'var(--txt)':(margin>=0?'#6fc06f':'#c97d7d')}">${margin==null?'—':money(margin).replace('.00','')}</span></div>
+        </div>
+
+        <div class="plan-mf"><label>Item Description</label><input class="auf" data-af="ITEM DESCRIPTION" value="${esc(Fstr(rec,'ITEM DESCRIPTION'))}"></div>
+        <div class="modal-2col">
+          <div class="plan-mf"><label>Source Platform</label><input class="auf" data-af="SOURCE PLATFORM" value="${esc(Fstr(rec,'SOURCE PLATFORM'))}"></div>
+          <div class="plan-mf"><label>Item Location</label><input class="auf" data-af="ITEM LOCATION" value="${esc(Fstr(rec,'ITEM LOCATION'))}"></div>
+        </div>
+        <div class="plan-mf"><label>Source URL</label><input class="auf" data-af="SOURCE URL" value="${esc(srcUrl)}">${srcUrl?`<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-family:'DM Mono';font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--lav)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3"/></svg>Open listing</a>`:''}</div>
+        <div class="modal-2col">
+          <div class="plan-mf"><label>Ends</label><input class="auf" data-af="END DATE/TIME" type="datetime-local" value="${toLocalDtInput(Fstr(rec,'END DATE/TIME'))}"></div>
+          <div class="plan-mf"><label>Pickup Date</label><input class="auf" data-af="PICKUP DATE" type="date" value="${esc(Fstr(rec,'PICKUP DATE'))}"></div>
+        </div>
+
+        <label style="display:block;font-family:'DM Mono';font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--lav);margin:18px 0 8px;border-top:1px solid var(--line);padding-top:14px">Bid & Cost</label>
+        <div class="modal-2col">
+          <div class="plan-mf"><label>Current Bid ($)</label><input class="auf" data-af="CURRENT BID" type="number" inputmode="decimal" value="${Fnum(rec,'CURRENT BID')??''}"></div>
+          <div class="plan-mf"><label>My Max Bid ($)</label><input class="auf" data-af="MY MAX BID" type="number" inputmode="decimal" value="${Fnum(rec,'MY MAX BID')??''}"></div>
+        </div>
+        <div class="modal-2col">
+          <div class="plan-mf"><label>Est. Resale ($)</label><input class="auf" data-af="EST. RESALE VALUE" type="number" inputmode="decimal" value="${resale??''}"></div>
+          <div class="plan-mf"><label>Hammer Price ($)</label><input class="auf" data-af="HAMMER PRICE" type="number" inputmode="decimal" value="${hammer??''}" oninput="updateLandedPreview()"></div>
+        </div>
+        <div class="modal-2col">
+          <div class="plan-mf"><label>Buyer's Premium (%)</label><input class="auf" data-af="BUYER'S PREMIUM (%)" type="number" inputmode="decimal" value="${prem??''}" oninput="updateLandedPreview()"></div>
+          <div class="plan-mf"><label>Shipping / Pickup ($)</label><input class="auf" data-af="SHIPPING/PICKUP COST" type="number" inputmode="decimal" value="${ship??''}" oninput="updateLandedPreview()"></div>
+        </div>
+
+        <div class="au-landed"><span class="k">Landed Cost ${storedLanded!=null?'':'(est.)'}</span><span class="v" id="auLandedVal">${money(landed)}</span></div>
+
+        <div class="plan-mf"><label>Notes</label><textarea class="auf" data-af="NOTES">${esc(Fstr(rec,'NOTES'))}</textarea></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+          <button class="save-btn" id="auSaveBtn" onclick="saveAuctionDetail()" style="flex:1;min-width:160px">Save</button>
+          ${won&&!linked?`<button class="save-btn" onclick="auctionToInventory()" style="flex:1;min-width:160px;background:linear-gradient(150deg,#3e7a3e,#5cb85c)">→ Add to Inventory</button>`:''}
+          ${linked?`<button class="save-btn" onclick="hideAllViews();openWorkspace('${inv[0]}')" style="flex:1;min-width:160px;background:var(--panel-2);color:var(--lav);border:1px solid var(--grape)">Open Inventory Item</button>`:''}
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <label class="au-statusbtn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12"/></svg>
+            ${(F(rec,'INVOICE')||[]).length?'Replace invoice':'Upload invoice'}
+            <input type="file" accept="image/*,application/pdf" style="display:none" onchange="uploadInvoice(this)">
+          </label>
+          ${(F(rec,'INVOICE')||[]).length?`<span style="font-family:'DM Mono';font-size:.62rem;color:#6fc06f;align-self:center">✓ Invoice on file</span>`:''}
+          <button class="au-statusbtn" style="margin-left:auto;color:#c97d7d;border-color:rgba(190,100,100,.4)" onclick="deleteAuction('${rec.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateLandedPreview(){
+  const get=k=>{ const el=document.querySelector(`.auf[data-af="${k}"]`); return el?parseFloat(el.value):NaN; };
+  const v=landedPreview(get('HAMMER PRICE'),get("BUYER'S PREMIUM (%)"),get('SHIPPING/PICKUP COST'));
+  const el=$('#auLandedVal'); if(el) el.textContent=money(v);
+}
+
+function collectAuctionFields(){
+  const fields={};
+  document.querySelectorAll('.auf').forEach(el=>{
+    const f=el.dataset.af; if(!f) return;
+    if(el.type==='number'){ const n=el.value===''?null:parseFloat(el.value); if(n!==null&&!isNaN(n)) fields[f]=n; else fields[f]=null; }
+    else { fields[f]=el.value.trim(); }
+  });
+  return fields;
+}
+
+async function saveAuctionDetail(){
+  if(!currentAuction) return;
+  const btn=$('#auSaveBtn'); if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    const fields=collectAuctionFields();
+    const updated=await atPatch(CFG.auctions,currentAuction.id,fields); // typecast handles datetime/number coercion
+    currentAuction=updated;
+    toast('Auction saved ✓','ok');
+    renderAuctionDetail();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+  finally{ if(btn){btn.disabled=false;btn.textContent='Save';} }
+}
+
+async function setAuctionStatus(status){
+  if(!currentAuction) return;
+  try{
+    if(status==='ARCHIVED'){
+      const updated=await atPatch(CFG.auctions,currentAuction.id,{'STATUS':'ARCHIVED','ARCHIVED':true});
+      currentAuction=updated; toast('Auction archived','ok');
+      openAuctionsView(); return; // archived rows drop out of the active list
+    }
+    const updated=await atPatch(CFG.auctions,currentAuction.id,{'STATUS':status});
+    currentAuction=updated; toast('Status → '+status,'ok'); renderAuctionDetail();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
+async function auctionToInventory(){
+  if(!currentAuction) return;
+  const rec=currentAuction;
+  const landed=Fnum(rec,'LANDED COST') ?? landedPreview(Fnum(rec,'HAMMER PRICE'),Fnum(rec,"BUYER'S PREMIUM (%)"),Fnum(rec,'SHIPPING/PICKUP COST'));
+  const desc=Fstr(rec,'ITEM DESCRIPTION')||'Auction win';
+  const resale=Fnum(rec,'EST. RESALE VALUE');
+  const fields={
+    'ITEM NAME':desc,
+    'CATEGORY':'OTHER',
+    'CONDITION':'GOOD',
+    'COST OF GOODS':landed!=null?Number(landed.toFixed(2)):0,
+    'ITEM STATUS':'SOURCED',
+    'AI IDENTIFICATION NOTES':'From auction'+(Fstr(rec,'SOURCE PLATFORM')?' ('+Fstr(rec,'SOURCE PLATFORM')+')':'')+(Fstr(rec,'SOURCE URL')?' — '+Fstr(rec,'SOURCE URL'):'')
+  };
+  if(resale!=null){ fields['EBAY COMP LOW']=resale; fields['EBAY COMP HIGH']=resale; }
+  try{
+    toast('Creating inventory item…','');
+    const item=await atCreate(CFG.items,fields);
+    // link the new item back on the auction + advance to PICKED UP
+    await atPatch(CFG.auctions,rec.id,{'INVENTORY':[item.id],'STATUS':'PICKED UP'});
+    currentAuction=await atGet(CFG.auctions,rec.id);
+    // keep studio's in-memory inventory in sync so the workspace opens cleanly
+    ITEMS.push(item); LISTINGS_BY_ITEM[item.id]={};
+    toast('Added to inventory — opening item','ok');
+    hideAllViews(); openWorkspace(item.id);
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
+async function uploadInvoice(input){
+  if(!currentAuction||!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  if(file.size>5*1024*1024){ toast('File too large (5MB max)','err'); return; }
+  toast('Uploading invoice…','');
+  try{
+    const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+    const updated=await atUploadAttachment(currentAuction.id,'INVOICE',b64,file.type||'application/octet-stream',file.name);
+    currentAuction=updated; toast('Invoice uploaded ✓','ok'); renderAuctionDetail();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
+async function deleteAuction(recId){
+  if(!confirm('Delete this auction record?')) return;
+  try{
+    await fetch(`https://api.airtable.com/v0/${CFG.base}/${CFG.auctions}/${recId}`,{method:'DELETE',headers:{Authorization:'Bearer '+CFG.airtable}});
+    toast('Auction deleted','ok'); openAuctionsView();
+  }catch(e){ console.error(e); toast(e.message,'err'); }
+}
+
+/* ============================================================
    Label Printer — Code128 via JsBarcode, 2-up letter print
    ============================================================ */
 const SELECTED_LABELS = new Set();
@@ -3037,6 +3410,7 @@ function openModal(){ loadCfg();
   $('#k_anthropic').value=localStorage.getItem(LS.anthropic)||'';
   $('#k_airtable').value=localStorage.getItem(LS.airtable)||'';
   $('#k_base').value=CFG.base; $('#k_items').value=CFG.items; $('#k_listings').value=CFG.listings; $('#k_sessions').value=CFG.sessions; $('#k_sales').value=CFG.sales;
+  $('#k_auctions').value=CFG.auctions||'';
   $('#k_tapes').value=CFG.tapes||''; $('#k_lots').value=CFG.lots||''; $('#k_tapeListings').value=CFG.tapeListings||''; $('#k_tapeSales').value=CFG.tapeSales||''; $('#k_tmdb').value=CFG.tmdb||'';
   $('#modal').classList.add('open'); }
 function closeModal(){ $('#modal').classList.remove('open'); }
@@ -3051,6 +3425,7 @@ $('#modalSave').addEventListener('click',()=>{
   localStorage.setItem(LS.listings,$('#k_listings').value.trim());
   localStorage.setItem(LS.sessions,$('#k_sessions').value.trim());
   localStorage.setItem(LS.sales,$('#k_sales').value.trim());
+  localStorage.setItem(LS.auctions,$('#k_auctions').value.trim());
   localStorage.setItem(LS.tapes,$('#k_tapes').value.trim());
   localStorage.setItem(LS.lots,$('#k_lots').value.trim());
   localStorage.setItem(LS.tapeListings,$('#k_tapeListings').value.trim());
@@ -3063,6 +3438,9 @@ $('#refreshBtn').addEventListener('click',loadAll);
 $('#labelsBtn').addEventListener('click',openLabelsView);
 $('#lotsBtn').addEventListener('click',openLotsView);
 $('#planBtn').addEventListener('click',openPlanView);
+$('#auctionsBtn').addEventListener('click',openAuctionsView);
+$('#auctionsBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
+$('#auctionBackBtn').addEventListener('click',openAuctionsView);
 $('#lotBackBtn').addEventListener('click',()=>{ openLotsView(); });
 $('#lotsBackBtn').addEventListener('click',()=>{ hideAllViews(); $('#view-home').classList.add('active'); renderSessions(); renderInventory(); window.scrollTo(0,0); });
 $('#lotsNewBtn').addEventListener('click',openNewLot);

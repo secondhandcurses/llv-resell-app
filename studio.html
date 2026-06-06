@@ -1093,7 +1093,6 @@
       <div class="mf"><label>Auctions Table ID</label><input id="k_auctions" placeholder="tblEAuV3zoq8OauBg"></div>
       <div class="mf"><label>Scraper Worker URL</label><input id="k_scraper" placeholder="https://llv-scraper.xxxxx.workers.dev"></div>
       <div class="mf"><label>Tasks Table ID</label><input id="k_tasks" placeholder="tblXXXXXXXXXXXXXXX"></div>
-      <div class="mf"><label>Watcher Table ID <span style="font-size:.58rem;color:var(--lav)">(printed by watcher on first run)</span></label><input id="k_watcher" placeholder="tblXXXXXXXXXXXXXXX"></div>
       <div class="mf" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><label style="color:var(--lav);font-size:.62rem;letter-spacing:.12em">VHS TABLES</label></div>
       <div class="mf"><label>Tapes Table ID</label><input id="k_tapes" placeholder="tblLdTYKcXGp8fJ0f"></div>
       <div class="mf"><label>Lots Table ID</label><input id="k_lots" placeholder="tbl7Eo8rBFcXR7JiM"></div>
@@ -1130,7 +1129,6 @@ const LS = {
   auctions:'llv_auctions_table_id',
   scraper:'llv_scraper_url',
   tasks:'llv_tasks_table_id',
-  watcher:'llv_watcher_table_id',
   tapes:'llv_tapes_table_id', lots:'llv_lots_table_id',
   tapeListings:'llv_tape_listings_table_id', tapeSales:'llv_tape_sales_table_id',
   tmdb:'llv_tmdb_key'
@@ -3984,7 +3982,6 @@ function openModal(){ loadCfg();
   $('#k_auctions').value=CFG.auctions||'';
   $('#k_scraper').value=CFG.scraper||'';
   $('#k_tasks').value=CFG.tasks||'';
-  $('#k_watcher').value=CFG.watcher||'';
   $('#k_tapes').value=CFG.tapes||''; $('#k_lots').value=CFG.lots||''; $('#k_tapeListings').value=CFG.tapeListings||''; $('#k_tapeSales').value=CFG.tapeSales||''; $('#k_tmdb').value=CFG.tmdb||'';
   $('#modal').classList.add('open'); }
 function closeModal(){ $('#modal').classList.remove('open'); }
@@ -4002,7 +3999,6 @@ $('#modalSave').addEventListener('click',()=>{
   localStorage.setItem(LS.auctions,$('#k_auctions').value.trim());
   localStorage.setItem(LS.scraper,$('#k_scraper').value.trim());
   localStorage.setItem(LS.tasks,$('#k_tasks').value.trim());
-  localStorage.setItem(LS.watcher,$('#k_watcher').value.trim());
   localStorage.setItem(LS.tapes,$('#k_tapes').value.trim());
   localStorage.setItem(LS.lots,$('#k_lots').value.trim());
   localStorage.setItem(LS.tapeListings,$('#k_tapeListings').value.trim());
@@ -4074,16 +4070,17 @@ $('#scanInput').addEventListener('keydown',e=>{
 })();
 
 /* ============================================================
-   SHOOT MODE — Airtable-bridge (works over HTTPS)
-   ============================================================
-   The watcher writes a heartbeat every 10s to a WATCHER table.
-   The app reads that table to show watcher status (green/red dot).
-   Start/Stop Shoot writes SHOOT ACTIVE + ACTIVE ITEM ID to the
-   same record — the watcher polls it every 2s and acts accordingly.
-
-   Setup: add the Watcher Table ID to credentials after first watcher run.
-   The watcher prints it to the terminal on first launch.
+   SHOOT MODE — Airtable bridge (no localhost, works over HTTPS)
+   Watcher state stored in TASKS table, single config record.
    ============================================================ */
+const WATCHER_TABLE  = 'tblzFTQhuizgHZHAo';  // TASKS table
+const WATCHER_REC    = 'recla4U3l9pHSDqqP';  // LLV_WATCHER_CONFIG record
+const WATCHER_FIELDS = {
+  active:    'fldIpPVf0lTN9DbwQ',  // WATCHER_ACTIVE (checkbox)
+  itemId:    'fldmZSqhcJm6etO9P',  // WATCHER_ITEM_ID
+  itemName:  'fldGxgekg8CrfE1FX',  // WATCHER_ITEM_NAME
+  heartbeat: 'fldoRTpyTlrvinAUK',  // WATCHER_HEARTBEAT
+};
 
 let shootActive    = false;
 let shootRecordId  = null;
@@ -4092,154 +4089,141 @@ let shootPollTimer = null;
 let watcherCheckTimer = null;
 let knownPhotoIds  = new Set();
 
-const SHOOT_POLL_MS   = 4000;  // how often app checks Airtable for new photos
-const WATCHER_CHECK_MS= 15000; // how often app checks watcher heartbeat
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function atPatchWatcher(fields) {
+  if (!CFG.airtable) return;
+  await fetch(`https://api.airtable.com/v0/${CFG.base}/${WATCHER_TABLE}/${WATCHER_REC}`, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + CFG.airtable, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields })
+  });
+}
 
-// ── Watcher heartbeat check ───────────────────────────────────────────────────
-function startWatcherCheck(){
+async function atGetWatcher() {
+  const r = await fetch(
+    `https://api.airtable.com/v0/${CFG.base}/${WATCHER_TABLE}/${WATCHER_REC}`,
+    { headers: { Authorization: 'Bearer ' + CFG.airtable } }
+  );
+  return (await r.json()).fields || {};
+}
+
+// ── Watcher heartbeat indicator ───────────────────────────────────────────────
+function startWatcherCheck() {
   stopWatcherCheck();
   checkWatcherHeartbeat();
-  watcherCheckTimer = setInterval(checkWatcherHeartbeat, WATCHER_CHECK_MS);
+  watcherCheckTimer = setInterval(checkWatcherHeartbeat, 15000);
 }
-function stopWatcherCheck(){
-  clearInterval(watcherCheckTimer);
-}
+function stopWatcherCheck() { clearInterval(watcherCheckTimer); }
 
-async function checkWatcherHeartbeat(){
-  const dot=$('#watcher-dot'), lbl=$('#watcher-label');
-  if(!dot||!lbl) return;
-  if(!CFG.watcher){ // watcher table ID not configured yet
-    dot.className='watcher-dot watcher-dot--stale';
-    lbl.textContent='Add Watcher Table ID to credentials ⚙';
-    return;
-  }
-  try{
-    // List the first record of the WATCHER table
-    const r=await fetch(
-      `https://api.airtable.com/v0/${CFG.base}/${CFG.watcher}?maxRecords=1`,
-      {headers:{Authorization:'Bearer '+CFG.airtable}}
-    );
-    const d=await r.json();
-    const rec=(d.records||[])[0];
-    if(!rec){ dot.className='watcher-dot watcher-dot--stale'; lbl.textContent='Watcher not initialised'; return; }
-    const hb=rec.fields['HEARTBEAT']||'';
-    if(!hb){ dot.className='watcher-dot watcher-dot--stale'; lbl.textContent='No heartbeat yet'; return; }
-    const age=(Date.now()-new Date(hb).getTime())/1000;
-    if(age<30){
-      dot.className='watcher-dot watcher-dot--alive';
-      lbl.textContent=`Watcher running (${Math.round(age)}s ago)`;
+async function checkWatcherHeartbeat() {
+  const dot = $('#watcher-dot'), lbl = $('#watcher-label');
+  if (!dot || !lbl) return;
+  try {
+    const f = await atGetWatcher();
+    const hb = f[WATCHER_FIELDS.heartbeat] || '';
+    if (!hb) { dot.className = 'watcher-dot watcher-dot--stale'; lbl.textContent = 'Watcher not started'; return; }
+    const age = (Date.now() - new Date(hb).getTime()) / 1000;
+    if (age < 30) {
+      dot.className = 'watcher-dot watcher-dot--alive';
+      lbl.textContent = `Watcher running (${Math.round(age)}s ago)`;
     } else {
-      dot.className='watcher-dot watcher-dot--stale';
-      lbl.textContent=`Watcher offline (last seen ${Math.round(age)}s ago)`;
+      dot.className = 'watcher-dot watcher-dot--stale';
+      lbl.textContent = `Watcher offline (last seen ${Math.round(age)}s ago)`;
     }
-  }catch{
-    dot.className='watcher-dot watcher-dot--stale';
-    lbl.textContent='Could not reach Airtable';
+  } catch {
+    dot.className = 'watcher-dot watcher-dot--stale';
+    lbl.textContent = 'Could not reach Airtable';
   }
-}
-
-// ── Write to WATCHER record ───────────────────────────────────────────────────
-async function writeWatcherState(active, itemId, itemName){
-  if(!CFG.watcher||!CFG.airtable) return;
-  // Get the record ID first (or cache it)
-  if(!writeWatcherState._recId){
-    try{
-      const r=await fetch(
-        `https://api.airtable.com/v0/${CFG.base}/${CFG.watcher}?maxRecords=1`,
-        {headers:{Authorization:'Bearer '+CFG.airtable}}
-      );
-      const d=await r.json();
-      writeWatcherState._recId=(d.records||[])[0]?.id||null;
-    }catch{ return; }
-  }
-  if(!writeWatcherState._recId) return;
-  try{
-    await fetch(
-      `https://api.airtable.com/v0/${CFG.base}/${CFG.watcher}/${writeWatcherState._recId}`,
-      { method:'PATCH',
-        headers:{Authorization:'Bearer '+CFG.airtable,'Content-Type':'application/json'},
-        body:JSON.stringify({fields:{
-          'SHOOT ACTIVE':active,
-          'ACTIVE ITEM ID':itemId||'',
-          'ITEM NAME':itemName||'',
-          'SESSION STARTED':active?new Date().toISOString():'',
-        }})
-      }
-    );
-  }catch(e){ console.error('Watcher state write failed:',e); }
 }
 
 // ── Start / Stop Shoot ────────────────────────────────────────────────────────
-async function startShoot(){
-  if(!shootRecordId){ toast('No item selected','err'); return; }
-  if(!CFG.watcher){ toast('Add Watcher Table ID to credentials ⚙ first','err'); return; }
+async function startShoot() {
+  if (!shootRecordId) { toast('No item selected', 'err'); return; }
+  const btn = $('#shoot-start-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
 
-  const btn=$('#shoot-start-btn'); if(btn){ btn.disabled=true; btn.textContent='Starting…'; }
-  await writeWatcherState(true, shootRecordId, shootItemName);
-  if(btn){ btn.disabled=false; }
-
-  shootActive=true; knownPhotoIds.clear();
-  const grid=$('#shoot-photo-grid'); if(grid) grid.innerHTML='';
-  const ct=$('#shoot-count-num'); if(ct) ct.textContent='0';
-
-  $('#shoot-start-btn').style.display='none';
-  $('#shoot-stop-btn').style.display='inline-block';
-  $('#shoot-item-info').style.display='block';
-  $('#shoot-item-name').textContent=shootItemName||shootRecordId;
-  $('#shoot-counter').style.display='block';
-  $('#shoot-status-badge').textContent='ACTIVE';
-  $('#shoot-status-badge').className='shoot-badge shoot-badge--active';
-
-  await pollShootPhotos(true); // seed existing
-  shootPollTimer=setInterval(()=>pollShootPhotos(false), SHOOT_POLL_MS);
-  toast('Shoot started 📷','ok');
-}
-
-async function stopShoot(silent=false){
-  clearInterval(shootPollTimer);
-  if(!shootActive) return;
-  shootActive=false;
-  await writeWatcherState(false,'','');
-  writeWatcherState._recId=null; // clear cache so next session re-fetches
-
-  const startBtn=$('#shoot-start-btn'), stopBtn=$('#shoot-stop-btn'), badge=$('#shoot-status-badge');
-  if(startBtn) startBtn.style.display='inline-block';
-  if(stopBtn)  stopBtn.style.display='none';
-  if(badge){   badge.textContent='IDLE'; badge.className='shoot-badge shoot-badge--idle'; }
-  if(!silent)  toast('Shoot ended','ok');
-}
-
-// ── Poll Airtable for new photos ──────────────────────────────────────────────
-async function pollShootPhotos(seedOnly=false){
-  if(!shootRecordId||!CFG.airtable) return;
-  let data;
-  try{
-    const r=await fetch(
-      `https://api.airtable.com/v0/${CFG.base}/${CFG.items}/${shootRecordId}?fields%5B%5D=PHOTOS`,
-      {headers:{Authorization:'Bearer '+CFG.airtable}}
-    );
-    data=await r.json();
-  }catch{ return; }
-  const photos=data.fields?.PHOTOS||[];
-  if(seedOnly){ photos.forEach(p=>knownPhotoIds.add(p.id)); return; }
-  const newPhotos=photos.filter(p=>!knownPhotoIds.has(p.id));
-  if(!newPhotos.length) return;
-  newPhotos.forEach(p=>{ knownPhotoIds.add(p.id); addShootThumb(p,knownPhotoIds.size); });
-  const ct=$('#shoot-count-num'); if(ct) ct.textContent=knownPhotoIds.size;
-  const badge=$('#shoot-status-badge');
-  if(badge){
-    badge.textContent='NEW PHOTO'; badge.className='shoot-badge shoot-badge--uploading';
-    setTimeout(()=>{ if(shootActive&&badge){ badge.textContent='ACTIVE'; badge.className='shoot-badge shoot-badge--active'; } },1500);
+  try {
+    await atPatchWatcher({
+      [WATCHER_FIELDS.active]:   true,
+      [WATCHER_FIELDS.itemId]:   shootRecordId,
+      [WATCHER_FIELDS.itemName]: shootItemName || '',
+    });
+  } catch(e) {
+    toast('Could not write to Airtable: ' + e.message, 'err');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Start Shoot'; }
+    return;
   }
-  renderWorkspace(); // refresh primary photo
+  if (btn) { btn.disabled = false; }
+
+  shootActive = true; knownPhotoIds.clear();
+  const grid = $('#shoot-photo-grid'); if (grid) grid.innerHTML = '';
+  const ct = $('#shoot-count-num'); if (ct) ct.textContent = '0';
+  $('#shoot-start-btn').style.display = 'none';
+  $('#shoot-stop-btn').style.display  = 'inline-block';
+  $('#shoot-item-info').style.display = 'block';
+  $('#shoot-item-name').textContent   = shootItemName || shootRecordId;
+  $('#shoot-counter').style.display   = 'block';
+  $('#shoot-status-badge').textContent = 'ACTIVE';
+  $('#shoot-status-badge').className  = 'shoot-badge shoot-badge--active';
+
+  await pollShootPhotos(true);
+  shootPollTimer = setInterval(() => pollShootPhotos(false), 4000);
+  toast('Shoot started 📷', 'ok');
 }
 
-function addShootThumb(photo,num){
-  const grid=$('#shoot-photo-grid'); if(!grid) return;
-  const div=document.createElement('div');
-  div.className='shoot-photo-thumb shoot-photo--new';
-  div.innerHTML=`<img src="${esc((photo.thumbnails?.large?.url)||photo.url)}" alt=""><span class="shoot-photo-num">${num}</span>`;
-  setTimeout(()=>div.classList.remove('shoot-photo--new'),700);
+async function stopShoot(silent = false) {
+  clearInterval(shootPollTimer);
+  if (!shootActive) return;
+  shootActive = false;
+  try {
+    await atPatchWatcher({
+      [WATCHER_FIELDS.active]:   false,
+      [WATCHER_FIELDS.itemId]:   '',
+      [WATCHER_FIELDS.itemName]: '',
+    });
+  } catch {}
+  const startBtn = $('#shoot-start-btn'), stopBtn = $('#shoot-stop-btn'), badge = $('#shoot-status-badge');
+  if (startBtn) startBtn.style.display = 'inline-block';
+  if (stopBtn)  stopBtn.style.display  = 'none';
+  if (badge) { badge.textContent = 'IDLE'; badge.className = 'shoot-badge shoot-badge--idle'; }
+  if (!silent) toast('Shoot ended', 'ok');
+}
+
+// ── Poll for new photos ───────────────────────────────────────────────────────
+async function pollShootPhotos(seedOnly = false) {
+  if (!shootRecordId || !CFG.airtable) return;
+  let data;
+  try {
+    const r = await fetch(
+      `https://api.airtable.com/v0/${CFG.base}/${CFG.items}/${shootRecordId}?fields%5B%5D=PHOTOS`,
+      { headers: { Authorization: 'Bearer ' + CFG.airtable } }
+    );
+    data = await r.json();
+  } catch { return; }
+
+  const photos = data.fields?.PHOTOS || [];
+  if (seedOnly) { photos.forEach(p => knownPhotoIds.add(p.id)); return; }
+
+  const newPhotos = photos.filter(p => !knownPhotoIds.has(p.id));
+  if (!newPhotos.length) return;
+
+  newPhotos.forEach(p => { knownPhotoIds.add(p.id); addShootThumb(p, knownPhotoIds.size); });
+  const ct = $('#shoot-count-num'); if (ct) ct.textContent = knownPhotoIds.size;
+
+  const badge = $('#shoot-status-badge');
+  if (badge) {
+    badge.textContent = 'NEW PHOTO'; badge.className = 'shoot-badge shoot-badge--uploading';
+    setTimeout(() => { if (shootActive && badge) { badge.textContent = 'ACTIVE'; badge.className = 'shoot-badge shoot-badge--active'; } }, 1500);
+  }
+  renderWorkspace();
+}
+
+function addShootThumb(photo, num) {
+  const grid = $('#shoot-photo-grid'); if (!grid) return;
+  const div = document.createElement('div');
+  div.className = 'shoot-photo-thumb shoot-photo--new';
+  div.innerHTML = `<img src="${esc(photo.thumbnails?.large?.url || photo.url)}" alt=""><span class="shoot-photo-num">${num}</span>`;
+  setTimeout(() => div.classList.remove('shoot-photo--new'), 700);
   grid.appendChild(div);
 }
 

@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LLV · Sourcing Inbox</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --bg4: #2e2e2e;
+    --border: #333;
+    --border2: #444;
+    --text: #f0f0f0;
+    --text2: #999;
+    --text3: #666;
+    --purple: #7c6ff7;
+    --purple-dim: #3d3870;
+    --purple-bg: #1e1c3a;
+    --green: #3dba7c;
+    --green-bg: #0f2a1c;
+    --amber: #e8a230;
+    --amber-bg: #2a1f0a;
+    --red: #e05555;
+    --red-bg: #2a1010;
+    --hot: #f7c06f;
+    --hot-bg: #2a1e05;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: env(safe-area-inset-top, 0) 0 0;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 0;
+  }
+
+  .header-wordmark {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .header-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+    background: var(--purple-bg);
+    color: var(--purple);
+    border: 1px solid var(--purple-dim);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── URL BAR ── */
+  .url-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .url-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .url-input::placeholder { color: var(--text3); }
+  .url-input:focus { border-color: var(--purple); }
+
+  .url-btn {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .url-btn:active { opacity: 0.8; }
+  .url-btn.loading { opacity: 0.6; pointer-events: none; }
+
+  .share-hint {
+    padding: 6px 16px 8px;
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--bg);
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 0;
+    color: var(--text3);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.15s;
+    position: relative;
+  }
+
+  .tab.active {
+    color: var(--purple);
+    border-bottom-color: var(--purple);
+  }
+
+  .tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 99px;
+    background: var(--purple-dim);
+    color: var(--purple);
+    margin-left: 5px;
+    padding: 0 4px;
+    vertical-align: middle;
+  }
+
+  /* ── FEED ── */
+  .feed {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 4px 2px 2px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card.hot { border-color: var(--purple-dim); }
+  .card.passed { opacity: 0.4; }
+
+  .card-img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    background: var(--bg3);
+    position: relative;
+  }
+
+  .card-img-placeholder {
+    width: 100%;
+    height: 140px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .card-img-placeholder svg { opacity: 0.2; }
+
+  .img-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  }
+
+  .source-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 3px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+
+  .source-tag.auto { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-dim); }
+  .source-tag.pasted { background: rgba(0,0,0,0.5); color: var(--text2); border: 1px solid var(--border2); }
+  .source-tag.shared { background: var(--green-bg); color: var(--green); border: 1px solid #1d5c3a; }
+
+  .view-listing-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .view-listing-btn:hover { background: rgba(255,255,255,0.2); }
+
+  .hot-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--hot-bg);
+    color: var(--hot);
+    border: 1px solid rgba(247,192,111,0.3);
+  }
+
+  .card-body { padding: 12px 14px 0; }
+
+  .card-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .card-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    font-family: var(--font-mono);
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .score-pips {
+    display: flex;
+    gap: 3px;
+  }
+
+  .pip {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bg4);
+  }
+
+  .pip.s5 { background: var(--green); }
+  .pip.s4 { background: #7ec94a; }
+  .pip.s3 { background: var(--amber); }
+  .pip.s2 { background: #e07a30; }
+  .pip.s1 { background: var(--red); }
+
+  .score-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+
+  .time-tag {
+    font-size: 11px;
+    color: var(--text3);
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .ai-note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text2);
+    background: var(--bg3);
+    border-left: 2px solid var(--purple-dim);
+    border-radius: 0 6px 6px 0;
+    padding: 7px 10px;
+    margin-bottom: 10px;
+  }
+
+  .offer-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .offer-text {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+    cursor: text;
+  }
+
+  .copy-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    padding: 7px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { background: var(--bg4); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .action-row {
+    display: flex;
+    border-top: 1px solid var(--border);
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 11px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: var(--text3);
+    font-family: var(--font);
+    transition: background 0.12s, color 0.12s;
+    letter-spacing: 0.02em;
+  }
+
+  .action-btn:not(:last-child) { border-right: 1px solid var(--border); }
+  .action-btn:active { background: var(--bg3); }
+
+  .action-btn.offer { color: var(--purple); }
+  .action-btn.save { color: var(--green); }
+  .action-btn.pass { color: var(--text3); }
+  .action-btn:hover { background: var(--bg3); }
+
+  /* ── PROSPECTS ── */
+  .prospect-card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 13px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .prospect-card:hover { border-color: var(--border2); }
+
+  .prospect-thumb {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text3);
+  }
+
+  .prospect-info { flex: 1; min-width: 0; }
+
+  .prospect-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .prospect-meta {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .prospect-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .status-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+
+  .status-pill.NEW { background: var(--purple-bg); color: var(--purple); }
+  .status-pill.SAVED { background: var(--purple-bg); color: var(--purple); }
+  .status-pill.MESSAGED { background: rgba(61,186,124,0.12); color: var(--green); }
+  .status-pill.NEGOTIATING { background: var(--amber-bg); color: var(--amber); }
+  .status-pill.WON { background: rgba(61,186,124,0.2); color: var(--green); }
+  .status-pill.PASSED { background: var(--bg4); color: var(--text3); }
+
+  .prospect-link {
+    font-size: 11px;
+    color: var(--text3);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .prospect-link:hover { color: var(--purple); }
+
+  /* ── LOADING STATE ── */
+  .loading-card {
+    background: var(--bg2);
+    border: 1px solid var(--purple-dim);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--purple-dim);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+
+  .empty-state svg { opacity: 0.2; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; line-height: 1.5; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--bg4);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    white-space: nowrap;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── NAV BAR ── */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 200;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 8px;
+    gap: 3px;
+    text-decoration: none;
+    color: var(--text3);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .nav-item.active, .nav-item:hover { color: var(--purple); }
+
+  /* ── SCORING ANIMATION on card entry ── */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card-new { animation: slideIn 0.3s ease forwards; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <span class="header-wordmark">LLV</span>
+    <span class="header-title">Sourcing inbox</span>
+    <span class="header-badge" id="new-badge">0 new</span>
+  </div>
+
+  <!-- URL BAR -->
+  <div class="url-bar">
+    <input
+      class="url-input"
+      type="url"
+      id="url-input"
+      placeholder="Paste a Marketplace listing URL…"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    >
+    <button class="url-btn" id="score-btn" onclick="scoreUrl()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Score it
+    </button>
+  </div>
+
+  <div class="share-hint">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    On mobile: share any listing to Last Laugh from the FBM app
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-inbox" onclick="switchTab('inbox')">
+      Inbox <span class="tab-count" id="inbox-count">0</span>
+    </div>
+    <div class="tab" id="tab-prospects" onclick="switchTab('prospects')">
+      Prospects <span class="tab-count" id="prospects-count">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div class="feed" id="feed">
+  <div class="empty-state" id="empty-inbox">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+    <p>No listings yet.<br>Paste a URL above or wait for monitor alerts.</p>
+  </div>
+</div>
+
+<!-- PROSPECTS FEED (hidden by default) -->
+<div class="feed" id="prospects-feed" style="display:none;">
+  <div class="empty-state" id="empty-prospects">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+    <p>No saved prospects yet.<br>Tap Save on inbox listings to track them here.</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav-bar">
+  <a href="index.html" class="nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="field.html" class="nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    Field
+  </a>
+  <a href="sourcing.html" class="nav-item active">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Sourcing
+  </a>
+  <a href="studio.html" class="nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    Studio
+  </a>
+</nav>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────
+const BASE_ID = 'app3DqxIJ1SUBKylb';
+const TABLE_ID = 'tblbh9AyRWanyq2Gm';
+const ITEMS_TABLE_ID = 'tblFeToiIcEseekfH';
+
+// Field IDs
+const F = {
+  TITLE:       'fld4etU8SR33Iviu6',
+  URL:         'fldhma6XYT1FhEVrx',
+  PRICE:       'fld8yGYNf5S6z9SuK',
+  PHOTOS:      'fldAsY2M62ISSCvJD',
+  DESCRIPTION: 'fldtCPRrDxuvIIhHD',
+  SOURCE:      'fldp2MH89Vcfimf9K',
+  STATUS:      'fldluWH5QsGh7COnb',
+  AI_SCORE:    'fldju99h7my1xLeKK',
+  AI_LABEL:    'fldKLqoJKuNHFvGX7',
+  AI_NOTE:     'fldxj68J4Lry80aZo',
+  OFFER_DRAFT: 'fldGWen9O8roBnDBF',
+  KEYWORDS:    'fldw8EFSAfEvVECWO',
+  ARRIVED_AT:  'fldVlomBzElYkBD3l',
+  LISTING_AGE: 'fldv6mHebvE3Ib9Ol',
+  LINKED_ITEM: 'fldedaojLBgCdSAa4',
+};
+
+// ── STATE ────────────────────────────────────────────────────────
+let airtableKey = '';
+let currentTab = 'inbox';
+let allRecords = [];
+let pollTimer = null;
+
+// ── INIT ─────────────────────────────────────────────────────────
+async function init() {
+  airtableKey = localStorage.getItem('llv_airtable_key') || '';
+  if (!airtableKey) {
+    airtableKey = prompt('Enter your Airtable API key:');
+    if (airtableKey) localStorage.setItem('llv_airtable_key', airtableKey);
+  }
+  await loadRecords();
+  startPolling();
+}
+
+// ── POLLING ───────────────────────────────────────────────────────
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(loadRecords, 30000); // poll every 30s
+}
+
+// ── AIRTABLE ──────────────────────────────────────────────────────
+async function airtableGet(path) {
+  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${path}`, {
+    headers: { Authorization: `Bearer ${airtableKey}` }
+  });
+  return res.json();
+}
+
+async function airtablePatch(recordId, fields) {
+  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${airtableKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ fields })
+  });
+  return res.json();
+}
+
+async function airtableCreate(fields) {
+  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${airtableKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ fields })
+  });
+  return res.json();
+}
+
+// ── LOAD RECORDS ─────────────────────────────────────────────────
+async function loadRecords() {
+  try {
+    const params = new URLSearchParams({
+      filterByFormula: `NOT({${F.STATUS}} = 'PASSED')`,
+      sort: JSON.stringify([{ field: F.ARRIVED_AT, direction: 'desc' }]),
+      maxRecords: '100'
+    });
+    const data = await airtableGet(`${TABLE_ID}?${params}`);
+    if (!data.records) return;
+    allRecords = data.records;
+    renderAll();
+  } catch (e) {
+    console.error('Load error:', e);
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderAll() {
+  const inbox = allRecords.filter(r => {
+    const s = r.fields[F.STATUS];
+    return !s || s === 'NEW' || s === 'SAVED';
+  });
+  const prospects = allRecords.filter(r => {
+    const s = r.fields[F.STATUS];
+    return s && !['NEW', 'SAVED', 'PASSED'].includes(s);
+  });
+
+  // update counts
+  const newCount = inbox.filter(r => !r.fields[F.STATUS] || r.fields[F.STATUS] === 'NEW').length;
+  document.getElementById('inbox-count').textContent = inbox.length;
+  document.getElementById('prospects-count').textContent = prospects.length;
+  document.getElementById('new-badge').textContent = `${newCount} new`;
+
+  // render inbox feed
+  const feed = document.getElementById('feed');
+  const emptyInbox = document.getElementById('empty-inbox');
+  const existingCards = feed.querySelectorAll('.card, .section-label');
+  existingCards.forEach(el => el.remove());
+
+  if (inbox.length === 0) {
+    emptyInbox.style.display = '';
+  } else {
+    emptyInbox.style.display = 'none';
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = `Active · ${inbox.length} listing${inbox.length !== 1 ? 's' : ''}`;
+    feed.insertBefore(label, emptyInbox);
+    inbox.forEach(record => {
+      const card = buildInboxCard(record);
+      feed.insertBefore(card, emptyInbox);
+    });
+  }
+
+  // render prospects feed
+  const pfeed = document.getElementById('prospects-feed');
+  const emptyP = document.getElementById('empty-prospects');
+  const existingP = pfeed.querySelectorAll('.prospect-card, .section-label');
+  existingP.forEach(el => el.remove());
+
+  if (prospects.length === 0) {
+    emptyP.style.display = '';
+  } else {
+    emptyP.style.display = 'none';
+    const plabel = document.createElement('div');
+    plabel.className = 'section-label';
+    plabel.textContent = `Active · ${prospects.length} prospect${prospects.length !== 1 ? 's' : ''}`;
+    pfeed.insertBefore(plabel, emptyP);
+    prospects.forEach(record => {
+      const card = buildProspectCard(record);
+      pfeed.insertBefore(card, emptyP);
+    });
+  }
+}
+
+// ── BUILD INBOX CARD ──────────────────────────────────────────────
+function buildInboxCard(record) {
+  const f = record.fields;
+  const score = f[F.AI_SCORE] || 0;
+  const label = f[F.AI_LABEL] || '';
+  const isHot = isHotListing(f[F.ARRIVED_AT]);
+  const source = (f[F.SOURCE] || 'AUTO').toLowerCase();
+  const url = f[F.URL] || '';
+  const photo = f[F.PHOTOS] && f[F.PHOTOS][0] ? f[F.PHOTOS][0].url : null;
+
+  const card = document.createElement('div');
+  card.className = `card card-new${isHot ? ' hot' : ''}`;
+  card.dataset.id = record.id;
+
+  // Image area
+  const imgArea = document.createElement('div');
+  imgArea.className = 'card-img-placeholder';
+
+  if (photo) {
+    const img = document.createElement('img');
+    img.src = photo;
+    img.className = 'card-img';
+    img.style.height = '140px';
+    img.alt = f[F.TITLE] || '';
+    imgArea.appendChild(img);
+  } else {
+    imgArea.innerHTML = `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+  }
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'img-overlay';
+
+  const sourceTag = document.createElement('span');
+  sourceTag.className = `source-tag ${source}`;
+  sourceTag.textContent = source;
+
+  const viewBtn = document.createElement('a');
+  viewBtn.className = 'view-listing-btn';
+  viewBtn.href = url || '#';
+  if (url) viewBtn.target = '_blank';
+  viewBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> View listing`;
+
+  overlay.appendChild(sourceTag);
+  overlay.appendChild(viewBtn);
+  imgArea.appendChild(overlay);
+
+  if (isHot) {
+    const hotBadge = document.createElement('div');
+    hotBadge.className = 'hot-badge';
+    hotBadge.textContent = '🔥 Hot';
+    imgArea.appendChild(hotBadge);
+  }
+
+  card.appendChild(imgArea);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  // Top row: title + price
+  const topRow = document.createElement('div');
+  topRow.className = 'card-top-row';
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = f[F.TITLE] || 'Untitled listing';
+  const price = document.createElement('div');
+  price.className = 'card-price';
+  price.textContent = f[F.PRICE] ? `$${f[F.PRICE]}` : '—';
+  topRow.appendChild(title);
+  topRow.appendChild(price);
+  body.appendChild(topRow);
+
+  // Score row
+  const scoreRow = document.createElement('div');
+  scoreRow.className = 'score-row';
+  const pips = document.createElement('div');
+  pips.className = 'score-pips';
+  for (let i = 1; i <= 5; i++) {
+    const pip = document.createElement('div');
+    pip.className = `pip${i <= score ? ` s${score}` : ''}`;
+    pips.appendChild(pip);
+  }
+  const scoreLabel = document.createElement('span');
+  scoreLabel.className = 'score-label';
+  scoreLabel.textContent = score ? `${score}/5 — ${label}` : 'unscored';
+  const timeTag = document.createElement('span');
+  timeTag.className = 'time-tag';
+  timeTag.textContent = timeAgo(f[F.ARRIVED_AT]);
+  scoreRow.appendChild(pips);
+  scoreRow.appendChild(scoreLabel);
+  scoreRow.appendChild(timeTag);
+  body.appendChild(scoreRow);
+
+  // AI note
+  if (f[F.AI_NOTE]) {
+    const note = document.createElement('div');
+    note.className = 'ai-note';
+    note.textContent = f[F.AI_NOTE];
+    body.appendChild(note);
+  }
+
+  // Offer row
+  const offerRow = document.createElement('div');
+  offerRow.className = 'offer-row';
+  const offerText = document.createElement('div');
+  offerText.className = 'offer-text';
+  offerText.textContent = f[F.OFFER_DRAFT] ? `"${f[F.OFFER_DRAFT]}"` : 'No offer drafted yet';
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'copy-btn';
+  copyBtn.title = 'Copy offer message';
+  copyBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+  copyBtn.onclick = () => copyOffer(f[F.OFFER_DRAFT], copyBtn);
+  offerRow.appendChild(offerText);
+  offerRow.appendChild(copyBtn);
+  body.appendChild(offerRow);
+  card.appendChild(body);
+
+  // Action row
+  const actionRow = document.createElement('div');
+  actionRow.className = 'action-row';
+
+  const offerBtn = document.createElement('button');
+  offerBtn.className = 'action-btn offer';
+  offerBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Offer`;
+  offerBtn.onclick = () => handleOffer(record.id, f[F.OFFER_DRAFT], url);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'action-btn save';
+  saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Save`;
+  saveBtn.onclick = () => handleSave(record.id, card);
+
+  const passBtn = document.createElement('button');
+  passBtn.className = 'action-btn pass';
+  passBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Pass`;
+  passBtn.onclick = () => handlePass(record.id, card);
+
+  actionRow.appendChild(offerBtn);
+  actionRow.appendChild(saveBtn);
+  actionRow.appendChild(passBtn);
+  card.appendChild(actionRow);
+
+  return card;
+}
+
+// ── BUILD PROSPECT CARD ───────────────────────────────────────────
+function buildProspectCard(record) {
+  const f = record.fields;
+  const status = f[F.STATUS] || 'SAVED';
+  const url = f[F.URL] || '';
+
+  const card = document.createElement('div');
+  card.className = 'prospect-card';
+
+  const thumb = document.createElement('div');
+  thumb.className = 'prospect-thumb';
+  thumb.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+
+  if (f[F.PHOTOS] && f[F.PHOTOS][0]) {
+    thumb.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = f[F.PHOTOS][0].thumbnails?.small?.url || f[F.PHOTOS][0].url;
+    img.style.cssText = 'width:46px;height:46px;object-fit:cover;border-radius:8px;display:block;';
+    thumb.appendChild(img);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'prospect-info';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'prospect-title';
+  titleEl.textContent = f[F.TITLE] || 'Untitled';
+
+  const meta = document.createElement('div');
+  meta.className = 'prospect-meta';
+  meta.textContent = `${f[F.PRICE] ? '$' + f[F.PRICE] : '—'} · ${timeAgo(f[F.ARRIVED_AT])}`;
+
+  const footer = document.createElement('div');
+  footer.className = 'prospect-footer';
+
+  const pill = document.createElement('span');
+  pill.className = `status-pill ${status}`;
+  pill.textContent = status;
+
+  const link = document.createElement('a');
+  link.className = 'prospect-link';
+  link.href = url || '#';
+  if (url) link.target = '_blank';
+  link.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> View listing`;
+
+  footer.appendChild(pill);
+  footer.appendChild(link);
+  info.appendChild(titleEl);
+  info.appendChild(meta);
+  info.appendChild(footer);
+
+  card.appendChild(thumb);
+  card.appendChild(info);
+
+  // Status update controls
+  card.onclick = (e) => {
+    if (e.target.closest('a')) return;
+    showStatusPicker(record.id);
+  };
+
+  return card;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────
+function handleOffer(recordId, offerText, url) {
+  if (offerText) {
+    navigator.clipboard.writeText(offerText).catch(() => {});
+    showToast('Offer copied to clipboard');
+  }
+  if (url) window.open(url, '_blank');
+  updateStatus(recordId, 'MESSAGED');
+}
+
+async function handleSave(recordId, cardEl) {
+  await updateStatus(recordId, 'SAVED');
+  showToast('Saved to prospects');
+}
+
+async function handlePass(recordId, cardEl) {
+  cardEl.style.transition = 'opacity 0.3s, transform 0.3s';
+  cardEl.style.opacity = '0';
+  cardEl.style.transform = 'translateX(40px)';
+  setTimeout(() => cardEl.remove(), 300);
+  await updateStatus(recordId, 'PASSED');
+  showToast('Passed');
+  updateCounts();
+}
+
+async function updateStatus(recordId, status) {
+  try {
+    await airtablePatch(recordId, { [F.STATUS]: status });
+    const rec = allRecords.find(r => r.id === recordId);
+    if (rec) rec.fields[F.STATUS] = status;
+    renderAll();
+  } catch (e) {
+    console.error('Update error:', e);
+  }
+}
+
+function showStatusPicker(recordId) {
+  const statuses = ['MESSAGED', 'NEGOTIATING', 'WON', 'PASSED'];
+  const choice = prompt(`Update status:\n${statuses.map((s, i) => `${i+1}. ${s}`).join('\n')}\n\nEnter number:`);
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  if (idx >= 0 && idx < statuses.length) {
+    updateStatus(recordId, statuses[idx]);
+  }
+}
+
+function copyOffer(text, btn) {
+  if (!text) return showToast('No offer drafted yet');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1500);
+    showToast('Copied!');
+  });
+}
+
+// ── SCORE URL ─────────────────────────────────────────────────────
+async function scoreUrl() {
+  const input = document.getElementById('url-input');
+  const url = input.value.trim();
+  if (!url) return;
+  if (!url.includes('facebook.com')) {
+    return showToast('Please paste a Facebook Marketplace URL');
+  }
+
+  const btn = document.getElementById('score-btn');
+  btn.classList.add('loading');
+  btn.textContent = 'Scoring…';
+
+  // Show loading card
+  const feed = document.getElementById('feed');
+  const loadingCard = document.createElement('div');
+  loadingCard.className = 'loading-card';
+  loadingCard.id = 'loading-card';
+  loadingCard.innerHTML = `<div class="spinner"></div><div class="loading-text">Fetching listing and scoring with Claude…</div>`;
+  feed.insertBefore(loadingCard, feed.firstChild);
+  document.getElementById('empty-inbox').style.display = 'none';
+
+  try {
+    // Call Claude API to score the listing
+    const scored = await scoreListing(url);
+
+    // Write to Airtable
+    const record = await airtableCreate({
+      [F.TITLE]:       scored.title || 'Untitled listing',
+      [F.URL]:         url,
+      [F.PRICE]:       scored.price || null,
+      [F.DESCRIPTION]: scored.description || '',
+      [F.SOURCE]:      'PASTED',
+      [F.STATUS]:      'NEW',
+      [F.AI_SCORE]:    scored.score || 3,
+      [F.AI_LABEL]:    scored.label || '',
+      [F.AI_NOTE]:     scored.note || '',
+      [F.OFFER_DRAFT]: scored.offer || '',
+      [F.ARRIVED_AT]:  new Date().toISOString(),
+    });
+
+    allRecords.unshift(record);
+    loadingCard.remove();
+    renderAll();
+    input.value = '';
+    showToast('Listing scored and added');
+  } catch (e) {
+    console.error('Score error:', e);
+    loadingCard.remove();
+    showToast('Error scoring listing — check console');
+    renderAll();
+  }
+
+  btn.classList.remove('loading');
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Score it`;
+}
+
+// ── CLAUDE SCORING ────────────────────────────────────────────────
+async function scoreListing(url) {
+  const prompt = `You are helping a vintage/collectibles reseller evaluate a Facebook Marketplace listing.
+
+Given this listing URL: ${url}
+
+Since you cannot browse URLs directly, analyze the URL structure and any information available to produce a scoring response. If the URL contains a listing ID, note it.
+
+Respond ONLY with valid JSON (no markdown, no backticks):
+{
+  "title": "listing title (infer from URL or use generic)",
+  "price": 0,
+  "description": "brief description",
+  "score": 3,
+  "label": "worth a look",
+  "note": "One to two sentence AI assessment. Note this was scored from URL only — listing content not fetched.",
+  "offer": "Hi! Is this still available? I can pick up today."
+}
+
+Score 1-5:
+5 = great deal (strong underpriced item)
+4 = solid flip (good margin likely)
+3 = worth a look (needs more info)
+2 = marginal (thin margin)
+1 = pass (overpriced or wrong category)
+
+Labels: "great deal", "solid flip", "worth a look", "marginal", "pass"`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 400,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  const data = await res.json();
+  const text = data.content?.[0]?.text || '{}';
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-inbox').className = `tab${tab === 'inbox' ? ' active' : ''}`;
+  document.getElementById('tab-prospects').className = `tab${tab === 'prospects' ? ' active' : ''}`;
+  document.getElementById('feed').style.display = tab === 'inbox' ? '' : 'none';
+  document.getElementById('prospects-feed').style.display = tab === 'prospects' ? '' : 'none';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function updateCounts() {
+  const newCount = allRecords.filter(r => !r.fields[F.STATUS] || r.fields[F.STATUS] === 'NEW').length;
+  document.getElementById('new-badge').textContent = `${newCount} new`;
+}
+
+function isHotListing(arrivedAt) {
+  if (!arrivedAt) return false;
+  const age = (Date.now() - new Date(arrivedAt)) / 60000;
+  return age < 15;
+}
+
+function timeAgo(isoString) {
+  if (!isoString) return '';
+  const mins = Math.floor((Date.now() - new Date(isoString)) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── PWA SHARE TARGET HANDLER ──────────────────────────────────────
+// Handles incoming shared URLs from the PWA share_target
+function handleSharedUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedUrl = params.get('url') || params.get('text');
+  if (sharedUrl && sharedUrl.includes('facebook.com')) {
+    document.getElementById('url-input').value = sharedUrl;
+    // Auto-score after a brief delay to let the page settle
+    setTimeout(() => scoreUrl(), 500);
+  }
+}
+
+// ── START ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  handleSharedUrl();
+  init();
+});
+</script>
+</body>
+</html>
